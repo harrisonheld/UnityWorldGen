@@ -1,4 +1,5 @@
 #if UNITY_EDITOR
+using System.Collections.Generic;
 using UnityEditor;
 #endif
 using UnityEngine;
@@ -6,7 +7,8 @@ using UnityEngine;
 [ExecuteInEditMode]
 public class CustomTerrain : MonoBehaviour
 {
-    // Your existing code...
+    [SerializeField]
+    private Biome[] _biomes;
 
 #if UNITY_EDITOR
     [CustomEditor(typeof(CustomTerrain))]
@@ -16,14 +18,12 @@ public class CustomTerrain : MonoBehaviour
         {
             base.OnInspectorGUI();
 
-            CustomTerrain terrain = (CustomTerrain)target;
+            CustomTerrain terrain = (CustomTerrain)this.target;
 
             GUILayout.Space(10);
 
-            // Create a button in the Inspector
             if (GUILayout.Button("Generate Terrain"))
             {
-                // Call the function you want to execute in Editor mode
                 terrain.GenerateTerrain();
             }
         }
@@ -36,4 +36,5 @@ public class CustomTerrain : MonoBehaviour
         // Implement your terrain generation logic here
         Debug.Log("Generating Terrain...");
     }
+
 }
