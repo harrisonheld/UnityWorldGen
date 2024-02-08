@@ -7,13 +7,11 @@ using UnityEngine;
 [ExecuteInEditMode]
 public class CustomTerrain : MonoBehaviour
 {
-    [SerializeField]
-    private int _width = 50;
-    private int _height = 50;
-    private int _resolution = 250;
+    [SerializeField] private int _width = 50;
+    [SerializeField] private int _height = 50;
+    [SerializeField] private int _resolution = 250;
 
-    [SerializeField]
-    private Biome[] _biomes;
+    [SerializeField] private Biome[] _biomes;
 
 #if UNITY_EDITOR
     [CustomEditor(typeof(CustomTerrain))]
@@ -55,8 +53,8 @@ public class CustomTerrain : MonoBehaviour
         {
             for (int z = 0; z < _resolution; z++)
             {
-                float normalizedX = x / (float)(_resolution - 1); // Normalize x between 0 and 1
-                float normalizedZ = z / (float)(_resolution - 1); // Normalize z between 0 and 1
+                float normalizedX = x / (float)(_resolution - 1);
+                float normalizedZ = z / (float)(_resolution - 1);
                 float worldX = normalizedX * _width - _width / 2;
                 float worldZ = normalizedZ * _height - _height / 2;
                 float height = biome.GetHeightmap().GetHeight(worldX, worldZ);
