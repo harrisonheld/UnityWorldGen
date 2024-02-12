@@ -9,14 +9,6 @@ using UnityEditor;
 [ExecuteInEditMode]
 public class CustomTerrain : MonoBehaviour
 {
-    [SerializeField] private int _width = 50;
-    [SerializeField] private int _height = 50;
-    [SerializeField] private int _resolution = 250;
-
-    [Tooltip("The seed string used to generate the terrain. If left empty, a random seed will be used.")]
-    [SerializeField] private string _worldSeedString = "";
-    [SerializeField] private List<Biome> _biomes;
-
 #if UNITY_EDITOR
     [CustomEditor(typeof(CustomTerrain))]
     public class CustomTerrainEditor : Editor
@@ -33,10 +25,28 @@ public class CustomTerrain : MonoBehaviour
             {
                 terrain.GenerateTerrain();
             }
+            if (GUILayout.Button("Add Desert Biome"))
+            {
+                Biome newBiome = new();
+                // todo: fill in the biome
+                terrain.AddBiome(newBiome);
+            }
         }
     }
 #endif
 
+    [SerializeField] private int _width = 50;
+    [SerializeField] private int _height = 50;
+    [SerializeField] private int _resolution = 250;
+
+    [Tooltip("The seed string used to generate the terrain. If left empty, a random seed will be used.")]
+    [SerializeField] private string _worldSeedString = "";
+    [SerializeField] private List<Biome> _biomes;
+
+    public void AddBiome(Biome newBiome)
+    {
+        this._biomes.Add(newBiome);
+    }
     public void GenerateTerrain()
     {
         // errors
