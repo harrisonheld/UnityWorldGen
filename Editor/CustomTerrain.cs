@@ -15,7 +15,7 @@ public class CustomTerrain : MonoBehaviour
 
     [Tooltip("The seed string used to generate the terrain. If left empty, a random seed will be used.")]
     [SerializeField] private string _worldSeedString = "";
-    [SerializeField] private Biome[] _biomes;
+    [SerializeField] private List<Biome> _biomes;
 
 #if UNITY_EDITOR
     [CustomEditor(typeof(CustomTerrain))]
@@ -40,7 +40,7 @@ public class CustomTerrain : MonoBehaviour
     public void GenerateTerrain()
     {
         // errors
-        if(_biomes.Length == 0)
+        if(_biomes.Count == 0)
         {
             Debug.LogError("Cannot generate terrain because no biomes have been added to the terrain.");
             return;
