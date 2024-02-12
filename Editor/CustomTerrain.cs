@@ -43,6 +43,9 @@ public class CustomTerrain : MonoBehaviour
     [SerializeField] private string _worldSeedString = "";
     [SerializeField] private List<Biome> _biomes;
 
+    [Tooltip("The scale of the biome map. Make this large to make each biome bigger.")]
+    [SerializeField] private float _biomeSize = 1.0f;
+
     public void AddBiome(Biome newBiome)
     {
         this._biomes.Add(newBiome);
@@ -66,14 +69,11 @@ public class CustomTerrain : MonoBehaviour
         {
             worldSeed = _worldSeedString.GetHashCode();
         }
-
-        Biome biome = _biomes[0];
-
-        // generate a biome seed. this should be some function of the world seed, and the biome's XY position
-        float biomeX = 0;
-        float biomeY = 0;
-        int hash = Helpers.MultiHash(worldSeed, biomeX, biomeY);
-        biome.GetHeightmap().SetSeed(hash);
+        // set up biome map
+        BiomeMap biomeMap = new();
+        biomeMap.SetSeed(worldSeed);
+        biomeMap.SetBiomeCount(_biomes.Count);
+        biomeMap.SetBiomeSize(_biomeSize);
 
         Mesh mesh = new Mesh();
         mesh.name = "TerrainMesh";
@@ -88,6 +88,10 @@ public class CustomTerrain : MonoBehaviour
                 float normalizedZ = z / (float)(_resolution - 1);
                 float worldX = normalizedX * _width - _width / 2;
                 float worldZ = normalizedZ * _height - _height / 2;
+
+                // get biome
+                Biome biome = _biomes[biomeMap.Sample(worldX, worldZ)];
+
                 float height = biome.GetHeightmap().GetHeight(worldX, worldZ);
                 vertices[x * _resolution + z] = new Vector3(worldX, height, worldZ);
             }
@@ -141,9 +145,6 @@ public class CustomTerrain : MonoBehaviour
         // set the meshes
         GetComponent<MeshFilter>().sharedMesh = mesh;
         GetComponent<MeshCollider>().sharedMesh = mesh;
-
-        // add biome material
-        GetComponent<MeshRenderer>().sharedMaterial = biome.GetMaterial();
     }
 
 }

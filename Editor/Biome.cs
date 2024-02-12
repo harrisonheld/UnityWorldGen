@@ -10,20 +10,12 @@ public class Biome
     private HeightmapBase _heightmap;
 
     [SerializeField]
-    [Tooltip("The higher the frequency of this biome, the more often it will occur relative to other biomes.")]
-    private float frequency = 10;
-
-    [SerializeField]
     [Tooltip("The texture that will be used to paint this biome.")]
     private Material _material;
 
     public HeightmapBase GetHeightmap()
     {
         return _heightmap;
-    }
-    public float GetFrequency()
-    {
-        return frequency;
     }
     public Material GetMaterial()
     {

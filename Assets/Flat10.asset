@@ -10,6 +10,6 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1c0125cc0e2d3c1418ba513440f3661f, type: 3}
-  m_Name: Flat Heightmap
+  m_Name: Flat10
   m_EditorClassIdentifier: 
-  <Height>k__BackingField: 0
+  <Height>k__BackingField: 10
