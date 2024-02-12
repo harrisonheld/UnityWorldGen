@@ -9,4 +9,5 @@ using UnityEngine;
 public abstract class HeightmapBase : ScriptableObject
 {
     public abstract float GetHeight(float x, float z);
+    public virtual void SetSeed(int seed) { }
 }

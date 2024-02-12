@@ -1,8 +1,10 @@
-#if UNITY_EDITOR
+using System;
 using System.Collections.Generic;
+using UnityEngine;
+
+#if UNITY_EDITOR
 using UnityEditor;
 #endif
-using UnityEngine;
 
 [ExecuteInEditMode]
 public class CustomTerrain : MonoBehaviour
@@ -11,6 +13,8 @@ public class CustomTerrain : MonoBehaviour
     [SerializeField] private int _height = 50;
     [SerializeField] private int _resolution = 250;
 
+    [Tooltip("The seed string used to generate the terrain. If left empty, a random seed will be used.")]
+    [SerializeField] private string _worldSeedString = "";
     [SerializeField] private Biome[] _biomes;
 
 #if UNITY_EDITOR
@@ -35,14 +39,31 @@ public class CustomTerrain : MonoBehaviour
 
     public void GenerateTerrain()
     {
+        // errors
         if(_biomes.Length == 0)
         {
             Debug.LogError("Cannot generate terrain because no biomes have been added to the terrain.");
             return;
         }
 
-        Debug.Log("Generating Terrain...");
+        // seed
+        int worldSeed;
+        if(string.IsNullOrEmpty(_worldSeedString))
+        {
+            worldSeed = DateTime.UtcNow.Ticks.GetHashCode();
+        }
+        else
+        {
+            worldSeed = _worldSeedString.GetHashCode();
+        }
+
         Biome biome = _biomes[0];
+
+        // generate a biome seed. this should be some function of the world seed, and the biome's XY position
+        float biomeX = 0;
+        float biomeY = 0;
+        int hash = Helpers.MultiHash(worldSeed, biomeX, biomeY);
+        biome.GetHeightmap().SetSeed(hash);
 
         Mesh mesh = new Mesh();
         mesh.name = "TerrainMesh";
