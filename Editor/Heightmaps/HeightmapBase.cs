@@ -9,5 +9,4 @@ using UnityEngine;
 public abstract class HeightmapBase : ScriptableObject
 {
     public abstract float GetHeight(float x, float z);
-    public abstract Vector3 GetNormal(float x, float z);
 }
