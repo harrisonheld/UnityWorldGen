@@ -110,6 +110,9 @@ public class CustomTerrain : MonoBehaviour
         // set the meshes
         GetComponent<MeshFilter>().sharedMesh = mesh;
         GetComponent<MeshCollider>().sharedMesh = mesh;
+
+        // add biome material
+        GetComponent<MeshRenderer>().sharedMaterial = biome.GetMaterial();
     }
 
 }
