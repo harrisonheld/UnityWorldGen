@@ -39,12 +39,15 @@ public class CustomTerrain : MonoBehaviour
     [SerializeField] private int _height = 50;
     [SerializeField] private int _resolution = 250;
 
+    [Tooltip("The scale of the biome map. Make this large to make each biome bigger.")]
+    [SerializeField] private float _biomeSize = 1.0f;
+
+    [Tooltip("FOR DEBUGGING: If true, the biomes will be colored solid colors on the terrain.")]
+    [SerializeField] private bool _visualizeBiomes = false;
+
     [Tooltip("The seed string used to generate the terrain. If left empty, a random seed will be used.")]
     [SerializeField] private string _worldSeedString = "";
     [SerializeField] private List<Biome> _biomes;
-
-    [Tooltip("The scale of the biome map. Make this large to make each biome bigger.")]
-    [SerializeField] private float _biomeSize = 1.0f;
 
     public void AddBiome(Biome newBiome)
     {
@@ -67,7 +70,7 @@ public class CustomTerrain : MonoBehaviour
         }
         else
         {
-            worldSeed = _worldSeedString.GetHashCode();
+            worldSeed = Helpers.MultiHash(_worldSeedString);
         }
         // set up biome map
         BiomeMap biomeMap = new();
@@ -80,23 +83,32 @@ public class CustomTerrain : MonoBehaviour
 
         // Vertices
         Vector3[] vertices = new Vector3[_resolution * _resolution];
+        Vector2[] uvs = new Vector2[vertices.Length];
+        Color[] colors = new Color[vertices.Length];
         for (int x = 0; x < _resolution; x++)
         {
             for (int z = 0; z < _resolution; z++)
             {
-                float normalizedX = x / (float)(_resolution - 1);
-                float normalizedZ = z / (float)(_resolution - 1);
-                float worldX = normalizedX * _width - _width / 2;
-                float worldZ = normalizedZ * _height - _height / 2;
+                float u = x / (float)(_resolution - 1);
+                float v = z / (float)(_resolution - 1);
+                uvs[x * _resolution + z] = new Vector2(u, v);
+                float worldX = u * _width - _width / 2;
+                float worldZ = v * _height - _height / 2;
 
                 // get biome
-                Biome biome = _biomes[biomeMap.Sample(worldX, worldZ)];
+                int biomeIdx = biomeMap.Sample(worldX, worldZ);
+                Biome biome = _biomes[biomeIdx];
 
                 float height = biome.GetHeightmap().GetHeight(worldX, worldZ);
                 vertices[x * _resolution + z] = new Vector3(worldX, height, worldZ);
+
+                Color[] swatch = new Color[] { new(1, 0, 0), new(0, 1, 0), new(0, 0, 1), new(0, 0, 0), new(1,1,1) };
+                colors[x * _resolution + z] = swatch[biomeIdx];
             }
         }
         mesh.vertices = vertices;
+        mesh.uv = uvs;
+        mesh.colors = colors;
 
         // Triangles
         int[] triangles = new int[(_resolution - 1) * (_resolution - 1) * 6];
@@ -121,14 +133,6 @@ public class CustomTerrain : MonoBehaviour
         // Normals
         mesh.RecalculateNormals();
 
-        // UVs - for textures
-        Vector2[] uvs = new Vector2[vertices.Length];
-        for (int i = 0; i < uvs.Length; i++)
-        {
-            uvs[i] = new Vector2(vertices[i].x / _resolution, vertices[i].z / _resolution);
-        }
-        mesh.uv = uvs;
-
         // add all components necessary for rendering a mesh
         if(GetComponent<MeshFilter>() == null)
         {
@@ -145,6 +149,15 @@ public class CustomTerrain : MonoBehaviour
         // set the meshes
         GetComponent<MeshFilter>().sharedMesh = mesh;
         GetComponent<MeshCollider>().sharedMesh = mesh;
+
+        if (_visualizeBiomes)
+        {
+            GetComponent<MeshRenderer>().sharedMaterial = new Material(Shader.Find("Custom/VertexColor"));
+        }
+        else
+        {
+            GetComponent<MeshRenderer>().sharedMaterial = _biomes[0].GetMaterial();
+        }
     }
 
 }
