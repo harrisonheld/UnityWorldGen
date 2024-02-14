@@ -35,15 +35,11 @@ public class CustomTerrain : MonoBehaviour
     }
 #endif
 
-    [SerializeField] private int _width = 50;
-    [SerializeField] private int _height = 50;
-    [SerializeField] private int _resolution = 250;
+    [SerializeField] private int _chunkSize = 50;
+    [SerializeField] private int _chunkResolution = 250;
 
     [Tooltip("The scale of the biome map. Make this large to make each biome bigger.")]
     [SerializeField] private float _biomeSize = 1.0f;
-
-    [Tooltip("FOR DEBUGGING: If true, the biomes will be colored solid colors on the terrain.")]
-    [SerializeField] private bool _visualizeBiomes = false;
 
     [Tooltip("The seed string used to generate the terrain. If left empty, a random seed will be used.")]
     [SerializeField] private string _worldSeedString = "";
@@ -62,68 +58,87 @@ public class CustomTerrain : MonoBehaviour
             return;
         }
 
-        // seed
-        int worldSeed;
-        if(string.IsNullOrEmpty(_worldSeedString))
+        // warnings
+        if(this.transform.position != Vector3.zero)
         {
-            worldSeed = DateTime.UtcNow.Ticks.GetHashCode();
+            Debug.LogWarning("The terrain is not at the origin. This may cause issues.");
         }
-        else
+        if(this.transform.rotation != Quaternion.identity)
         {
-            worldSeed = Helpers.MultiHash(_worldSeedString);
+            Debug.LogWarning("The terrain has a non-default rotation. This may cause issues.");
         }
-        // set up biome map
-        BiomeMap biomeMap = new();
-        biomeMap.SetSeed(worldSeed);
-        biomeMap.SetBiomeCount(_biomes.Count);
-        biomeMap.SetBiomeSize(_biomeSize);
+        if(this.transform.localScale != Vector3.one)
+        {
+            Debug.LogWarning("The terrain has a non-default scale. This may cause issues.");
+        }
 
+        // clear the children
+        for(int i = this.transform.childCount - 1; i >= 0; i--)
+        {
+            GameObject.DestroyImmediate(this.transform.GetChild(i).gameObject);
+        }
+
+        // chunky
+        for(int x = -1; x <= 1; x++)
+        {
+            for(int z = -1; z <= 1; z++)
+            {
+                GenerateChunk(x, z);
+            }
+        }
+    }
+
+    public void GenerateChunk(int chunkX, int chunkZ)
+    {
         Mesh mesh = new Mesh();
-        mesh.name = "TerrainMesh";
+        mesh.name = $"Chunk Mesh ({chunkX}, {chunkZ})";
+
+        BiomeMap biomeMap = new(
+            worldSeed: Helpers.MultiHash(_worldSeedString),
+            biomeCount: _biomes.Count,
+            chunkSize: _chunkSize,
+            chunkX: chunkX,
+            chunkZ: chunkZ
+        );
 
         // Vertices
-        Vector3[] vertices = new Vector3[_resolution * _resolution];
+        Vector3[] vertices = new Vector3[_chunkResolution * _chunkResolution];
         Vector2[] uvs = new Vector2[vertices.Length];
-        Color[] colors = new Color[vertices.Length];
-        for (int x = 0; x < _resolution; x++)
+        for (int x = 0; x < _chunkResolution; x++)
         {
-            for (int z = 0; z < _resolution; z++)
+            for (int z = 0; z < _chunkResolution; z++)
             {
-                float u = x / (float)(_resolution - 1);
-                float v = z / (float)(_resolution - 1);
-                uvs[x * _resolution + z] = new Vector2(u, v);
-                float worldX = u * _width - _width / 2;
-                float worldZ = v * _height - _height / 2;
+                float u = x / (float)(_chunkResolution - 1);
+                float v = z / (float)(_chunkResolution - 1);
+                uvs[x * _chunkResolution + z] = new Vector2(u, v);
+                float worldX = u * _chunkSize - _chunkSize / 2;
+                float worldZ = v * _chunkSize - _chunkSize / 2;
 
                 // get biome
                 int biomeIdx = biomeMap.Sample(worldX, worldZ);
                 Biome biome = _biomes[biomeIdx];
 
                 float height = biome.GetHeightmap().GetHeight(worldX, worldZ);
-                vertices[x * _resolution + z] = new Vector3(worldX, height, worldZ);
-
-                Color[] swatch = new Color[] { new(1, 0, 0), new(0, 1, 0), new(0, 0, 1), new(0, 0, 0), new(1,1,1) };
-                colors[x * _resolution + z] = swatch[biomeIdx];
+                vertices[x * _chunkResolution + z] = new Vector3(worldX, height, worldZ);
             }
         }
         mesh.vertices = vertices;
         mesh.uv = uvs;
-        mesh.colors = colors;
 
         // Triangles
-        int[] triangles = new int[(_resolution - 1) * (_resolution - 1) * 6];
+        int[] triangles = new int[(_chunkResolution - 1) * (_chunkResolution - 1) * 6];
         int triangleIndex = 0;
-        for (int x = 0; x < _resolution - 1; x++)
+        for (int x = 0; x < _chunkResolution - 1; x++)
         {
-            for (int z = 0; z < _resolution - 1; z++)
+            for (int z = 0; z < _chunkResolution - 1; z++)
             {
-                int vertexIndex = x * _resolution + z;
+                int vertexIndex = x * _chunkResolution + z;
                 triangles[triangleIndex] = vertexIndex;
                 triangles[triangleIndex + 1] = vertexIndex + 1;
-                triangles[triangleIndex + 2] = vertexIndex + _resolution;
+                triangles[triangleIndex + 2] = vertexIndex + _chunkResolution;
                 triangles[triangleIndex + 3] = vertexIndex + 1;
-                triangles[triangleIndex + 4] = vertexIndex + _resolution + 1;
-                triangles[triangleIndex + 5] = vertexIndex + _resolution;
+                triangles[triangleIndex + 4] = vertexIndex + _chunkResolution + 1;
+                triangles[triangleIndex + 5] = vertexIndex + _chunkResolution;
 
                 triangleIndex += 6;
             }
@@ -134,30 +149,18 @@ public class CustomTerrain : MonoBehaviour
         mesh.RecalculateNormals();
 
         // add all components necessary for rendering a mesh
-        if(GetComponent<MeshFilter>() == null)
-        {
-            this.gameObject.AddComponent<MeshFilter>();
-        }
-        if (GetComponent<MeshRenderer>() == null)
-        {
-            this.gameObject.AddComponent<MeshRenderer>();
-        }
-        if (GetComponent<MeshCollider>() == null)
-        {
-            this.gameObject.AddComponent<MeshCollider>();
-        }
+        GameObject chunk = new GameObject($"Chunk ({chunkX}, {chunkZ})");
+        chunk.AddComponent<MeshFilter>();
+        chunk.AddComponent<MeshRenderer>();
+        chunk.AddComponent<MeshCollider>();
         // set the meshes
-        GetComponent<MeshFilter>().sharedMesh = mesh;
-        GetComponent<MeshCollider>().sharedMesh = mesh;
-
-        if (_visualizeBiomes)
-        {
-            GetComponent<MeshRenderer>().sharedMaterial = new Material(Shader.Find("Custom/VertexColor"));
-        }
-        else
-        {
-            GetComponent<MeshRenderer>().sharedMaterial = _biomes[0].GetMaterial();
-        }
+        chunk.GetComponent<MeshFilter>().sharedMesh = mesh;
+        chunk.GetComponent<MeshCollider>().sharedMesh = mesh;
+        // set the materials
+        chunk.GetComponent<MeshRenderer>().material = _biomes[0].GetMaterial();
+        // add as child
+        chunk.transform.parent = this.transform;
+        // set the position
+        chunk.transform.position = new Vector3(chunkX * _chunkSize, 0, chunkZ * _chunkSize);
     }
-
 }
