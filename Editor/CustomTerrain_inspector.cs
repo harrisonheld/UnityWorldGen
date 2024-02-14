@@ -3,7 +3,7 @@ using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 
 [CustomEditor(typeof(CustomTerrain))]
-public class CustomTerrain : Editor
+public class CustomTerrain_Inspector : Editor
 {
     public VisualTreeAsset m_InspectorXML;
     // Create a new VisualElement to be the root of our inspector UI
