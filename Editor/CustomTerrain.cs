@@ -25,7 +25,7 @@ public class CustomTerrain : MonoBehaviour
             GUILayout.Space(10);
 
             string[] preset_biome_options = new string[] { "Desert", "Hills", "Plains", "Mountain", "Valley", "Custom" };
-            Dictionary<string, (string heightmap, string material)> biomePresets = new Dictionary<string, (string, string)>
+            Dictionary<string, (string heightmap, string texture)> biomePresets = new Dictionary<string, (string, string)>
             {
                 { "Desert", ("Desert_Heightmap", "Sand") },
                 { "Hills", ("Hills_Heightmap", "Grass") },
@@ -43,7 +43,7 @@ public class CustomTerrain : MonoBehaviour
                 if (biomePresets.TryGetValue(preset_biome_options[selected_biome_preset_index], out var preset))
                 {
                     newBiome.SetHeightMap(Resources.Load(preset.heightmap, typeof(HeightmapBase)) as HeightmapBase);
-                    newBiome.SetMaterial(Resources.Load(preset.material, typeof(Material)) as Material);
+                    newBiome.SetTexture(Resources.Load(preset.texture, typeof(Texture2D)) as Texture2D);
                     terrain.AddBiome(newBiome);
                 }
                 else
@@ -71,6 +71,10 @@ public class CustomTerrain : MonoBehaviour
     [SerializeField] private string _worldSeedString = "";
     private int _worldSeed;
     [SerializeField] private List<Biome> _biomes;
+
+    const int TEX_SIZE = 512;
+
+    private Material multitextureMat;
 
     public void AddBiome(Biome newBiome)
     {
@@ -105,8 +109,34 @@ public class CustomTerrain : MonoBehaviour
             GameObject.DestroyImmediate(this.transform.GetChild(i).gameObject);
         }
 
+        // make material
+        this.multitextureMat = new Material(Shader.Find("Custom/MultiTexture"));
+        Texture2DArray textureArray = new Texture2DArray(TEX_SIZE, TEX_SIZE, _biomes.Count, TextureFormat.RGBA32, true);
+        textureArray.filterMode = FilterMode.Bilinear;
+        textureArray.wrapMode = TextureWrapMode.Repeat;
+        for (int i = 0; i < _biomes.Count; i++)
+        {
+            // get tex
+            Texture2D originalTex = _biomes[i].GetTexture();
+            // copy to a readable texture
+            Texture2D readableTex = new Texture2D(originalTex.width, originalTex.height, originalTex.format, originalTex.mipmapCount > 1);
+            Graphics.CopyTexture(originalTex, readableTex);
+            // scale it to the correct size
+            RenderTexture rt = new RenderTexture(TEX_SIZE, TEX_SIZE, 0);
+            RenderTexture.active = rt;
+            Graphics.Blit(readableTex, rt);
+            Texture2D scaledTex = new Texture2D(TEX_SIZE, TEX_SIZE);
+            scaledTex.ReadPixels(new Rect(0, 0, TEX_SIZE, TEX_SIZE), 0, 0);
+            scaledTex.Apply();
+            // send to shader array
+            Color[] pixels = scaledTex.GetPixels();
+            textureArray.SetPixels(pixels, i);
+        }
+        textureArray.Apply();
+        multitextureMat.SetTexture($"_TextureArray", textureArray);
+
         // seed
-        if(_worldSeedString == "")
+        if (_worldSeedString == "")
         {
             _worldSeed = ((int)DateTime.Now.Ticks);
         }
@@ -115,14 +145,8 @@ public class CustomTerrain : MonoBehaviour
             _worldSeed = Helpers.MultiHash(_worldSeedString);
         }
 
-        // chunky
-        for(int x = -1; x <= 1; x++)
-        {
-            for(int z = -1; z <= 1; z++)
-            {
-                GenerateChunk(x, z);
-            }
-        }
+        // chunk
+        GenerateChunk(0, 0);
     }
 
     public void GenerateChunk(int chunkX, int chunkZ)
@@ -141,13 +165,16 @@ public class CustomTerrain : MonoBehaviour
         // Vertices
         Vector3[] vertices = new Vector3[_chunkResolution * _chunkResolution];
         Vector2[] uvs = new Vector2[vertices.Length];
+        Color[] colors = new Color[vertices.Length];
         for (int x = 0; x < _chunkResolution; x++)
         {
             for (int z = 0; z < _chunkResolution; z++)
             {
+                int i = x * _chunkResolution + z;
+
                 float u = x / (float)(_chunkResolution - 1);
                 float v = z / (float)(_chunkResolution - 1);
-                uvs[x * _chunkResolution + z] = new Vector2(u, v);
+                uvs[i] = new Vector2(u, v);
                 float worldX = u * _chunkSize - _chunkSize / 2;
                 float worldZ = v * _chunkSize - _chunkSize / 2;
 
@@ -155,12 +182,18 @@ public class CustomTerrain : MonoBehaviour
                 int biomeIdx = biomeMap.Sample(worldX, worldZ);
                 Biome biome = _biomes[biomeIdx];
 
+                // set height
                 float height = biome.GetHeightmap().GetHeight(worldX, worldZ);
-                vertices[x * _chunkResolution + z] = new Vector3(worldX, height, worldZ);
+                vertices[i] = new Vector3(worldX, height, worldZ);
+
+                // Set the Red channel as the texture index, so the multitexture shader can use it
+                int textureIdx = biomeIdx;
+                colors[i] = new Color(textureIdx, 0, 0, 0);
             }
         }
         mesh.vertices = vertices;
         mesh.uv = uvs;
+        mesh.colors = colors;
 
         // Triangles
         int[] triangles = new int[(_chunkResolution - 1) * (_chunkResolution - 1) * 6];
@@ -193,8 +226,8 @@ public class CustomTerrain : MonoBehaviour
         // set the meshes
         chunk.GetComponent<MeshFilter>().sharedMesh = mesh;
         chunk.GetComponent<MeshCollider>().sharedMesh = mesh;
-        // set the materials
-        chunk.GetComponent<MeshRenderer>().material = _biomes[0].GetMaterial();
+        // set mat
+        chunk.GetComponent<MeshRenderer>().sharedMaterial = multitextureMat;
         // add as child
         chunk.transform.parent = this.transform;
         // set the position

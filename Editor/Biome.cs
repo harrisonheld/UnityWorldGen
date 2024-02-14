@@ -11,20 +11,20 @@ public class Biome
 
     [SerializeField]
     [Tooltip("The texture that will be used to paint this biome.")]
-    private Material _material;
+    private Texture2D _texture;
 
     public HeightmapBase GetHeightmap()
     {
         return _heightmap;
     }
-    public Material GetMaterial()
+    public Texture2D GetTexture()
     {
-        if (_material == null)
+        if (_texture == null)
         {
-            Debug.LogError("The material for this biome is null. Please assign a texture to the biome.");
+            Debug.LogError("The texture for this biome is null. Please assign a texture to the biome.");
         }
 
-        return _material;
+        return _texture;
     }
 
     public void SetHeightMap(HeightmapBase heightMap)
@@ -32,8 +32,8 @@ public class Biome
         _heightmap = heightMap;
     }
 
-    public void SetMaterial(Material material)
+    public void SetTexture(Texture2D texture)
     {
-        _material = material;
+        _texture = texture;
     }
 }
