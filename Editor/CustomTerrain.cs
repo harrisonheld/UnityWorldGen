@@ -13,29 +13,29 @@ public class CustomTerrain : MonoBehaviour
 
     [SerializeField] private Biome[] _biomes;
 
-#if UNITY_EDITOR
-    [CustomEditor(typeof(CustomTerrain))]
-    public class CustomTerrainEditor : Editor
-    {
-        public override void OnInspectorGUI()
-        {
-            base.OnInspectorGUI();
+    // #if UNITY_EDITOR
+    //     [CustomEditor(typeof(CustomTerrain))]
+    //     public class CustomTerrainEditor : Editor
+    //     {
+    //         public override void OnInspectorGUI()
+    //         {
+    //             base.OnInspectorGUI();
 
-            CustomTerrain terrain = (CustomTerrain)this.target;
+    //             CustomTerrain terrain = (CustomTerrain)this.target;
 
-            GUILayout.Space(10);
+    //             GUILayout.Space(10);
 
-            if (GUILayout.Button("Generate Terrain"))
-            {
-                terrain.GenerateTerrain();
-            }
-        }
-    }
-#endif
+    //             if (GUILayout.Button("Generate Terrain"))
+    //             {
+    //                 terrain.GenerateTerrain();
+    //             }
+    //         }
+    //     }
+    // #endif
 
     public void GenerateTerrain()
     {
-        if(_biomes.Length == 0)
+        if (_biomes.Length == 0)
         {
             Debug.LogError("Cannot generate terrain because no biomes have been added to the terrain.");
             return;
@@ -96,7 +96,7 @@ public class CustomTerrain : MonoBehaviour
         mesh.uv = uvs;
 
         // add all components necessary for rendering a mesh
-        if(GetComponent<MeshFilter>() == null)
+        if (GetComponent<MeshFilter>() == null)
         {
             this.gameObject.AddComponent<MeshFilter>();
         }
