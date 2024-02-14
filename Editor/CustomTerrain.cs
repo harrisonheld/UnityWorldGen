@@ -69,6 +69,7 @@ public class CustomTerrain : MonoBehaviour
 
     [Tooltip("The seed string used to generate the terrain. If left empty, a random seed will be used.")]
     [SerializeField] private string _worldSeedString = "";
+    private int _worldSeed;
     [SerializeField] private List<Biome> _biomes;
 
     public void AddBiome(Biome newBiome)
@@ -104,6 +105,16 @@ public class CustomTerrain : MonoBehaviour
             GameObject.DestroyImmediate(this.transform.GetChild(i).gameObject);
         }
 
+        // seed
+        if(_worldSeedString == "")
+        {
+            _worldSeed = ((int)DateTime.Now.Ticks);
+        }
+        else
+        {
+            _worldSeed = Helpers.MultiHash(_worldSeedString);
+        }
+
         // chunky
         for(int x = -1; x <= 1; x++)
         {
@@ -120,7 +131,7 @@ public class CustomTerrain : MonoBehaviour
         mesh.name = $"Chunk Mesh ({chunkX}, {chunkZ})";
 
         BiomeMap biomeMap = new(
-            worldSeed: Helpers.MultiHash(_worldSeedString),
+            worldSeed: _worldSeed,
             biomeCount: _biomes.Count,
             chunkSize: _chunkSize,
             chunkX: chunkX,
