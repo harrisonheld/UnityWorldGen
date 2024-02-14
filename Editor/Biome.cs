@@ -26,4 +26,14 @@ public class Biome
 
         return _material;
     }
+
+    public void SetHeightMap(HeightmapBase heightMap)
+    {
+        _heightmap = heightMap;
+    }
+
+    public void SetMaterial(Material material)
+    {
+        _material = material;
+    }
 }
