@@ -28,7 +28,8 @@ public class CustomTerrain : MonoBehaviour
             if (GUILayout.Button("Add Desert Biome"))
             {
                 Biome newBiome = new();
-                // todo: fill in the biome
+                newBiome.SetHeightMap(Resources.Load("Sinusoidal Heightmap", typeof(HeightmapBase)) as HeightmapBase);
+                newBiome.SetMaterial(Resources.Load("Stone", typeof(Material)) as Material);
                 terrain.AddBiome(newBiome);
             }
         }
