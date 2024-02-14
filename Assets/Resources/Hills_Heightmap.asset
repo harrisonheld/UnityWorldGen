@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4eeb6814ecfbfac43b2caf21d365d817, type: 3}
-  m_Name: Desert_Heightmap
+  m_Name: Hills_Heightmap
   m_EditorClassIdentifier: 
-  <Amplitude>k__BackingField: 3
-  <Scale>k__BackingField: 8
+  <Amplitude>k__BackingField: 10
+  <Scale>k__BackingField: 10

@@ -21,6 +21,7 @@ public class CustomTerrain : MonoBehaviour
 
             GUILayout.Space(10);
 
+            // START of list of Biome presets **********
             if (GUILayout.Button("Add Desert Biome"))
             {
                 Biome newBiome = new();
@@ -29,6 +30,39 @@ public class CustomTerrain : MonoBehaviour
                 
                 terrain.AddBiome(newBiome);
             }
+            if (GUILayout.Button("Add Hills Biome"))
+            {
+                Biome newBiome = new();
+                newBiome.SetHeightMap(Resources.Load("Hills_Heightmap", typeof(HeightmapBase)) as HeightmapBase);
+                newBiome.SetMaterial(Resources.Load("Grass", typeof(Material)) as Material);
+                
+                terrain.AddBiome(newBiome);
+            }
+            if (GUILayout.Button("Add Plains Biome"))
+            {
+                Biome newBiome = new();
+                newBiome.SetHeightMap(Resources.Load("Plains_Heightmap", typeof(HeightmapBase)) as HeightmapBase);
+                newBiome.SetMaterial(Resources.Load("Grass", typeof(Material)) as Material);
+                
+                terrain.AddBiome(newBiome);
+            }
+            if (GUILayout.Button("Add Mountain Biome"))
+            {
+                Biome newBiome = new();
+                newBiome.SetHeightMap(Resources.Load("Mountain_Heightmap", typeof(HeightmapBase)) as HeightmapBase);
+                newBiome.SetMaterial(Resources.Load("Stone", typeof(Material)) as Material);
+                
+                terrain.AddBiome(newBiome);
+            }
+            if (GUILayout.Button("Add Valley Biome"))
+            {
+                Biome newBiome = new();
+                newBiome.SetHeightMap(Resources.Load("Valley_Heightmap", typeof(HeightmapBase)) as HeightmapBase);
+                newBiome.SetMaterial(Resources.Load("Grass", typeof(Material)) as Material);
+                
+                terrain.AddBiome(newBiome);
+            }
+            // END of list of Biome presets ***********
 
             if (GUILayout.Button("Generate Terrain"))
             {
