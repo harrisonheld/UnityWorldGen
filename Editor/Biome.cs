@@ -4,9 +4,12 @@ using UnityEngine;
 [Serializable]
 public class Biome
 {
+    public string name;
+    public string description;
+
     [SerializeField]
     [Tooltip("Select a custom heightmap for the biome.")]
-    private HeightmapBase _heightmap;
+    private Heightmap _heightmap;
 
     [SerializeField]
     [Tooltip("The higher the frequency of this biome, the more often it will occur relative to other biomes.")]
@@ -16,7 +19,7 @@ public class Biome
     [Tooltip("The texture that will be used to paint this biome.")]
     private Material _material;
 
-    public HeightmapBase GetHeightmap()
+    public Heightmap GetHeightmap()
     {
         return _heightmap;
     }

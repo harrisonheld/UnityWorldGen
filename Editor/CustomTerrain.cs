@@ -57,7 +57,8 @@ public class CustomTerrain : MonoBehaviour
                 float normalizedZ = z / (float)(_resolution - 1);
                 float worldX = normalizedX * _width - _width / 2;
                 float worldZ = normalizedZ * _height - _height / 2;
-                float height = biome.GetHeightmap().GetHeight(worldX, worldZ);
+                Heightmap heightmap = biome.GetHeightmap();
+                float height = heightmap.GetHeightmap().GetHeight(worldX, worldZ);
                 vertices[x * _resolution + z] = new Vector3(worldX, height, worldZ);
             }
         }
