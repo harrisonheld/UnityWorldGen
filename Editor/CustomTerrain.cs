@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -13,6 +14,8 @@ public class CustomTerrain : MonoBehaviour
     [CustomEditor(typeof(CustomTerrain))]
     public class CustomTerrainEditor : Editor
     {
+        int selected_biome_preset_index = 0;
+
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
@@ -21,31 +24,53 @@ public class CustomTerrain : MonoBehaviour
 
             GUILayout.Space(10);
 
+            string[] preset_biome_options = new string[] { "Desert", "Hills", "Plains", "Mountain", "Valley", "Custom" };
+            Dictionary<string, (string heightmap, string material)> biomePresets = new Dictionary<string, (string, string)>
+            {
+                { "Desert", ("Desert_Heightmap", "Sand") },
+                { "Hills", ("Hills_Heightmap", "Grass") },
+                { "Plains", ("Plains_Heightmap", "Grass") },
+                { "Mountain", ("Mountain_Heightmap", "Stone") },
+                { "Valley", ("Valley_Heightmap", "Grass") },
+                { "Custom", ("Flat0", "Grass") }
+            };
+            selected_biome_preset_index = EditorGUILayout.Popup("New Biome", selected_biome_preset_index, preset_biome_options);
+
+            if (GUILayout.Button("Add Biome"))
+            {
+                Biome newBiome = new();
+
+                if (biomePresets.TryGetValue(preset_biome_options[selected_biome_preset_index], out var preset))
+                {
+                    newBiome.SetHeightMap(Resources.Load(preset.heightmap, typeof(HeightmapBase)) as HeightmapBase);
+                    newBiome.SetMaterial(Resources.Load(preset.material, typeof(Material)) as Material);
+                    terrain.AddBiome(newBiome);
+                }
+                else
+                {
+                    Debug.LogError("Unrecognized Option");
+                }
+            }
+
             if (GUILayout.Button("Generate Terrain"))
             {
                 terrain.GenerateTerrain();
             }
-            if (GUILayout.Button("Add Desert Biome"))
-            {
-                Biome newBiome = new();
-                newBiome.SetHeightMap(Resources.Load("Sinusoidal Heightmap", typeof(HeightmapBase)) as HeightmapBase);
-                newBiome.SetMaterial(Resources.Load("Stone", typeof(Material)) as Material);
-                terrain.AddBiome(newBiome);
-            }
+            
         }
     }
 #endif
 
-    [SerializeField] private int _width = 50;
-    [SerializeField] private int _height = 50;
-    [SerializeField] private int _resolution = 250;
-
-    [Tooltip("The seed string used to generate the terrain. If left empty, a random seed will be used.")]
-    [SerializeField] private string _worldSeedString = "";
-    [SerializeField] private List<Biome> _biomes;
+    [SerializeField] private int _chunkSize = 50;
+    [SerializeField] private int _chunkResolution = 250;
 
     [Tooltip("The scale of the biome map. Make this large to make each biome bigger.")]
     [SerializeField] private float _biomeSize = 1.0f;
+
+    [Tooltip("The seed string used to generate the terrain. If left empty, a random seed will be used.")]
+    [SerializeField] private string _worldSeedString = "";
+    private int _worldSeed;
+    [SerializeField] private List<Biome> _biomes;
 
     public void AddBiome(Biome newBiome)
     {
@@ -60,59 +85,97 @@ public class CustomTerrain : MonoBehaviour
             return;
         }
 
-        // seed
-        int worldSeed;
-        if(string.IsNullOrEmpty(_worldSeedString))
+        // warnings
+        if(this.transform.position != Vector3.zero)
         {
-            worldSeed = DateTime.UtcNow.Ticks.GetHashCode();
+            Debug.LogWarning("The terrain is not at the origin. This may cause issues.");
+        }
+        if(this.transform.rotation != Quaternion.identity)
+        {
+            Debug.LogWarning("The terrain has a non-default rotation. This may cause issues.");
+        }
+        if(this.transform.localScale != Vector3.one)
+        {
+            Debug.LogWarning("The terrain has a non-default scale. This may cause issues.");
+        }
+
+        // clear the children
+        for(int i = this.transform.childCount - 1; i >= 0; i--)
+        {
+            GameObject.DestroyImmediate(this.transform.GetChild(i).gameObject);
+        }
+
+        // seed
+        if(_worldSeedString == "")
+        {
+            _worldSeed = ((int)DateTime.Now.Ticks);
         }
         else
         {
-            worldSeed = _worldSeedString.GetHashCode();
+            _worldSeed = Helpers.MultiHash(_worldSeedString);
         }
-        // set up biome map
-        BiomeMap biomeMap = new();
-        biomeMap.SetSeed(worldSeed);
-        biomeMap.SetBiomeCount(_biomes.Count);
-        biomeMap.SetBiomeSize(_biomeSize);
 
+        // chunky
+        for(int x = -1; x <= 1; x++)
+        {
+            for(int z = -1; z <= 1; z++)
+            {
+                GenerateChunk(x, z);
+            }
+        }
+    }
+
+    public void GenerateChunk(int chunkX, int chunkZ)
+    {
         Mesh mesh = new Mesh();
-        mesh.name = "TerrainMesh";
+        mesh.name = $"Chunk Mesh ({chunkX}, {chunkZ})";
+
+        BiomeMap biomeMap = new(
+            worldSeed: _worldSeed,
+            biomeCount: _biomes.Count,
+            chunkSize: _chunkSize,
+            chunkX: chunkX,
+            chunkZ: chunkZ
+        );
 
         // Vertices
-        Vector3[] vertices = new Vector3[_resolution * _resolution];
-        for (int x = 0; x < _resolution; x++)
+        Vector3[] vertices = new Vector3[_chunkResolution * _chunkResolution];
+        Vector2[] uvs = new Vector2[vertices.Length];
+        for (int x = 0; x < _chunkResolution; x++)
         {
-            for (int z = 0; z < _resolution; z++)
+            for (int z = 0; z < _chunkResolution; z++)
             {
-                float normalizedX = x / (float)(_resolution - 1);
-                float normalizedZ = z / (float)(_resolution - 1);
-                float worldX = normalizedX * _width - _width / 2;
-                float worldZ = normalizedZ * _height - _height / 2;
+                float u = x / (float)(_chunkResolution - 1);
+                float v = z / (float)(_chunkResolution - 1);
+                uvs[x * _chunkResolution + z] = new Vector2(u, v);
+                float worldX = u * _chunkSize - _chunkSize / 2;
+                float worldZ = v * _chunkSize - _chunkSize / 2;
 
                 // get biome
-                Biome biome = _biomes[biomeMap.Sample(worldX, worldZ)];
+                int biomeIdx = biomeMap.Sample(worldX, worldZ);
+                Biome biome = _biomes[biomeIdx];
 
                 float height = biome.GetHeightmap().GetHeight(worldX, worldZ);
-                vertices[x * _resolution + z] = new Vector3(worldX, height, worldZ);
+                vertices[x * _chunkResolution + z] = new Vector3(worldX, height, worldZ);
             }
         }
         mesh.vertices = vertices;
+        mesh.uv = uvs;
 
         // Triangles
-        int[] triangles = new int[(_resolution - 1) * (_resolution - 1) * 6];
+        int[] triangles = new int[(_chunkResolution - 1) * (_chunkResolution - 1) * 6];
         int triangleIndex = 0;
-        for (int x = 0; x < _resolution - 1; x++)
+        for (int x = 0; x < _chunkResolution - 1; x++)
         {
-            for (int z = 0; z < _resolution - 1; z++)
+            for (int z = 0; z < _chunkResolution - 1; z++)
             {
-                int vertexIndex = x * _resolution + z;
+                int vertexIndex = x * _chunkResolution + z;
                 triangles[triangleIndex] = vertexIndex;
                 triangles[triangleIndex + 1] = vertexIndex + 1;
-                triangles[triangleIndex + 2] = vertexIndex + _resolution;
+                triangles[triangleIndex + 2] = vertexIndex + _chunkResolution;
                 triangles[triangleIndex + 3] = vertexIndex + 1;
-                triangles[triangleIndex + 4] = vertexIndex + _resolution + 1;
-                triangles[triangleIndex + 5] = vertexIndex + _resolution;
+                triangles[triangleIndex + 4] = vertexIndex + _chunkResolution + 1;
+                triangles[triangleIndex + 5] = vertexIndex + _chunkResolution;
 
                 triangleIndex += 6;
             }
@@ -122,30 +185,19 @@ public class CustomTerrain : MonoBehaviour
         // Normals
         mesh.RecalculateNormals();
 
-        // UVs - for textures
-        Vector2[] uvs = new Vector2[vertices.Length];
-        for (int i = 0; i < uvs.Length; i++)
-        {
-            uvs[i] = new Vector2(vertices[i].x / _resolution, vertices[i].z / _resolution);
-        }
-        mesh.uv = uvs;
-
         // add all components necessary for rendering a mesh
-        if(GetComponent<MeshFilter>() == null)
-        {
-            this.gameObject.AddComponent<MeshFilter>();
-        }
-        if (GetComponent<MeshRenderer>() == null)
-        {
-            this.gameObject.AddComponent<MeshRenderer>();
-        }
-        if (GetComponent<MeshCollider>() == null)
-        {
-            this.gameObject.AddComponent<MeshCollider>();
-        }
+        GameObject chunk = new GameObject($"Chunk ({chunkX}, {chunkZ})");
+        chunk.AddComponent<MeshFilter>();
+        chunk.AddComponent<MeshRenderer>();
+        chunk.AddComponent<MeshCollider>();
         // set the meshes
-        GetComponent<MeshFilter>().sharedMesh = mesh;
-        GetComponent<MeshCollider>().sharedMesh = mesh;
+        chunk.GetComponent<MeshFilter>().sharedMesh = mesh;
+        chunk.GetComponent<MeshCollider>().sharedMesh = mesh;
+        // set the materials
+        chunk.GetComponent<MeshRenderer>().material = _biomes[0].GetMaterial();
+        // add as child
+        chunk.transform.parent = this.transform;
+        // set the position
+        chunk.transform.position = new Vector3(chunkX * _chunkSize, 0, chunkZ * _chunkSize);
     }
-
 }
