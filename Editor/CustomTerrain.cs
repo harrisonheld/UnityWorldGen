@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -23,54 +24,33 @@ public class CustomTerrain : MonoBehaviour
 
             GUILayout.Space(10);
 
-            // START of adding biomes **********
-
-            // create pop up with options
-            string[] preset_biome_options = new string[]
+            string[] preset_biome_options = new string[] { "Desert", "Hills", "Plains", "Mountain", "Valley", "Custom" };
+            Dictionary<string, (string heightmap, string material)> biomePresets = new Dictionary<string, (string, string)>
             {
-                "Desert", "Hills", "Plains", "Mountain", "Valley", "Custom"
+                { "Desert", ("Desert_Heightmap", "Sand") },
+                { "Hills", ("Hills_Heightmap", "Grass") },
+                { "Plains", ("Plains_Heightmap", "Grass") },
+                { "Mountain", ("Mountain_Heightmap", "Stone") },
+                { "Valley", ("Valley_Heightmap", "Grass") },
+                { "Custom", ("Flat0", "Grass") }
             };
             selected_biome_preset_index = EditorGUILayout.Popup("New Biome", selected_biome_preset_index, preset_biome_options);
 
-            // use selected option from pop up and add to list of biomes
             if (GUILayout.Button("Add Biome"))
             {
                 Biome newBiome = new();
 
-                switch (selected_biome_preset_index)
+                if (biomePresets.TryGetValue(preset_biome_options[selected_biome_preset_index], out var preset))
                 {
-                    case 0: // desert
-                        newBiome.SetHeightMap(Resources.Load("Desert_Heightmap", typeof(HeightmapBase)) as HeightmapBase);
-                        newBiome.SetMaterial(Resources.Load("Sand", typeof(Material)) as Material);
-                        break;
-                    case 1: // hills
-                        newBiome.SetHeightMap(Resources.Load("Hills_Heightmap", typeof(HeightmapBase)) as HeightmapBase);
-                        newBiome.SetMaterial(Resources.Load("Grass", typeof(Material)) as Material);
-                        break;
-                    case 2: // plains
-                        newBiome.SetHeightMap(Resources.Load("Plains_Heightmap", typeof(HeightmapBase)) as HeightmapBase);
-                        newBiome.SetMaterial(Resources.Load("Grass", typeof(Material)) as Material);
-                        break;
-                    case 3: // mountain
-                        newBiome.SetHeightMap(Resources.Load("Mountain_Heightmap", typeof(HeightmapBase)) as HeightmapBase);
-                        newBiome.SetMaterial(Resources.Load("Stone", typeof(Material)) as Material);
-                        break;
-                    case 4: // valley
-                        newBiome.SetHeightMap(Resources.Load("Valley_Heightmap", typeof(HeightmapBase)) as HeightmapBase);
-                        newBiome.SetMaterial(Resources.Load("Grass", typeof(Material)) as Material);
-                        break;
-                    case 5: // custom
-                        newBiome.SetHeightMap(Resources.Load("Flat0", typeof(HeightmapBase)) as HeightmapBase);
-                        newBiome.SetMaterial(Resources.Load("Grass", typeof(Material)) as Material);
-                        break;
-                    default:
-                        Debug.LogError("Unrecognized Option");
-                        break;
+                    newBiome.SetHeightMap(Resources.Load(preset.heightmap, typeof(HeightmapBase)) as HeightmapBase);
+                    newBiome.SetMaterial(Resources.Load(preset.material, typeof(Material)) as Material);
+                    terrain.AddBiome(newBiome);
                 }
-
-                terrain.AddBiome(newBiome);
+                else
+                {
+                    Debug.LogError("Unrecognized Option");
+                }
             }
-            // END of adding biomes ***********
 
             if (GUILayout.Button("Generate Terrain"))
             {
