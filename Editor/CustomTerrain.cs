@@ -144,6 +144,10 @@ public class CustomTerrain : MonoBehaviour
         {
             _worldSeed = Helpers.MultiHash(_worldSeedString);
         }
+        for(int i = 0; i < _biomes.Count; i++)
+        {
+            _biomes[i].GetHeightmap().SetSeed(_worldSeed);
+        }
 
         // chunk
         GenerateChunk(0, 0);
@@ -166,7 +170,6 @@ public class CustomTerrain : MonoBehaviour
         Vector3[] vertices = new Vector3[_chunkResolution * _chunkResolution];
         Vector2[] uvs = new Vector2[vertices.Length];
         Vector2[] uv2s = new Vector2[vertices.Length];
-        Color[] colors = new Color[vertices.Length];
         for (int x = 0; x < _chunkResolution; x++)
         {
             for (int z = 0; z < _chunkResolution; z++)
@@ -190,13 +193,11 @@ public class CustomTerrain : MonoBehaviour
                 // put the texture index in the uv2.x
                 int textureIdx = biomeIdx;
                 uv2s[i] = new Vector2(textureIdx, 0);
-                colors[i] = new Color(textureIdx, 0, 0, 0);
             }
         }
         mesh.vertices = vertices;
         mesh.uv = uvs;
         mesh.uv2 = uv2s;
-        mesh.colors = colors;
 
         // Triangles
         int[] triangles = new int[(_chunkResolution - 1) * (_chunkResolution - 1) * 6];
