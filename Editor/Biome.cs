@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 
@@ -13,28 +14,30 @@ public class Biome
     private Heightmap _heightmap;
 
     [SerializeField]
-    [Tooltip("The higher the frequency of this biome, the more often it will occur relative to other biomes.")]
-    private float frequency = 10;
-
-    [SerializeField]
     [Tooltip("The texture that will be used to paint this biome.")]
-    private Material _material;
+    private Texture2D _texture;
 
     public Heightmap GetHeightmap()
     {
         return _heightmap;
     }
-    public float GetFrequency()
+    public Texture2D GetTexture()
     {
-        return frequency;
-    }
-    public Material GetMaterial()
-    {
-        if (_material == null)
+        if (_texture == null)
         {
-            Debug.LogError("The material for this biome is null. Please assign a texture to the biome.");
+            Debug.LogError("The texture for this biome is null. Please assign a texture to the biome.");
         }
 
-        return _material;
+        return _texture;
+    }
+
+    public void SetHeightMap(HeightmapBase heightMap)
+    {
+        _heightmap = heightMap;
+    }
+
+    public void SetTexture(Texture2D texture)
+    {
+        _texture = texture;
     }
 }
