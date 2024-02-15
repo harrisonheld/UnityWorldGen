@@ -3,8 +3,6 @@ Shader "Custom/MultiTexture"
     Properties
     {
         _TextureArray ("Tex", 2DArray) = "" {}
-        _SliceRange ("Slices", Range(0,16)) = 6
-        _UVScale ("UVScale", Float) = 1.0
     }
     SubShader
     {
@@ -19,21 +17,32 @@ Shader "Custom/MultiTexture"
             
             #include "UnityCG.cginc"
 
+            // The data we want to get in from the vertex shader.
+            struct appdata
+            {
+                // vertex pos 
+                float4 vertex : POSITION;
+                // mesh.uv
+                float4 texcoord0 : TEXCOORD0;
+                // mesh.uv2
+                float4 texcoord1 : TEXCOORD1;
+            };
+            
+            // the data to pass to the fragment shader
             struct v2f
             {
-                float3 uv : TEXCOORD0;
+                // vertex position
                 float4 vertex : SV_POSITION;
+                // x and y specify the texture coordinate. z specifies which texture to sample.
+                float3 uv : TEXCOORD0;
             };
 
-            float _SliceRange;
-            float _UVScale;
-
-            v2f vert (float4 vertex : POSITION)
+            v2f vert(appdata v)
             {
                 v2f o;
-                o.vertex = UnityObjectToClipPos(vertex);
-                o.uv.xy = (vertex.xy + 0.5) * _UVScale;
-                o.uv.z = (vertex.z + 0.5) * _SliceRange;
+                o.vertex = UnityObjectToClipPos(v.vertex);
+                o.uv.xy = v.texcoord0.xy + 0.5;
+                o.uv.z = v.texcoord1.x;
                 return o;
             }
             

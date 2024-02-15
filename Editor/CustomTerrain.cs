@@ -165,6 +165,7 @@ public class CustomTerrain : MonoBehaviour
         // Vertices
         Vector3[] vertices = new Vector3[_chunkResolution * _chunkResolution];
         Vector2[] uvs = new Vector2[vertices.Length];
+        Vector2[] uv2s = new Vector2[vertices.Length];
         Color[] colors = new Color[vertices.Length];
         for (int x = 0; x < _chunkResolution; x++)
         {
@@ -186,13 +187,15 @@ public class CustomTerrain : MonoBehaviour
                 float height = biome.GetHeightmap().GetHeight(worldX, worldZ);
                 vertices[i] = new Vector3(worldX, height, worldZ);
 
-                // Set the Red channel as the texture index, so the multitexture shader can use it
+                // put the texture index in the uv2.x
                 int textureIdx = biomeIdx;
+                uv2s[i] = new Vector2(textureIdx, 0);
                 colors[i] = new Color(textureIdx, 0, 0, 0);
             }
         }
         mesh.vertices = vertices;
         mesh.uv = uvs;
+        mesh.uv2 = uv2s;
         mesh.colors = colors;
 
         // Triangles
