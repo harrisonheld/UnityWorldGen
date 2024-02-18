@@ -61,16 +61,15 @@ public class CustomTerrain : MonoBehaviour
     }
 #endif
 
+    [Tooltip("The size of each chunk in world units. This is the number of units along each side of the chunk.")]
     [SerializeField] private int _chunkSize = 50;
+    [Tooltip("The resolution of each chunk. This is the number of vertices along each side of the chunk.")]
     [SerializeField] private int _chunkResolution = 250;
-
-    [Tooltip("The scale of the biome map. Make this large to make each biome bigger.")]
-    [SerializeField] private float _biomeSize = 1.0f;
 
     [Tooltip("The seed string used to generate the terrain. If left empty, a random seed will be used.")]
     [SerializeField] private string _worldSeedString = "";
     private int _worldSeed;
-    [SerializeField] private List<Biome> _biomes;
+    [SerializeField] private List<Biome> _biomes = new();
 
     const int TEX_SIZE = 512;
 
@@ -150,7 +149,13 @@ public class CustomTerrain : MonoBehaviour
         }
 
         // chunk
-        GenerateChunk(0, 0);
+        for(int x = -1; x <= 1; x++)
+        {
+            for(int z = -1; z <= 1; z++)
+            {
+                GenerateChunk(x, z);
+            }
+        }
     }
 
     public void GenerateChunk(int chunkX, int chunkZ)
@@ -179,16 +184,18 @@ public class CustomTerrain : MonoBehaviour
                 float u = x / (float)(_chunkResolution - 1);
                 float v = z / (float)(_chunkResolution - 1);
                 uvs[i] = new Vector2(u, v);
-                float worldX = u * _chunkSize - _chunkSize / 2;
-                float worldZ = v * _chunkSize - _chunkSize / 2;
+                float offsetX = u * _chunkSize - _chunkSize / 2;
+                float offsetZ = v * _chunkSize - _chunkSize / 2;
 
                 // get biome
-                int biomeIdx = biomeMap.Sample(worldX, worldZ);
+                int biomeIdx = biomeMap.Sample(offsetX, offsetZ);
                 Biome biome = _biomes[biomeIdx];
 
                 // set height
+                float worldX = (chunkX * _chunkSize) + offsetX;
+                float worldZ = (chunkZ * _chunkSize) + offsetZ;
                 float height = biome.GetHeightmap().GetHeight(worldX, worldZ);
-                vertices[i] = new Vector3(worldX, height, worldZ);
+                vertices[i] = new Vector3(offsetX, height, offsetZ);
 
                 // put the texture index in the uv2.x
                 int textureIdx = biomeIdx;
