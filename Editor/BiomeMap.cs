@@ -13,7 +13,6 @@ public class BiomeMap
 
     private List<VoronoiSeed> _voronoiSeeds;
 
-
     public BiomeMap(int worldSeed, int biomeCount, float chunkSize, int chunkX, int chunkZ)
     {
         _worldSeed = worldSeed;
@@ -30,7 +29,7 @@ public class BiomeMap
                 int hash = Helpers.MultiHash(_worldSeed, chunkX + x, chunkZ + z);
                 System.Random random = new System.Random(hash);
                
-                for(int i = 0; i < 10; i++)
+                for(int i = 0; i < 3; i++)
                 {
                     float startX = x * _chunkSize;
                     float startZ = z * _chunkSize;
@@ -48,32 +47,39 @@ public class BiomeMap
                 }
             }
         }
-
-        // generate biomes
-        for(int x = 0; x < _chunkSize; x++)
-        {
-            for(int z = 0; z < _chunkSize; z++)
-            {
-                float worldX = chunkX * _chunkSize + x;
-                float worldZ = chunkZ * _chunkSize + z;
-                int biome = Sample(worldX, worldZ);
-            }
-        }
     }
-    public int Sample(float worldX, float worldY)
+    public BiomeWeight[] Sample(float worldX, float worldY)
     {
-        int closestSeed = -1;
-        float closestDistance = float.MaxValue;
+        // generate blank biome weights
+        BiomeWeight[] weights = new BiomeWeight[_biomeCount];
+        for(int i = 0; i < _biomeCount; i++)
+        {
+            weights[i] = new BiomeWeight();
+            weights[i].BiomeIndex = i;
+            weights[i].Weight = 0;
+        }
+
+        // add weight contribution of each voronoi seed
+        float totalWeight = 0f;
         for(int i = 0; i < _voronoiSeeds.Count; i++)
         {
-            float distance = (worldX - _voronoiSeeds[i].X) * (worldX - _voronoiSeeds[i].X) + (worldY - _voronoiSeeds[i].Y) * (worldY - _voronoiSeeds[i].Y);
-            if(distance < closestDistance)
-            {
-                closestDistance = distance;
-                closestSeed = i;
-            }
+            int biome = _voronoiSeeds[i].Biome;
+            float distance = (worldX - _voronoiSeeds[i].X) * (worldX - _voronoiSeeds[i].X) +
+                         (worldY - _voronoiSeeds[i].Y) * (worldY - _voronoiSeeds[i].Y);
+
+            // apply a falloff function to the distance
+            float weight = 1.0f / (1.0f + distance * distance * distance);
+            weights[biome].Weight += weight;
+            totalWeight += weight;
         }
-        return _voronoiSeeds[closestSeed].Biome;
+
+        // Normalize weights to ensure they sum to 1
+        for (int i = 0; i < weights.Length; i++)
+        {
+            weights[i].Weight /= totalWeight;
+        }
+
+        return weights;
     }
 
     private struct VoronoiSeed
@@ -82,4 +88,9 @@ public class BiomeMap
         public float Y;
         public int Biome;
     }
+}
+public struct BiomeWeight
+{
+    public int BiomeIndex;
+    public float Weight;
 }

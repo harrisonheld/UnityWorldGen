@@ -187,18 +187,28 @@ public class CustomTerrain : MonoBehaviour
                 float offsetX = u * _chunkSize - _chunkSize / 2;
                 float offsetZ = v * _chunkSize - _chunkSize / 2;
 
-                // get biome
-                int biomeIdx = biomeMap.Sample(offsetX, offsetZ);
-                Biome biome = _biomes[biomeIdx];
-
-                // set height
                 float worldX = (chunkX * _chunkSize) + offsetX;
                 float worldZ = (chunkZ * _chunkSize) + offsetZ;
-                float height = biome.GetHeightmap().GetHeight(worldX, worldZ);
+
+                // calculate a weighted height based on the biomes
+                BiomeWeight[] biomeWeights = biomeMap.Sample(offsetX, offsetZ);
+                float height = 0;
+                // we will also find which biome has the highest weight
+                int primaryBiomeIdx = -1;
+                float heighestWeight = -1;
+                foreach(BiomeWeight biomeWeight in biomeWeights)
+                {
+                    height += _biomes[biomeWeight.BiomeIndex].GetHeightmap().GetHeight(worldX, worldZ) * biomeWeight.Weight;
+                    if(biomeWeight.Weight > heighestWeight)
+                    {
+                        heighestWeight = biomeWeight.Weight;
+                        primaryBiomeIdx = biomeWeight.BiomeIndex;
+                    }
+                }
                 vertices[i] = new Vector3(offsetX, height, offsetZ);
 
                 // put the texture index in the uv2.x
-                int textureIdx = biomeIdx;
+                int textureIdx = primaryBiomeIdx;
                 uv2s[i] = new Vector2(textureIdx, 0);
             }
         }
