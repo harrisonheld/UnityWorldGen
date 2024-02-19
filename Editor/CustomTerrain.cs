@@ -61,15 +61,22 @@ public class CustomTerrain : MonoBehaviour
     }
 #endif
 
+    [Tooltip("The seed string used to generate the terrain. If left empty, a random seed will be used.")]
+    [SerializeField] private string _worldSeedString = "";
+
     [Tooltip("The size of each chunk in world units. This is the number of units along each side of the chunk.")]
     [SerializeField] private int _chunkSize = 50;
     [Tooltip("The resolution of each chunk. This is the number of vertices along each side of the chunk.")]
     [SerializeField] private int _chunkResolution = 250;
 
-    [Tooltip("The seed string used to generate the terrain. If left empty, a random seed will be used.")]
-    [SerializeField] private string _worldSeedString = "";
-    private int _worldSeed;
+    [Tooltip("The number of biomes that will be placed per chunk! Increasing this will generally make your biomes smaller.")]
+    [Range(1, 10)]
+    [SerializeField] private int _biomesPerChunk = 3;
+    [Tooltip("The biomes that will be used to generate the terrain.")]
     [SerializeField] private List<Biome> _biomes = new();
+
+    private int _worldSeed;
+
 
     const int TEX_SIZE = 512;
 
@@ -168,7 +175,8 @@ public class CustomTerrain : MonoBehaviour
             biomeCount: _biomes.Count,
             chunkSize: _chunkSize,
             chunkX: chunkX,
-            chunkZ: chunkZ
+            chunkZ: chunkZ,
+            biomesPerChunk: _biomesPerChunk
         );
 
         // Vertices
