@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Security.Cryptography;
-using UnityEngine.WSA;
 
 /// <summary>
 /// A collection of helper methods that don't fit anywhere else.
