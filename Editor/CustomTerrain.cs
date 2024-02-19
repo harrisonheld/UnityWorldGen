@@ -28,10 +28,10 @@ public class CustomTerrain : MonoBehaviour
             Dictionary<string, (string heightmap, string texture)> biomePresets = new Dictionary<string, (string, string)>
             {
                 { "Desert", ("Desert_Heightmap", "Sand") },
-                { "Hills", ("Hills_Heightmap", "Grass") },
-                { "Plains", ("Plains_Heightmap", "Grass") },
-                { "Mountain", ("Mountain_Heightmap", "Stone") },
-                { "Valley", ("Valley_Heightmap", "Grass") },
+                { "Hills", ("hills_simplex_heightmap", "Grass") },
+                { "Plains", ("plains_simplex_heightmap", "Grass") },
+                { "Mountain", ("mountain_simplex_heightmap", "Stone") },
+                { "Valley", ("valley_simplex_heightmap", "Grass") },
                 { "Custom", ("Flat0", "Grass") }
             };
             selected_biome_preset_index = EditorGUILayout.Popup("New Biome", selected_biome_preset_index, preset_biome_options);
