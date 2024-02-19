@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: Plains_Heightmap
   m_EditorClassIdentifier: 
   <Amplitude>k__BackingField: 10
-  <Scale>k__BackingField: 10
+  <Scale>k__BackingField: 50
