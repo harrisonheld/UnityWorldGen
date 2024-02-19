@@ -7,6 +7,10 @@ using System.Linq;
 using UnityEditor;
 #endif
 
+/// <summary>
+/// This is our Unity component. Think of it as the entry point or 'main' of our project.
+/// By serializing fields here, they will be visible in the Unity Editor.
+/// </summary>
 [ExecuteInEditMode]
 public class CustomTerrain : MonoBehaviour
 {

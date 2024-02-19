@@ -2,7 +2,7 @@
 using UnityEngine;
 
 /// <summary>
-/// This serves as an example of a heightmap that is a sinusoidal wave. Look at this one if you want to make your own.
+/// A heightmap whose surface function is of the form: y = A * sin(fx) * sin(fz)
 /// </summary>
 
 // This attribute will make the scriptable object appear in the Create menu.
