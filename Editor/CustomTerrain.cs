@@ -80,10 +80,10 @@ public class CustomTerrain : MonoBehaviour
 
     private int _worldSeed;
 
-
     const int TEX_SIZE = 512;
+    private Material _multitextureMat;
 
-    private Material multitextureMat;
+    private GameObject[,] _chunks;
 
     public void AddBiome(Biome newBiome)
     {
@@ -119,7 +119,7 @@ public class CustomTerrain : MonoBehaviour
         }
 
         // make material
-        this.multitextureMat = new Material(Shader.Find("Custom/MultiTexture"));
+        this._multitextureMat = new Material(Shader.Find("Custom/MultiTexture"));
         Texture2DArray textureArray = new Texture2DArray(TEX_SIZE, TEX_SIZE, _biomes.Count, TextureFormat.RGBA32, true);
         textureArray.filterMode = FilterMode.Bilinear;
         textureArray.wrapMode = TextureWrapMode.Repeat;
@@ -142,7 +142,7 @@ public class CustomTerrain : MonoBehaviour
             textureArray.SetPixels(pixels, i);
         }
         textureArray.Apply();
-        multitextureMat.SetTexture($"_TextureArray", textureArray);
+        _multitextureMat.SetTexture($"_TextureArray", textureArray);
 
         // seed
         if (_worldSeedString == "")
@@ -159,16 +159,73 @@ public class CustomTerrain : MonoBehaviour
         }
 
         // chunk
-        for(int x = -1; x <= 1; x++)
+        int chunkCount = 3;
+        _chunks = new GameObject[chunkCount, chunkCount];
+        for(int x = 0; x < chunkCount; x++)
         {
-            for(int z = -1; z <= 1; z++)
+            for(int z = 0; z < chunkCount; z++)
             {
-                GenerateChunk(x, z);
+                _chunks[x,z] = GenerateChunk(x, z);
+            }
+        }
+
+        StitchChunks();
+    }
+
+    private void StitchChunks()
+    {
+        // stitch along x
+        for (int x = 0; x < _chunks.GetLength(0); x++)
+        {
+            for (int z = 0; z < _chunks.GetLength(1); z++)
+            {
+                // stitch along z
+                if (z > 0)
+                {
+                    Mesh meshLeft = _chunks[x, z].GetComponent<MeshFilter>().sharedMesh; // this chunk
+                    Mesh meshRight = _chunks[x, z - 1].GetComponent<MeshFilter>().sharedMesh; // the chunk in the (0, -1) direction
+                    Vector3[] verticesTop = meshLeft.vertices;
+                    Vector3[] verticesBottom = meshRight.vertices;
+
+                    for (int i = 0; i < _chunkResolution; i++)
+                    {
+                        int idxRight = i * _chunkResolution;
+                        int idxLeft = i * _chunkResolution + _chunkResolution - 1;
+                        float avg = verticesTop[idxRight].y + verticesBottom[idxLeft].y;
+                        avg /= 2f;
+                        verticesTop[idxRight].y = avg;
+                        verticesBottom[idxLeft].y = avg;
+                    }
+
+                    meshLeft.vertices = verticesTop;
+                    meshRight.vertices = verticesBottom;
+                }
+                // stitch along x
+                if (x > 0)
+                {
+                    Mesh meshTop = _chunks[x, z].GetComponent<MeshFilter>().sharedMesh; // this chunk
+                    Mesh meshBottom = _chunks[x - 1, z].GetComponent<MeshFilter>().sharedMesh; // the chunk in the (-1, 0) direction
+                    Vector3[] verticesTop = meshTop.vertices;
+                    Vector3[] verticesBottom = meshBottom.vertices;
+
+                    for (int i = 0; i < _chunkResolution; i++)
+                    {
+                        int idxTop = i;
+                        int idxBottom = (_chunkResolution - 1) * _chunkResolution + i;
+                        float avg = verticesTop[idxTop].y + verticesBottom[idxBottom].y;
+                        avg /= 2f;
+                        verticesTop[idxTop].y = avg;
+                        verticesBottom[idxBottom].y = avg;
+                    }
+
+                    meshTop.vertices = verticesTop;
+                    meshBottom.vertices = verticesBottom;
+                }
             }
         }
     }
 
-    public void GenerateChunk(int chunkX, int chunkZ)
+    public GameObject GenerateChunk(int chunkX, int chunkZ)
     {
         Mesh mesh = new Mesh();
         mesh.name = $"Chunk Mesh ({chunkX}, {chunkZ})";
@@ -259,10 +316,12 @@ public class CustomTerrain : MonoBehaviour
         chunk.GetComponent<MeshFilter>().sharedMesh = mesh;
         chunk.GetComponent<MeshCollider>().sharedMesh = mesh;
         // set mat
-        chunk.GetComponent<MeshRenderer>().sharedMaterial = multitextureMat;
+        chunk.GetComponent<MeshRenderer>().sharedMaterial = _multitextureMat;
         // add as child
         chunk.transform.parent = this.transform;
         // set the position
         chunk.transform.position = new Vector3(chunkX * _chunkSize, 0, chunkZ * _chunkSize);
+
+        return chunk;
     }
 }

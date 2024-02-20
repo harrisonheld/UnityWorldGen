@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 /// <summary>
 /// A BiomeMap is a Voronoi diagram that assigns a biome to each cell.
-/// Generate a BiomeMap for each chunk in the world, and sample it at an offset within the chunk to determine the
+/// To use this class, generate a BiomeMap for each chunk in the world, and sample it at an offset within the chunk to determine the
 /// weights for each biome at that position.
 /// </summary>
 public class BiomeMap
