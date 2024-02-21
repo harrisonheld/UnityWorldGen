@@ -15,7 +15,6 @@ public partial class HeightmapSimplex : HeightmapBase
     [Tooltip("The scale of the noise. This will make the noise more or less frequent.")]
     public float Scale { get; set; } = 10.0f;
 
-
     private float offsetX = 0;
     private float offsetZ = 0;
     private static readonly int[] _permutation = new int[512];
