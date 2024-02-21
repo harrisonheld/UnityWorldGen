@@ -243,5 +243,49 @@ public class CustomTerrain : MonoBehaviour
         chunk.transform.parent = this.transform;
         // set the position
         chunk.transform.position = new Vector3(chunkX * _chunkSize, 0, chunkZ * _chunkSize);
+        
+        // TODO: Adding features to each biome in the chunk
+        //
+        // for each biome in biome map:
+        //     get the x and z bounds of the biome
+        //     for each feature in the biome:
+        //         for loop (based on frequency):
+        //             feature_x = random number based on bounds of x
+        //             feature_z = random number based on bounds of z
+        //             feature_y = use heightmap at (feature_x, feature_y)
+        //             create the object at that coordinate
+        //             set object's parent as chunk
+        //
+        // OR
+        //
+        // for each vertex:
+        //     get the biome at that vertex
+        //     for feature in biome: go in order from lowest frequency to hgihest so that less freqent things get a chance to show up first (tree vs grass)
+        //         probability of showing up = frequency / 100 or something
+        //         if it shows up:
+        //             place object at that vertex's coords
+        //             set object's parent as chunk
+        //             move on to next vertex
+        //
+        // attempting the second solution below
+        for (int i = 0; i < vertices.Length; i++)
+        {
+            Vector3 vertex = vertices[i]; // (offsetX, height, offsetZ)
+            int biomeIndex = (int) uv2s[i].x;
+            Biome biome = _biomes[biomeIndex];
+            for (int j = 0; j < biome.GetFeatures().Count; j++)
+            {
+                BiomeFeature feature = biome.GetFeatures()[j];
+                double probability_feature_appears = 0.05; // TODO: change this to use frequency and function better
+                System.Random rand = new System.Random();
+                int randomNumber = rand.Next(100); // random number 0-99 inclusive
+                if (randomNumber < probability_feature_appears*100)
+                {
+                    // TODO: place object
+                    // TODO: set parent as chunk
+                    break; // stop adding objects to this vertex once one has been added
+                }
+            }
+        }
     }
 }

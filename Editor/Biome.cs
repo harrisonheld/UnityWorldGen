@@ -50,6 +50,9 @@ public class Biome
 
     public void SetFeatures(List<BiomeFeature> features)
     {
+        // sort features so that less frequent features get a chance to show up first when 
+        // adding features (CustomTerrain::GenerateChunk)
+        features.Sort((x, y) => x.frequency.CompareTo(y.frequency));
         _features = features;
     }
 }
