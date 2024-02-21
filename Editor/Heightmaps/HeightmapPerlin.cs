@@ -43,4 +43,22 @@ public partial class HeightmapPerlin : HeightmapBase
             _permutation[i] = _permTemp[i & 255];
         }
     }
+    private int FastFloor(float value)
+    {
+        return value >= 0 ? (int)value : (int)value - 1;
+    }
+    private float Dot(int[] g, float x, float y)
+    {
+        return g[0] * x + g[1] * y;
+    }
+
+    public override float GetHeight(float worldX, float worldZ)
+    {
+        return 0.0f;
+    }
+    public override void SetSeed(int seed)
+    {
+        offsetX = Helpers.MultiHash(seed, 0) % 100000;
+        offsetZ = Helpers.MultiHash(seed, 1) % 100000;
+    }
 }
