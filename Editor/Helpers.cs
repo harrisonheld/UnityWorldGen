@@ -2,12 +2,14 @@ using System;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Security.Cryptography;
-using UnityEngine.WSA;
 
+/// <summary>
+/// A collection of helper methods that don't fit anywhere else.
+/// </summary>
 public static class Helpers
 {
     /// <summary>
-    /// Will hash any amount of any object.
+    /// Will hash any amount of any object. Order matters.
     /// In addition, the hash is STABLE - meaning it will give consistent results even if the application is restarted.
     /// (This is not true of the built-in GetHashCode method.)
     /// </summary>
