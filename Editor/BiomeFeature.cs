@@ -20,7 +20,7 @@ public class BiomeFeature
     private float _size;
 
     [SerializeField]
-    [Tooltip("The feature's mesh model.")]
-    private Mesh _model;
+    [Tooltip("The feature's object model.")]
+    private GameObject _model;
 
 }
