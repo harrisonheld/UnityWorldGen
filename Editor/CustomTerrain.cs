@@ -174,7 +174,6 @@ public class CustomTerrain : MonoBehaviour
 
     private void StitchChunks()
     {
-        // stitch along x
         for (int x = 0; x < _chunks.GetLength(0); x++)
         {
             for (int z = 0; z < _chunks.GetLength(1); z++)
@@ -182,23 +181,23 @@ public class CustomTerrain : MonoBehaviour
                 // stitch along z
                 if (z > 0)
                 {
-                    Mesh meshLeft = _chunks[x, z].GetComponent<MeshFilter>().sharedMesh; // this chunk
-                    Mesh meshRight = _chunks[x, z - 1].GetComponent<MeshFilter>().sharedMesh; // the chunk in the (0, -1) direction
-                    Vector3[] verticesTop = meshLeft.vertices;
-                    Vector3[] verticesBottom = meshRight.vertices;
+                    Mesh meshRight = _chunks[x, z].GetComponent<MeshFilter>().sharedMesh; // this chunk
+                    Mesh meshLeft = _chunks[x, z - 1].GetComponent<MeshFilter>().sharedMesh; // the chunk in the (0, -1) direction
+                    Vector3[] verticesLeft = meshLeft.vertices;
+                    Vector3[] verticesRight = meshRight.vertices;
 
                     for (int i = 0; i < _chunkResolution; i++)
                     {
-                        int idxRight = i * _chunkResolution;
-                        int idxLeft = i * _chunkResolution + _chunkResolution - 1;
-                        float avg = verticesTop[idxRight].y + verticesBottom[idxLeft].y;
+                        int idxLeft = i * _chunkResolution;
+                        int idxRight = i * _chunkResolution + _chunkResolution - 1;
+                        float avg = verticesLeft[idxRight].y + verticesRight[idxLeft].y;
                         avg /= 2f;
-                        verticesTop[idxRight].y = avg;
-                        verticesBottom[idxLeft].y = avg;
+                        verticesLeft[idxRight].y = avg;
+                        verticesRight[idxLeft].y = avg;
                     }
 
-                    meshLeft.vertices = verticesTop;
-                    meshRight.vertices = verticesBottom;
+                    meshLeft.vertices = verticesLeft;
+                    meshRight.vertices = verticesRight;
                 }
                 // stitch along x
                 if (x > 0)
