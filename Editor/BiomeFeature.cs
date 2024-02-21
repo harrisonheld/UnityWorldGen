@@ -19,4 +19,8 @@ public class BiomeFeature
     [Range(0.0f, 10.0f)]
     private float _size;
 
+    [SerializeField]
+    [Tooltip("The feature's mesh model.")]
+    private Mesh _model;
+
 }
