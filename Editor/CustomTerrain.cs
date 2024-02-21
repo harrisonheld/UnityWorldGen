@@ -72,7 +72,7 @@ public class CustomTerrain : MonoBehaviour
     [Tooltip("The resolution of each chunk. This is the number of vertices along each side of the chunk.")]
     [SerializeField] private int _chunkResolution = 250;
 
-    [Tooltip("The number of biomes that will be placed per chunk! Increasing this will generally make your biomes smaller.")]
+    [Tooltip("The number of biomes that will be placed per chunk. Increasing this will generally make your biomes smaller.")]
     [Range(1, 10)]
     [SerializeField] private int _biomesPerChunk = 3;
     [Tooltip("The biomes that will be used to generate the terrain.")]
