@@ -4,8 +4,10 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "New Simplex Heightmap", menuName = "WorldGenerator/Simplex Heightmap")]
 public partial class HeightmapSimplex : HeightmapBase
 {
+    
     [field: SerializeField]
     [Tooltip("The amplitude of the noise. This will make peaks and valleys more extreme.")]
+    [Range(0.0f, 100.0f)]
     public float Amplitude { get; set; } = 100.0f;
 
     [field: SerializeField]
