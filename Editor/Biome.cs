@@ -6,12 +6,21 @@ using UnityEngine;
 public class Biome
 {
     [SerializeField]
+    //
+    private string _name = "Test Nameeeee";
+
+    [SerializeField]
     [Tooltip("Select a custom heightmap for the biome.")]
     private HeightmapBase _heightmap;
 
     [SerializeField]
     [Tooltip("The texture that will be used to paint this biome.")]
     private Texture2D _texture;
+
+    public string GetName()
+    {
+        return _name;
+    }
 
     public HeightmapBase GetHeightmap()
     {
@@ -25,6 +34,11 @@ public class Biome
         }
 
         return _texture;
+    }
+
+    public void SetName(string name)
+    {
+        _name = name;
     }
 
     public void SetHeightMap(HeightmapBase heightMap)

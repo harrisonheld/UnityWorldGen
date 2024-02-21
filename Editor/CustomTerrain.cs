@@ -10,56 +10,56 @@ using UnityEditor;
 [ExecuteInEditMode]
 public class CustomTerrain : MonoBehaviour
 {
-#if UNITY_EDITOR
-    [CustomEditor(typeof(CustomTerrain))]
-    public class CustomTerrainEditor : Editor
-    {
-        int selected_biome_preset_index = 0;
+// #if UNITY_EDITOR
+//     [CustomEditor(typeof(CustomTerrain))]
+//     public class CustomTerrainEditor : Editor
+//     {
+//         int selected_biome_preset_index = 0;
 
-        public override void OnInspectorGUI()
-        {
-            base.OnInspectorGUI();
+//         public override void OnInspectorGUI()
+//         {
+//             base.OnInspectorGUI();
 
-            CustomTerrain terrain = (CustomTerrain)this.target;
+//             CustomTerrain terrain = (CustomTerrain)this.target;
 
-            GUILayout.Space(10);
+//             GUILayout.Space(10);
 
-            string[] preset_biome_options = new string[] { "Desert", "Hills", "Plains", "Mountain", "Valley", "Custom" };
-            Dictionary<string, (string heightmap, string texture)> biomePresets = new Dictionary<string, (string, string)>
-            {
-                { "Desert", ("Desert_Heightmap", "Sand") },
-                { "Hills", ("Hills_Heightmap", "Grass") },
-                { "Plains", ("Plains_Heightmap", "Grass") },
-                { "Mountain", ("Mountain_Heightmap", "Stone") },
-                { "Valley", ("Valley_Heightmap", "Grass") },
-                { "Custom", ("Flat0", "Grass") }
-            };
-            selected_biome_preset_index = EditorGUILayout.Popup("New Biome", selected_biome_preset_index, preset_biome_options);
+//             string[] preset_biome_options = new string[] { "Desert", "Hills", "Plains", "Mountain", "Valley", "Custom" };
+//             Dictionary<string, (string heightmap, string texture)> biomePresets = new Dictionary<string, (string, string)>
+//             {
+//                 { "Desert", ("Desert_Heightmap", "Sand") },
+//                 { "Hills", ("Hills_Heightmap", "Grass") },
+//                 { "Plains", ("Plains_Heightmap", "Grass") },
+//                 { "Mountain", ("Mountain_Heightmap", "Stone") },
+//                 { "Valley", ("Valley_Heightmap", "Grass") },
+//                 { "Custom", ("Flat0", "Grass") }
+//             };
+//             selected_biome_preset_index = EditorGUILayout.Popup("New Biome", selected_biome_preset_index, preset_biome_options);
 
-            if (GUILayout.Button("Add Biome"))
-            {
-                Biome newBiome = new();
+//             if (GUILayout.Button("Add Biome"))
+//             {
+//                 Biome newBiome = new();
 
-                if (biomePresets.TryGetValue(preset_biome_options[selected_biome_preset_index], out var preset))
-                {
-                    newBiome.SetHeightMap(Resources.Load(preset.heightmap, typeof(HeightmapBase)) as HeightmapBase);
-                    newBiome.SetTexture(Resources.Load(preset.texture, typeof(Texture2D)) as Texture2D);
-                    terrain.AddBiome(newBiome);
-                }
-                else
-                {
-                    Debug.LogError("Unrecognized Option");
-                }
-            }
+//                 if (biomePresets.TryGetValue(preset_biome_options[selected_biome_preset_index], out var preset))
+//                 {
+//                     newBiome.SetHeightMap(Resources.Load(preset.heightmap, typeof(HeightmapBase)) as HeightmapBase);
+//                     newBiome.SetTexture(Resources.Load(preset.texture, typeof(Texture2D)) as Texture2D);
+//                     terrain.AddBiome(newBiome);
+//                 }
+//                 else
+//                 {
+//                     Debug.LogError("Unrecognized Option");
+//                 }
+//             }
 
-            if (GUILayout.Button("Generate Terrain"))
-            {
-                terrain.GenerateTerrain();
-            }
+//             if (GUILayout.Button("Generate Terrain"))
+//             {
+//                 terrain.GenerateTerrain();
+//             }
             
-        }
-    }
-#endif
+//         }
+//     }
+// #endif
 
     [Tooltip("The size of each chunk in world units. This is the number of units along each side of the chunk.")]
     [SerializeField] private int _chunkSize = 50;
