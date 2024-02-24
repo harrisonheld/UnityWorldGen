@@ -87,24 +87,12 @@ public class CustomTerrain_Inspector : Editor
             SerializedProperty heightmapProperty = biomeElement.FindPropertyRelative("_heightmap");
             SerializedProperty textureProperty = biomeElement.FindPropertyRelative("_texture");
 
-            //Create Foldout for each Biomes
+            //Create Main Foldout for a Biome
             Foldout biomeFoldout = new Foldout();
             biomeFoldout.text = string.IsNullOrEmpty(nameProperty.stringValue) ? "Biome " + i : nameProperty.stringValue;
             biomeFoldout.AddToClassList("biomeFoldout");
             root.Add(biomeFoldout);
 
-            Button deleteButton = new Button(() =>
-            {
-                CustomTerrain terrain = (CustomTerrain)target;
-                terrain.DeleteBiome(i); 
-                serializedObject.Update();
-                serializedObject.ApplyModifiedProperties();
-                EditorUtility.SetDirty(terrain);
-            })
-            {
-                text = "delete",
-            };
-            deleteButton.style.width = 100;
 
             //GUI for nameProperty
             TextField nameField = new TextField("Biome Name")
@@ -118,6 +106,20 @@ public class CustomTerrain_Inspector : Editor
                 Debug.Log($"Biome name changed to: {nameProperty.stringValue}");
                 biomeFoldout.text = string.IsNullOrEmpty(evt.newValue) ? "Biome " + i : evt.newValue;
             });
+
+            //GUI for Delete Button
+            Button deleteButton = new Button(() =>
+            {
+                CustomTerrain terrain = (CustomTerrain)target;
+                terrain.DeleteBiome(i); 
+                serializedObject.Update();
+                serializedObject.ApplyModifiedProperties();
+                EditorUtility.SetDirty(terrain);
+            })
+            {
+                text = "delete",
+            };
+            deleteButton.style.width = 100;
 
             //GUI for each properties of heightmapProperty
             Foldout heightmapFoldout = new Foldout();
@@ -168,7 +170,7 @@ public class CustomTerrain_Inspector : Editor
             biomeFoldout.Add(nameField); 
             biomeFoldout.Add(heightmapFoldout);
             biomeFoldout.Add(deleteButton);
-            // biomeFoldout.Add();
+            // biomeFoldout.Add(texture);
         }
         root.Add(biomeDropdown);
         root.Add(addBiomeButton);
