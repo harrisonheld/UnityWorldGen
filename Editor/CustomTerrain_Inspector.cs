@@ -10,7 +10,7 @@ public class CustomTerrain_Inspector : Editor
 {
     public VisualTreeAsset m_InspectorXML;
 
-    //Dictionary for biome dropdown
+    //Dictionary for biomes dropdown
     private Dictionary<string, (string heightmap, string texture)> biomePresets = new Dictionary<string, (string, string)>
     {
         { "Desert", ("Desert_Heightmap", "Sand") },
@@ -20,6 +20,33 @@ public class CustomTerrain_Inspector : Editor
         { "Valley", ("Valley_Heightmap", "Grass") },
         { "Custom", ("Flat0", "Grass") }
     };
+
+    //Dictionary for texture dropdown
+    private Dictionary<string, string> texturePresets = new Dictionary<string, string>
+    {
+        { "Sand", "Sand" },
+        { "Grass", "Grass" },
+        { "Stone", "Stone" },
+        { "Metallic", "Metallic" },
+        { "Import Custom", "Custom" }
+    };
+
+    //Dictionary for Skybox dropdown
+    private Dictionary<string, string> skyboxPresets = new Dictionary<string, string>
+    {
+        { "Cloudy", "Cloudy" },
+        { "Sunny", "Sunny" },
+        { "Import Custom", "Custom" }
+    };
+
+    private Dictionary<string, string> biomeFeaturePresets = new Dictionary<string, string>
+    {
+        { "Trees", "Trees" },
+        { "Rocks", "Rocks" },
+        { "Rivers", "Rivers" },
+        { "Import Custom", "Custom" }
+    };
+
 
     public override VisualElement CreateInspectorGUI()
     {
@@ -57,7 +84,6 @@ public class CustomTerrain_Inspector : Editor
                 Texture2D texture = Resources.Load<Texture2D>(preset.texture);
 
                 // Set the properties on the new biome
-                // This assumes the existence of such methods or properties to set these values
                 newBiome.SetName("Change my name.");
                 newBiome.SetHeightMap(heightmap);
                 newBiome.SetTexture(texture);
@@ -77,7 +103,6 @@ public class CustomTerrain_Inspector : Editor
             text = "Add Biome"
         };
         
-
         SerializedProperty biomesProperty = serializedObject.FindProperty("_biomes");
         for (int i = 0; i < biomesProperty.arraySize; i++)
         {
@@ -91,6 +116,9 @@ public class CustomTerrain_Inspector : Editor
             Foldout biomeFoldout = new Foldout();
             biomeFoldout.text = string.IsNullOrEmpty(nameProperty.stringValue) ? "Biome " + i : nameProperty.stringValue;
             biomeFoldout.AddToClassList("biomeFoldout");
+            
+            //Set default status as fold and add biomes foldout to the root
+            biomeFoldout.value = false;
             root.Add(biomeFoldout);
 
 
@@ -117,31 +145,30 @@ public class CustomTerrain_Inspector : Editor
                 EditorUtility.SetDirty(terrain);
             })
             {
-                text = "delete",
+                text = "delete biome",
             };
-            deleteButton.style.width = 100;
 
             //GUI for each properties of heightmapProperty
             Foldout heightmapFoldout = new Foldout();
             heightmapFoldout.text = "Heightmap";
+            heightmapFoldout.value = false;
             SerializedObject heightmapSerializedObject = new SerializedObject(heightmapProperty.objectReferenceValue);
             SerializedProperty iterator = heightmapSerializedObject.GetIterator();
 
             while (iterator.NextVisible(true))
             {
-                // Debug.Log(iterator.displayName);
                 if (iterator.name == "m_Script")
                 {
                     continue;
                 }
-                // Create UI elements for each property here
+                // Create UI elements for each heightmap property here
                 Debug.Log(iterator.Copy().displayName);
                 PropertyField propertyField = new PropertyField(iterator.Copy());
                 switch (iterator.propertyType) {
                     case SerializedPropertyType.Float:
-                    // Define the range for your slider
-                    float minValue = 0f; // Example minimum value
-                    float maxValue = 100f; // Example maximum value
+                    // Define the range of slider
+                    float minValue = 0f; //minimum value
+                    float maxValue = 100f; //maximum value
                     
                     
                     var slider = new Slider(iterator.displayName, minValue, maxValue)
@@ -163,17 +190,121 @@ public class CustomTerrain_Inspector : Editor
                         heightmapFoldout.Add(label);
                         break;
                 }
-                // heightmapFoldout.Add(propertyField);
             }
+
+            //GUI for Texture
+            var textureDropdown = new PopupField<string>("Texture", new List<string>(texturePresets.Keys), 0);
+            textureDropdown.RegisterValueChangedCallback(evt =>
+            {
+                // Placeholder for future functionality
+                Debug.Log($"Selected texture for Biome {i + 1}: {evt.newValue}");
+            });
+            
+            //GUI for skybox
+            var skyboxDropdown = new PopupField<string>("Skybox", new List<string>(skyboxPresets.Keys), 0);
+            skyboxDropdown.RegisterValueChangedCallback(evt =>
+            {
+                // Placeholder for future functionality
+                Debug.Log($"Selected skybox for Biome {i + 1}: {evt.newValue}");
+            });
+
+            //GUI for Size
+            var sizeSlider = new Slider("Size", 0, 100) //Assuming a range of 0 to 100 for size
+            {
+                value = 50 //Default value
+            };
+            
+            //GUI for Frequency
+            var frequencySlider = new Slider("Frequency", 0, 100) //Assuming a range of 0 to 100 for frequency
+            {
+                value = 20 //Default value
+            };
+            
+            //GUI for Biome Feature foldout
+            Foldout biomeFeatureFoldout = new Foldout()
+            {
+                text = "Biome Feature",
+                value = false
+            };
+
+            //GUI for New Feature dropdown
+            var newFeatureDropdown = new PopupField<string>("New Feature", new List<string>(biomeFeaturePresets.Keys), 0);
+            newFeatureDropdown.RegisterValueChangedCallback(evt =>
+            {
+                // Placeholder for future functionality
+                Debug.Log($"Selected new feature for Biome {i + 1}: {evt.newValue}");
+            });
+
+            //GUI for Add Feature Button
+            Button addFeatureButton = new Button(() =>
+            {
+                //Get the selected feature name
+                string selectedFeatureName = newFeatureDropdown.value;
+
+                //Create a new foldout for the selected feature
+                Foldout newFeatureFoldout = new Foldout
+                {
+                    text = selectedFeatureName,
+                    value = true
+                };
+
+                //Add elements to the new feature foldout here
+                //Add "Feature Size" slider
+                var featureSizeSlider = new Slider("Feature Size", 0, 100)
+                {
+                    value = 50 
+                };
+                newFeatureFoldout.Add(featureSizeSlider);
+
+                //Add "Feature Frequency" slider
+                var featureFrequencySlider = new Slider("Feature Frequency", 0, 100)
+                {
+                    value = 20 
+                };
+                newFeatureFoldout.Add(featureFrequencySlider);
+
+                // Add the new feature foldout to the biomeFeaturesFoldout
+                biomeFeatureFoldout.Add(newFeatureFoldout);
+            })
+            {
+                text = "Add Feature"
+            };
+
+            //Add Element to Biome Feature foldout
+            biomeFeatureFoldout.Add(newFeatureDropdown);
+            biomeFeatureFoldout.Add(addFeatureButton);
+
+            //Styling for each elements in the biome foldout
+            heightmapFoldout.style.marginTop = 5;
+            heightmapFoldout.style.marginBottom = 5;
+            textureDropdown.style.marginTop = 5;
+            skyboxDropdown.style.marginTop = 5;
+            sizeSlider.style.marginTop = 5;
+            frequencySlider.style.marginTop = 5;
+            biomeFeatureFoldout.style.marginTop = 5; 
+            deleteButton.style.marginTop = 10;
+            addFeatureButton.style.marginBottom = 10;
+            addFeatureButton.style.width = 100;
 
             //Add Element to Biome Foldout
             biomeFoldout.Add(nameField); 
             biomeFoldout.Add(heightmapFoldout);
+            biomeFoldout.Add(textureDropdown);
+            biomeFoldout.Add(skyboxDropdown);
+            biomeFoldout.Add(sizeSlider);
+            biomeFoldout.Add(frequencySlider);
+            biomeFoldout.Add(biomeFeatureFoldout);
             biomeFoldout.Add(deleteButton);
             // biomeFoldout.Add(texture);
         }
+
+        //Styling for each elements outside of biome foldout
+        biomeDropdown.style.marginTop = 10;
+
+        //Add elements to the root
         root.Add(biomeDropdown);
         root.Add(addBiomeButton);
+        
         // Return the finished inspector UI
         return root;
     }
