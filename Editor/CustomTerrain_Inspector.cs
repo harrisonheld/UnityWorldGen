@@ -3,25 +3,123 @@ using UnityEngine;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
+using System.Collections.Generic; 
 
 [CustomEditor(typeof(CustomTerrain))]
 public class CustomTerrain_Inspector : Editor
 {
     public VisualTreeAsset m_InspectorXML;
+
+    //Dictionary for biome dropdown
+    private Dictionary<string, (string heightmap, string texture)> biomePresets = new Dictionary<string, (string, string)>
+    {
+        { "Desert", ("Desert_Heightmap", "Sand") },
+        { "Hills", ("Hills_Heightmap", "Grass") },
+        { "Plains", ("Plains_Heightmap", "Grass") },
+        { "Mountain", ("Mountain_Heightmap", "Stone") },
+        { "Valley", ("Valley_Heightmap", "Grass") },
+        { "Custom", ("Flat0", "Grass") }
+    };
+
     public override VisualElement CreateInspectorGUI()
     {
         // Create a new VisualElement to be the root of our inspector UI
         VisualElement root = new VisualElement();
-
         root.AddToClassList("customInspectorRoot");
 
-        SerializedProperty biomesProperty = serializedObject.FindProperty("_biomes");
+        // Access the CustomTerrain target object
+        CustomTerrain terrain = (CustomTerrain)target;
 
+        // Biome Selection Dropdown
+        var biomeDropdown = new PopupField<string>("New Biome", new List<string>(biomePresets.Keys), 0);
+
+        biomeDropdown.RegisterValueChangedCallback(evt =>
+        {
+            // evt.newValue contains the newly selected option as a string
+            Debug.Log("Selected biome: " + evt.newValue);
+            // Here you can handle the selection change. For example, updating a property or variable.
+        });
+
+        // Add Biome Button
+        Button addBiomeButton = new Button(() =>
+        {
+            string selectedBiomeName = biomeDropdown.value;
+            if (biomePresets.TryGetValue(selectedBiomeName, out var preset))
+            {
+                // Access the CustomTerrain target object
+                CustomTerrain terrain = (CustomTerrain)target;
+
+                // Assuming Biome is a class you can instantiate and has SetHeightMap and SetTexture methods
+                Biome newBiome = new Biome();
+
+                // Load the assets based on the preset names
+                HeightmapBase heightmap = Resources.Load<HeightmapBase>(preset.heightmap);
+                Texture2D texture = Resources.Load<Texture2D>(preset.texture);
+
+                // Set the properties on the new biome
+                // This assumes the existence of such methods or properties to set these values
+                newBiome.SetName("Change my name.");
+                newBiome.SetHeightMap(heightmap);
+                newBiome.SetTexture(texture);
+
+                // Add the new biome to the terrain
+                terrain.AddBiome(newBiome);
+
+                // Mark the terrain object as dirty to ensure changes are saved
+                EditorUtility.SetDirty(terrain);
+            }
+            else
+            {
+                Debug.LogError("Unrecognized Biome Option");
+            }
+        })
+        {
+            text = "Add Biome"
+        };
+        
+
+        SerializedProperty biomesProperty = serializedObject.FindProperty("_biomes");
         for (int i = 0; i < biomesProperty.arraySize; i++)
         {
+            //Find each properties of a biome
             SerializedProperty biomeElement = biomesProperty.GetArrayElementAtIndex(i);
-            // heightmapProperty.objectReferenceValue as HeightmapBase;
-            SerializedProperty heightmapProperty = biomeElement.FindPropertyRelative("_heightmap");//.objectReferenceValue as HeightmapBase;
+            SerializedProperty nameProperty = biomeElement.FindPropertyRelative("_name");
+            SerializedProperty heightmapProperty = biomeElement.FindPropertyRelative("_heightmap");
+            SerializedProperty textureProperty = biomeElement.FindPropertyRelative("_texture");
+
+            //Create Foldout for each Biomes
+            Foldout biomeFoldout = new Foldout();
+            biomeFoldout.text = string.IsNullOrEmpty(nameProperty.stringValue) ? "Biome " + i : nameProperty.stringValue;
+            biomeFoldout.AddToClassList("biomeFoldout");
+            root.Add(biomeFoldout);
+
+            Button deleteButton = new Button(() =>
+            {
+                CustomTerrain terrain = (CustomTerrain)target;
+                terrain.DeleteBiome(i); 
+                serializedObject.Update();
+                serializedObject.ApplyModifiedProperties();
+                EditorUtility.SetDirty(terrain);
+            })
+            {
+                text = "delete",
+            };
+            deleteButton.style.width = 100;
+
+            //GUI for nameProperty
+            TextField nameField = new TextField("Biome Name")
+            {
+                value = nameProperty.stringValue
+            };
+            nameField.RegisterValueChangedCallback(evt =>
+            {
+                nameProperty.stringValue = evt.newValue;
+                biomeElement.serializedObject.ApplyModifiedProperties();
+                Debug.Log($"Biome name changed to: {nameProperty.stringValue}");
+                biomeFoldout.text = string.IsNullOrEmpty(evt.newValue) ? "Biome " + i : evt.newValue;
+            });
+
+            //GUI for each properties of heightmapProperty
             Foldout heightmapFoldout = new Foldout();
             heightmapFoldout.text = "Heightmap";
             SerializedObject heightmapSerializedObject = new SerializedObject(heightmapProperty.objectReferenceValue);
@@ -39,171 +137,41 @@ public class CustomTerrain_Inspector : Editor
                 PropertyField propertyField = new PropertyField(iterator.Copy());
                 switch (iterator.propertyType) {
                     case SerializedPropertyType.Float:
-                        // Define the range for your slider
-                        float minValue = 0f; // Example minimum value
-                        float maxValue = 100f; // Example maximum value
+                    // Define the range for your slider
+                    float minValue = 0f; // Example minimum value
+                    float maxValue = 100f; // Example maximum value
+                    
+                    
+                    var slider = new Slider(iterator.displayName, minValue, maxValue)
+                    {
+                        value = iterator.floatValue
+                    };
 
-                        var slider = new Slider(iterator.displayName, minValue, maxValue)
-                        {
-                            value = iterator.floatValue
-                        };
-                        slider.RegisterValueChangedCallback(evt =>
-                        {
-                            iterator.floatValue = evt.newValue;
-                            iterator.serializedObject.ApplyModifiedProperties();
-                        });
-                        heightmapFoldout.Add(slider);
-                        break;
+                    slider.RegisterValueChangedCallback(evt =>
+                    {
+                        iterator.floatValue = evt.newValue;
+                        iterator.serializedObject.ApplyModifiedProperties();
+                    });
+
+                    heightmapFoldout.Add(slider);
+                    break;
 
                     default:
                         var label = new Label($"{iterator.displayName}: {iterator.propertyType} not supported");
                         heightmapFoldout.Add(label);
                         break;
                 }
-                heightmapFoldout.Add(propertyField);
+                // heightmapFoldout.Add(propertyField);
             }
 
-            // Create a property field for each property in the biome
-            // SerializedProperty iterator = heightmapProperty.Copy();
-            // bool hasNext = iterator.NextVisible(true);
-            // while (hasNext)
-            // {
-            //     // if (SerializedProperty.EqualContents(iterator, heightmapProperty.GetArrayElementAtIndex(i)))
-            //     //     break;
-            //     // Debug.Log(iterator.displayName);
-            //     PropertyField propertyField = new PropertyField(iterator.Copy(), iterator.displayName);
-            //     // Debug.Log(propertyField);
-            //     heightmapFoldout.Add(propertyField);
-            //     hasNext = iterator.NextVisible(false);
-            // }
-
-
-            // SerializedProperty nameProperty = biomeElement.FindPropertyRelative("_name");
-            // Create a foldout for each biome
-            Foldout biomeFoldout = new Foldout();
-
-            // EditorGUILayout.PropertyField(biomeElement);
-            biomeFoldout.text = "Biome " + i;
-
-            // nameProperty.serializedObject.ApplyModifiedProperties(); // Ensure properties are up to date
-            // nameProperty.serializedObject.Update(); // Ensure serialized object is up to date
-            // nameProperty.ValueChanged += () => UpdateFoldoutText(biomeFoldout, nameProperty.stringValue);
-
-            biomeFoldout.AddToClassList("biomeFoldout");
-
+            //Add Element to Biome Foldout
+            biomeFoldout.Add(nameField); 
             biomeFoldout.Add(heightmapFoldout);
-            root.Add(biomeFoldout);
-
-            // // Determine the type of heightmap
-            // if (heightmapProperty != null && heightmapProperty.objectReferenceValue != null)
-            // {
-            //     HeightmapBase heightmap = heightmapProperty.objectReferenceValue as HeightmapBase;
-
-            //     if (heightmap != null)
-            //     {
-            //         // Show properties based on the type of heightmap
-            //         if (heightmap is HeightmapFlat)
-            //         {
-            //             HeightmapFlat heightmapFlat = heightmap as HeightmapFlat;
-            //             PropertyField heightPropertyField = new PropertyField(SerializedPropertyType.Float, heightmapFlat.GetSerializedProperty("Height"));
-            //             heightPropertyField.Bind(heightmapFlat);
-            //             biomeFoldout.Add(heightPropertyField);
-            //         }
-            //         // Add more conditions for other heightmap types if needed
-            //     }
-            // }
-
-            // if (heightmapProperty != null && heightmapProperty.objectReferenceValue != null)
-            // {
-            //     // Get the type of the heightmap
-            //     Type heightmapType = heightmapProperty.objectReferenceValue.GetType();
-            //     Debug.Log(heightmapType);
-
-            //     // Iterate over properties of the heightmap type
-            //     foreach (var property in heightmapType.GetProperties())
-            //     {
-            //         Debug.Log("HERE");
-
-            //         // Exclude properties inherited from base classes
-            //         // Debug.Log(JsonUtility.ToJson(property.displayName));
-
-            //         // if (property.DeclaringType == heightmapType)
-            //         // {
-            //             // Create a property field for each property of the heightmap
-            //             PropertyField propertyField = new PropertyField(property, property.displayN);
-            //             heightmapFoldout.Add(propertyField);
-            //         // }
-            //     }
-            // }
-
-            // if (heightmapProperty != null && heightmapProperty.objectReferenceValue != null)
-            // {
-            //     HeightmapBase heightmap = heightmapProperty.objectReferenceValue as HeightmapBase;
-            //     Debug.Log(heightmap);
-
-            //     if (heightmap != null && heightmap is HeightmapSimplex)
-            //     {
-            //         Debug.Log("HERE");
-
-            // HeightmapSimplex heightmapSimplex = heightmap as HeightmapSimplex;
-
-            // Create a serialized object for the heightmap instance
-            // SerializedObject heightmapSerializedObject = new SerializedObject(heightmap);
-
-            // Get all serialized properties of the heightmap instance
-            // SerializedProperty property = heightmapSerializedObject.GetIterator();
-            // property.Next(true);
-            // Debug.Log(property.displayName);
-
-
-            // Create a property field for each property in the biome
-            // SerializedProperty heightmapIterator = heightmap.Copy();
-            // bool hasNext = heightmapIterator.NextVisible(true);
-            // while (hasNext)
-            // {
-            //     // if (SerializedProperty.EqualContents(iterator, biomesProperty.GetArrayElementAtIndex(i)))
-            //     //     break;
-            //     PropertyField propertyField = new PropertyField(heightmapIterator.Copy(), heightmapIterator.displayName);
-            //     heightmapFoldout.Add(propertyField);
-            //     hasNext = heightmapIterator.NextVisible(false);
-            // }
-
-            // // Iterate over properties of the heightmap instance
-            // while (property.NextVisible(false))
-            // {
-            //     // Create a property field for each property of the heightmap
-            //     PropertyField propertyField = new PropertyField(property,property.displayName);
-            //     heightmapFoldout.Add(propertyField);
-            // }
-            //     }
-            // }
-
-
-
-            //     SerializedProperty iterator = heightmapProperty.Copy();
-            // bool hasNext = iterator.NextVisible(true);
-            // while (hasNext)
-            // {
-            //     PropertyField propertyField = new PropertyField(iterator.Copy(), iterator.displayName);
-            //     heightmapFoldout.Add(propertyField);
-            //     hasNext = iterator.NextVisible(false);
-            // }
-
-
-            // Create a property field for each property in the biome
-            // SerializedProperty iterator = biomeElement.Copy();
-            // bool hasNext = iterator.NextVisible(true);
-            // while (hasNext)
-            // {
-            //     if (SerializedProperty.EqualContents(iterator, biomesProperty.GetArrayElementAtIndex(i)))
-            //         break;
-
-            //     PropertyField propertyField = new PropertyField(iterator.Copy(), iterator.displayName);
-            //     biomeFoldout.Add(propertyField);
-            //     hasNext = iterator.NextVisible(false);
-            // }
+            biomeFoldout.Add(deleteButton);
+            // biomeFoldout.Add();
         }
-
+        root.Add(biomeDropdown);
+        root.Add(addBiomeButton);
         // Return the finished inspector UI
         return root;
     }

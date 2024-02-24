@@ -77,7 +77,15 @@ public class CustomTerrain : MonoBehaviour
 
     public void AddBiome(Biome newBiome)
     {
+
         this._biomes.Add(newBiome);
+    }
+    public void DeleteBiome(int index)
+    {
+        if (index >= 0 && index < _biomes.Count)
+        {
+            this._biomes.RemoveAt(index);
+        }
     }
     public void GenerateTerrain()
     {

@@ -5,9 +5,9 @@ using UnityEngine;
 [Serializable]
 public class Biome
 {
-    // [SerializeField]
-    //
-    // private string _name = "Test Nameeeee";
+    [SerializeField]
+    [Tooltip("Name of the current biome.")]
+    private string _name = "Change my name.";
 
     [SerializeField]
     [Tooltip("Select a custom heightmap for the biome.")]
@@ -17,17 +17,10 @@ public class Biome
     [Tooltip("The texture that will be used to paint this biome.")]
     private Texture2D _texture;
 
-    // public string GetName()
-    // {
-    //     return name;
-    // }
-
-    // Property to access _name
-    // public string Name
-    // {
-    //     get { return _name; }
-    //     set { _name = value; }
-    // }
+    public string GetName()
+    {
+        return _name;
+    }
 
     public HeightmapBase GetHeightmap()
     {
@@ -43,10 +36,10 @@ public class Biome
         return _texture;
     }
 
-    // public void SetName(string name)
-    // {
-    //     name = name;
-    // }
+    public void SetName(string name)
+    {
+        _name = name;
+    }
 
     public void SetHeightMap(HeightmapBase heightMap)
     {
