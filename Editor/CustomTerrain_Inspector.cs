@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
-using System.Collections.Generic; 
+using System.Collections.Generic;
 
 [CustomEditor(typeof(CustomTerrain))]
 public class CustomTerrain_Inspector : Editor
@@ -47,17 +47,22 @@ public class CustomTerrain_Inspector : Editor
         { "Import Custom", "Custom" }
     };
 
-
-    public override VisualElement CreateInspectorGUI()
+    //Refresh GUI and generate terrain in real-time
+    private void UpdateUI (VisualElement root, CustomTerrain terrain) 
     {
-        // Create a new VisualElement to be the root of our inspector UI
-        VisualElement root = new VisualElement();
-        root.AddToClassList("customInspectorRoot");
+        serializedObject.Update();
+        serializedObject.ApplyModifiedProperties();
+        root.Clear();
+        BuildUI(root);
+        terrain.GenerateTerrain();
+    }
 
-        // Access the CustomTerrain target object
-        CustomTerrain terrain = (CustomTerrain)target;
+    private void BuildUI(VisualElement root)
+    {
+        //Access the CustomTerrain target object
+        CustomTerrain terrain =  (CustomTerrain)target;
 
-        // Biome Selection Dropdown
+        //Biome Selection Dropdown
         var biomeDropdown = new PopupField<string>("New Biome", new List<string>(biomePresets.Keys), 0);
 
         biomeDropdown.RegisterValueChangedCallback(evt =>
@@ -95,8 +100,7 @@ public class CustomTerrain_Inspector : Editor
                 // Add the new biome to the terrain
                 terrain.AddBiome(newBiome);
 
-                // Mark the terrain object as dirty to ensure changes are saved
-                EditorUtility.SetDirty(terrain);
+                UpdateUI(root, terrain);
             }
             else
             {
@@ -106,7 +110,7 @@ public class CustomTerrain_Inspector : Editor
         {
             text = "Add Biome"
         };
-        
+
         SerializedProperty biomesProperty = serializedObject.FindProperty("_biomes");
         for (int i = 0; i < biomesProperty.arraySize; i++)
         {
@@ -122,7 +126,7 @@ public class CustomTerrain_Inspector : Editor
             Foldout biomeFoldout = new Foldout();
             biomeFoldout.text = string.IsNullOrEmpty(nameProperty.stringValue) ? "Biome " + i : nameProperty.stringValue;
             biomeFoldout.AddToClassList("biomeFoldout");
-            
+
             //Set default status as fold and add biomes foldout to the root
             biomeFoldout.value = false;
             root.Add(biomeFoldout);
@@ -145,13 +149,11 @@ public class CustomTerrain_Inspector : Editor
             Button deleteButton = new Button(() =>
             {
                 CustomTerrain terrain = (CustomTerrain)target;
-                terrain.DeleteBiome(biomeId); 
-                serializedObject.Update();
-                serializedObject.ApplyModifiedProperties();
-                EditorUtility.SetDirty(terrain);
+                terrain.DeleteBiome(biomeId);
+                UpdateUI(root, terrain);
             })
             {
-                text = "delete biome",
+                text = "Delete Biome",
             };
 
             //GUI for each properties of heightmapProperty
@@ -170,26 +172,27 @@ public class CustomTerrain_Inspector : Editor
                 // Create UI elements for each heightmap property here
                 Debug.Log(iterator.Copy().displayName);
                 PropertyField propertyField = new PropertyField(iterator.Copy());
-                switch (iterator.propertyType) {
+                switch (iterator.propertyType)
+                {
                     case SerializedPropertyType.Float:
-                    // Define the range of slider
-                    float minValue = 0f; //minimum value
-                    float maxValue = 100f; //maximum value
-                    
-                    
-                    var slider = new Slider(iterator.displayName, minValue, maxValue)
-                    {
-                        value = iterator.floatValue
-                    };
+                        // Define the range of slider
+                        float minValue = 0f; //minimum value
+                        float maxValue = 100f; //maximum value
 
-                    slider.RegisterValueChangedCallback(evt =>
-                    {
-                        iterator.floatValue = evt.newValue;
-                        iterator.serializedObject.ApplyModifiedProperties();
-                    });
 
-                    heightmapFoldout.Add(slider);
-                    break;
+                        var slider = new Slider(iterator.displayName, minValue, maxValue)
+                        {
+                            value = iterator.floatValue
+                        };
+
+                        slider.RegisterValueChangedCallback(evt =>
+                        {
+                            iterator.floatValue = evt.newValue;
+                            iterator.serializedObject.ApplyModifiedProperties();
+                        });
+
+                        heightmapFoldout.Add(slider);
+                        break;
 
                     default:
                         var label = new Label($"{iterator.displayName}: {iterator.propertyType} not supported");
@@ -205,7 +208,7 @@ public class CustomTerrain_Inspector : Editor
                 // Placeholder for future functionality
                 Debug.Log($"Selected texture for Biome {i + 1}: {evt.newValue}");
             });
-            
+
             //GUI for skybox
             var skyboxDropdown = new PopupField<string>("Skybox", new List<string>(skyboxPresets.Keys), 0);
             skyboxDropdown.RegisterValueChangedCallback(evt =>
@@ -219,13 +222,13 @@ public class CustomTerrain_Inspector : Editor
             {
                 value = 50 //Default value
             };
-            
+
             //GUI for Frequency
             var frequencySlider = new Slider("Frequency", 0, 100) //Assuming a range of 0 to 100 for frequency
             {
                 value = 20 //Default value
             };
-            
+
             //GUI for Biome Feature foldout
             Foldout biomeFeatureFoldout = new Foldout()
             {
@@ -258,14 +261,14 @@ public class CustomTerrain_Inspector : Editor
                 //Add "Feature Size" slider
                 var featureSizeSlider = new Slider("Feature Size", 0, 100)
                 {
-                    value = 50 
+                    value = 50
                 };
                 newFeatureFoldout.Add(featureSizeSlider);
 
                 //Add "Feature Frequency" slider
                 var featureFrequencySlider = new Slider("Feature Frequency", 0, 100)
                 {
-                    value = 20 
+                    value = 20
                 };
                 newFeatureFoldout.Add(featureFrequencySlider);
 
@@ -287,13 +290,13 @@ public class CustomTerrain_Inspector : Editor
             skyboxDropdown.style.marginTop = 5;
             sizeSlider.style.marginTop = 5;
             frequencySlider.style.marginTop = 5;
-            biomeFeatureFoldout.style.marginTop = 5; 
+            biomeFeatureFoldout.style.marginTop = 5;
             deleteButton.style.marginTop = 10;
             addFeatureButton.style.marginBottom = 10;
             addFeatureButton.style.width = 100;
 
             //Add Element to Biome Foldout
-            biomeFoldout.Add(nameField); 
+            biomeFoldout.Add(nameField);
             biomeFoldout.Add(heightmapFoldout);
             biomeFoldout.Add(textureDropdown);
             biomeFoldout.Add(skyboxDropdown);
@@ -307,25 +310,17 @@ public class CustomTerrain_Inspector : Editor
         //Styling for each elements outside of biome foldout
         biomeDropdown.style.marginTop = 10;
 
-        //Generate terrain button
-        Button generateTerrainButton = new Button(() =>
-        {
-            terrain.GenerateTerrain();
-        //    serializedObject.Update();
-        //    serializedObject.ApplyModifiedProperties();
-        //    EditorUtility.SetDirty(terrain);
-        })
-        {
-            text = "Generate Terrain",
-        };
-
         //Add elements to the root
         root.Add(biomeDropdown);
         root.Add(addBiomeButton);
-        root.Add(generateTerrainButton);
+    }
 
-        
-        // Return the finished inspector UI
+    public override VisualElement CreateInspectorGUI()
+    {
+        // Create a new VisualElement to be the root of our inspector UI
+        VisualElement root = new VisualElement();
+        root.AddToClassList("customInspectorRoot");
+
         return root;
     }
 }
