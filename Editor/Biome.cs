@@ -10,8 +10,10 @@ using UnityEngine;
 /// A skybox to be rendered when the camera is in this biome.
 /// </summary>
 [Serializable]
-public class Biome
-{
+public class Biome {
+    [SerializeField]
+    private string _biomeId;
+
     [SerializeField]
     [Tooltip("Name of the current biome.")]
     private string _name = "Change my name.";
@@ -23,6 +25,11 @@ public class Biome
     [SerializeField]
     [Tooltip("The texture that will be used to paint this biome.")]
     private Texture2D _texture;
+
+    public string GetBiomeId()
+    {
+        return _biomeId;
+    }
 
     public string GetName()
     {
@@ -41,6 +48,11 @@ public class Biome
         }
 
         return _texture;
+    }
+
+    public void SetBiomeId(string biomeId)
+    {
+        _biomeId = biomeId;
     }
 
     public void SetName(string name)

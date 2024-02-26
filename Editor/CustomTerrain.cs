@@ -90,12 +90,25 @@ public class CustomTerrain : MonoBehaviour
 
         this._biomes.Add(newBiome);
     }
-    public void DeleteBiome(int index)
+    public void DeleteBiome(string biomeId)
     {
-        if (index >= 0 && index < _biomes.Count)
+        for (int i = 0; i < _biomes.Count; i++)
         {
-            this._biomes.RemoveAt(index);
+            if (_biomes[i].GetBiomeId() == biomeId)
+            {
+                Debug.Log(_biomes[i].GetBiomeId());
+                _biomes.RemoveAt(i);
+                Debug.Log($"Biome with ID {biomeId} deleted.");
+                return; // Exit the method after deleting the biome
+            }
         }
+        Debug.LogWarning($"Biome with ID {biomeId} not found.");
+        // if (index >= 0 && index < _biomes.Count)
+        // {
+        //     Debug.Log("HERE");
+        //     this._biomes.RemoveAt(index);
+        //     Debug.Log(this._biomes.Count);
+        // }
     }
     public void GenerateTerrain()
     {

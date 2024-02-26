@@ -79,6 +79,10 @@ public class CustomTerrain_Inspector : Editor
                 // Assuming Biome is a class you can instantiate and has SetHeightMap and SetTexture methods
                 Biome newBiome = new Biome();
 
+                string biomeId = System.Guid.NewGuid().ToString();
+                Debug.Log(biomeId);
+                newBiome.SetBiomeId(biomeId);
+
                 // Load the assets based on the preset names
                 HeightmapBase heightmap = Resources.Load<HeightmapBase>(preset.heightmap);
                 Texture2D texture = Resources.Load<Texture2D>(preset.texture);
@@ -108,6 +112,8 @@ public class CustomTerrain_Inspector : Editor
         {
             //Find each properties of a biome
             SerializedProperty biomeElement = biomesProperty.GetArrayElementAtIndex(i);
+            SerializedProperty biomeIdProperty = biomeElement.FindPropertyRelative("_biomeId");
+            string biomeId = biomeIdProperty.stringValue;
             SerializedProperty nameProperty = biomeElement.FindPropertyRelative("_name");
             SerializedProperty heightmapProperty = biomeElement.FindPropertyRelative("_heightmap");
             SerializedProperty textureProperty = biomeElement.FindPropertyRelative("_texture");
@@ -139,7 +145,7 @@ public class CustomTerrain_Inspector : Editor
             Button deleteButton = new Button(() =>
             {
                 CustomTerrain terrain = (CustomTerrain)target;
-                terrain.DeleteBiome(i); 
+                terrain.DeleteBiome(biomeId); 
                 serializedObject.Update();
                 serializedObject.ApplyModifiedProperties();
                 EditorUtility.SetDirty(terrain);
@@ -301,9 +307,23 @@ public class CustomTerrain_Inspector : Editor
         //Styling for each elements outside of biome foldout
         biomeDropdown.style.marginTop = 10;
 
+        //Generate terrain button
+        Button generateTerrainButton = new Button(() =>
+        {
+            terrain.GenerateTerrain();
+        //    serializedObject.Update();
+        //    serializedObject.ApplyModifiedProperties();
+        //    EditorUtility.SetDirty(terrain);
+        })
+        {
+            text = "Generate Terrain",
+        };
+
         //Add elements to the root
         root.Add(biomeDropdown);
         root.Add(addBiomeButton);
+        root.Add(generateTerrainButton);
+
         
         // Return the finished inspector UI
         return root;
