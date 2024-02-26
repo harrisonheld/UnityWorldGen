@@ -8,8 +8,7 @@ using System.Collections.Generic;
 [CustomEditor(typeof(CustomTerrain))]
 public class CustomTerrain_Inspector : Editor
 {
-    public VisualTreeAsset m_InspectorXML;
-
+        public VisualTreeAsset m_InspectorXML;
     //Dictionary for biomes dropdown
     private Dictionary<string, (string heightmap, string texture)> biomePresets = new Dictionary<string, (string, string)>
     {
@@ -320,7 +319,7 @@ public class CustomTerrain_Inspector : Editor
         // Create a new VisualElement to be the root of our inspector UI
         VisualElement root = new VisualElement();
         root.AddToClassList("customInspectorRoot");
-
+        BuildUI(root);
         return root;
     }
 }
