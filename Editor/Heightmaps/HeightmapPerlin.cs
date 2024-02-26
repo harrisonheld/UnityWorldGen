@@ -52,6 +52,16 @@ public partial class HeightmapPerlin : HeightmapBase
         return g[0] * x + g[1] * y;
     }
 
+    private float Fade(float value)
+    {
+        return value * value * value * (value * (value * 6 - 15) + 10);
+    }
+
+    private float Lerp(float value, float x, float z)
+    {
+        x + value * (z - value);
+    }
+
     public override float GetHeight(float worldX, float worldZ)
     {
         return 0.0f;
