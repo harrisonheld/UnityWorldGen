@@ -2,6 +2,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Biome is a data class that holds all the information needed to generate a biome.
+/// A heightmap to generate the surface.
+/// A texture to paint the surface.
+/// A list of features to be generated in this biome.
+/// A skybox to be rendered when the camera is in this biome.
+/// </summary>
 [Serializable]
 public class Biome
 {

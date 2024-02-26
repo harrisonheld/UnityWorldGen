@@ -1,6 +1,9 @@
 using System;
 using UnityEngine;
 
+/// <summary>
+/// A heightmap that uses the Simplex noise algorithm.
+/// </summary>
 [CreateAssetMenu(fileName = "New Simplex Heightmap", menuName = "WorldGenerator/Simplex Heightmap")]
 public partial class HeightmapSimplex : HeightmapBase
 {
