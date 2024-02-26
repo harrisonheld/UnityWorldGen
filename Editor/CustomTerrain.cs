@@ -280,8 +280,8 @@ public class CustomTerrain : MonoBehaviour
             for (int j = 0; j < biome.GetFeatures().Count; j++)
             {
                 BiomeFeature feature = biome.GetFeatures()[j];
-                double randomProbability = rand.NextDouble();
-                if (randomProbability < 0.0001)
+                double randomProbability = rand.NextDouble(1.0);
+                if (randomProbability < 0.01)
                 {
                     if (feature.Prefab != null)
                     {
