@@ -278,8 +278,8 @@ public class CustomTerrain : MonoBehaviour
                 BiomeFeature feature = biome.GetFeatures()[j];
                 double probability_feature_appears = 0.0001; // TODO: change this to use frequency and function better
                 System.Random rand = new System.Random();
-                int randomNumber = rand.Next(100); // random number 0-99 inclusive
-                if (randomNumber < probability_feature_appears*100)
+                double randomProbability = rand.NextDouble();
+                if (randomProbability < probability_feature_appears)
                 {
                     // place object
                     // Check if the prefab to spawn is assigned
