@@ -52,6 +52,12 @@ public partial class HeightmapPerlin : HeightmapBase
         return g[0] * x + g[1] * y;
     }
 
+    private int[][] grad3d = {
+        new int[]{1,1,0}, new int[]{-1,1,0}, new int[]{1,-1,0}, new int[]{-1,-1,0},
+        new int[]{1,0,1}, new int[]{-1,0,1}, new int[]{1,0,-1}, new int[]{-1,0,-1},
+        new int[]{0,1,1}, new int[]{0,-1,1}, new int[]{0,1,-1}, new int[]{0,-1,-1}
+    };
+
     private float Fade(float value)
     {
         return value * value * value * (value * (value * 6 - 15) + 10);
@@ -59,13 +65,46 @@ public partial class HeightmapPerlin : HeightmapBase
 
     private float Lerp(float value, float x, float z)
     {
-        x + value * (z - value);
+        return x + value * (z - value);
     }
 
     public override float GetHeight(float worldX, float worldZ)
     {
-        return 0.0f;
+        worldX += offsetX;
+        worldZ += offsetZ;
+        worldX /= Scale;
+        worldZ /= Scale;
+
+        int x = FastFloor(worldX);
+        int z = FastFloor(worldZ);
+
+        worldX -= x;
+        worldZ -= z;
+
+        x = x & 255;
+        z = z & 255;
+
+        float i = Fade(worldX);
+        float j = Fade(worldZ);
+
+        int hash1 = _permutation[x] + z;
+        int hash2 = _permutation[hash1];
+        int hash3 = _permutation[hash1 + 1];
+        int hash4 = _permutation[x + 1] + z;
+        int hash5 = _permutation[hash4];
+        int hash6 = _permutation[hash4 + 1];
+
+        float noise1 = Dot(grad3d[hash2 % 12], worldX, worldZ);
+        float noise2 = Dot(grad3d[hash3 % 12], worldX - 1, worldZ);
+        float noise3 = Dot(grad3d[hash5 % 12], worldX, worldZ - 1);
+        float noise4 = Dot(grad3d[hash6 % 12], worldX - 1, worldZ - 1);
+
+        float interp1 = Lerp(noise1, noise2, i);
+        float interp2 = Lerp(noise3, noise4, i);
+
+        return Amplitude * Lerp(interp1, interp2, j);
     }
+
     public override void SetSeed(int seed)
     {
         offsetX = Helpers.MultiHash(seed, 0) % 100000;
