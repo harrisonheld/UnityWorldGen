@@ -276,13 +276,29 @@ public class CustomTerrain : MonoBehaviour
             for (int j = 0; j < biome.GetFeatures().Count; j++)
             {
                 BiomeFeature feature = biome.GetFeatures()[j];
-                double probability_feature_appears = 0.05; // TODO: change this to use frequency and function better
+                double probability_feature_appears = 0.0001; // TODO: change this to use frequency and function better
                 System.Random rand = new System.Random();
                 int randomNumber = rand.Next(100); // random number 0-99 inclusive
                 if (randomNumber < probability_feature_appears*100)
                 {
-                    // TODO: place object
-                    // TODO: set parent as chunk
+                    // place object
+                    // Check if the prefab to spawn is assigned
+                    if (feature._model != null)
+                    {
+                        // Instantiate the prefab at a specific position and rotation
+                        Vector3 spawnPosition = vertex; // Set your desired position here
+                        Quaternion spawnRotation = Quaternion.identity; // Set your desired rotation here
+
+                        GameObject spawnedObject = Instantiate(feature._model, spawnPosition, spawnRotation);
+
+                        // set parent as chunk
+                        spawnedObject.transform.parent = chunk.transform;
+                    }
+                    else
+                    {
+                        Debug.LogError("Prefab to spawn is not assigned!");
+                    }
+
                     break; // stop adding objects to this vertex once one has been added
                 }
             }
