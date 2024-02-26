@@ -320,7 +320,7 @@ public class CustomTerrain_Inspector : Editor
         // Create a new VisualElement to be the root of our inspector UI
         VisualElement root = new VisualElement();
         root.AddToClassList("customInspectorRoot");
-
+        BuildUI(root);
         return root;
     }
 }
