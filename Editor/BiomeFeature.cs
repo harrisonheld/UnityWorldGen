@@ -7,20 +7,20 @@ public class BiomeFeature
 {
     [SerializeField]
     [Tooltip("The name of the biome feature.")]
-    public string _name;
+    public string Name;
 
     [SerializeField]
     [Tooltip("How often this feature will appear in the biome.")]
     [Range(0, 50)]
-    public int frequency;
+    public int Frequency;
 
     [SerializeField]
     [Tooltip("The relative size of the features.")]
     [Range(0.0f, 10.0f)]
-    public float _size;
+    public float Size;
 
     [SerializeField]
-    [Tooltip("The feature's object model.")]
-    public GameObject _model;
+    [Tooltip("The GameObject to spawn.")]
+    public GameObject Prefab;
 
 }

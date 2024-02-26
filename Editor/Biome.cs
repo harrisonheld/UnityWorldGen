@@ -52,7 +52,7 @@ public class Biome
     {
         // sort features so that less frequent features get a chance to show up first when 
         // adding features (CustomTerrain::GenerateChunk)
-        features.Sort((x, y) => x.frequency.CompareTo(y.frequency));
+        features.Sort((x, y) => x.Frequency.CompareTo(y.Frequency));
         _features = features;
     }
 }

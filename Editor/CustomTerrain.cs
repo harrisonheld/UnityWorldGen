@@ -243,7 +243,7 @@ public class CustomTerrain : MonoBehaviour
         chunk.transform.parent = this.transform;
         // set the position
         chunk.transform.position = new Vector3(chunkX * _chunkSize, 0, chunkZ * _chunkSize);
-        
+
         // TODO: Adding features to each biome in the chunk
         //
         // for each biome in biome map:
@@ -268,6 +268,10 @@ public class CustomTerrain : MonoBehaviour
         //             move on to next vertex
         //
         // attempting the second solution below
+
+        int chunkSeed = Helpers.MultiHash(_worldSeed, chunkX, chunkZ);
+        System.Random rand = new System.Random(chunkSeed);
+
         for (int i = 0; i < vertices.Length; i++)
         {
             Vector3 vertex = vertices[i]; // (offsetX, height, offsetZ)
@@ -276,21 +280,16 @@ public class CustomTerrain : MonoBehaviour
             for (int j = 0; j < biome.GetFeatures().Count; j++)
             {
                 BiomeFeature feature = biome.GetFeatures()[j];
-                double probability_feature_appears = 0.0001; // TODO: change this to use frequency and function better
-                System.Random rand = new System.Random();
                 double randomProbability = rand.NextDouble();
-                if (randomProbability < probability_feature_appears)
+                if (randomProbability < 0.0001)
                 {
-                    // place object
-                    // Check if the prefab to spawn is assigned
-                    if (feature._model != null)
+                    if (feature.Prefab != null)
                     {
-                        // Instantiate the prefab at a specific position and rotation
-                        Vector3 spawnPosition = vertex; // Set your desired position here
-                        Quaternion spawnRotation = Quaternion.identity; // Set your desired rotation here
-
-                        GameObject spawnedObject = Instantiate(feature._model, spawnPosition, spawnRotation);
-
+                        GameObject spawnedObject = Instantiate(feature.Prefab);
+                        // move to chunk position
+                        spawnedObject.transform.position = new Vector3(chunkX, 0, chunkZ) * _chunkSize;
+                        // set position within chunk
+                        spawnedObject.transform.position += vertex;
                         // set parent as chunk
                         spawnedObject.transform.parent = chunk.transform;
                     }
