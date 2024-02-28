@@ -289,6 +289,7 @@ public class CustomTerrain : MonoBehaviour
                     if (feature.Prefab != null)
                     {
                         GameObject spawnedObject = Instantiate(feature.Prefab);
+                        spawnedObject.transform.localScale = feature.Scale;
                         // move to chunk position
                         spawnedObject.transform.position = new Vector3(chunkX, 0, chunkZ) * _chunkSize;
                         // set position within chunk

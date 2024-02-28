@@ -15,9 +15,8 @@ public class BiomeFeature
     public int Frequency;
 
     [SerializeField]
-    [Tooltip("The relative size of the features.")]
-    [Range(0.0f, 10.0f)]
-    public float Size;
+    [Tooltip("The scale of the features.")]
+    public Vector3 Scale = new Vector3(1f, 1f, 1f);
 
     [SerializeField]
     [Tooltip("Whether or not the object should be normal to the terrain.")]
