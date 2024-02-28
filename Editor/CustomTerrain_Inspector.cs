@@ -14,50 +14,50 @@ namespace WorldGenerator
 
         //Dictionary for biomes dropdown
         private Dictionary<string, (string heightmap, string texture)> biomePresets = new Dictionary<string, (string, string)>
-    {
-        { "Desert", ("Desert_Heightmap", "Sand") },
-        { "Hills", ("Hills_Heightmap", "Grass") },
-        { "Plains", ("Plains_Heightmap", "Grass") },
-        { "Mountain", ("Mountain_Heightmap", "Stone") },
-        { "Valley", ("Valley_Heightmap", "Grass") },
-        { "Custom", ("Flat0", "Grass") }
-    };
+        {
+            { "Desert", ("Desert_Heightmap", "Sand") },
+            { "Hills", ("Hills_Heightmap", "Grass") },
+            { "Plains", ("Plains_Heightmap", "Grass") },
+            { "Mountain", ("Mountain_Heightmap", "Stone") },
+            { "Valley", ("Valley_Heightmap", "Grass") },
+            { "Custom", ("Flat0", "Grass") }
+        };
 
         //Dictionary for texture dropdown
         private Dictionary<string, string> texturePresets = new Dictionary<string, string>
-    {
-        { "Sand", "Sand" },
-        { "Grass", "Grass" },
-        { "Stone", "Stone" },
-        { "Metallic", "Metallic" },
-        { "Import Custom", "Custom" }
-    };
+        {
+            { "Sand", "Sand" },
+            { "Grass", "Grass" },
+            { "Stone", "Stone" },
+            { "Metallic", "Metallic" },
+            { "Import Custom", "Custom" }
+        };
 
         //Dictionary for Skybox dropdown
         private Dictionary<string, string> skyboxPresets = new Dictionary<string, string>
-    {
-        { "Cloudy", "Cloudy" },
-        { "Sunny", "Sunny" },
-        { "Import Custom", "Custom" }
-    };
+        {
+            { "Cloudy", "Cloudy" },
+            { "Sunny", "Sunny" },
+            { "Import Custom", "Custom" }
+        };
 
         private Dictionary<string, string> biomeFeaturePresets = new Dictionary<string, string>
-    {
-        { "Trees", "Trees" },
-        { "Rocks", "Rocks" },
-        { "Rivers", "Rivers" },
-        { "Import Custom", "Custom" }
-    };
+        {
+            { "Trees", "Trees" },
+            { "Rocks", "Rocks" },
+            { "Rivers", "Rivers" },
+            { "Import Custom", "Custom" }
+        };
 
     //Refresh GUI and generate terrain in real-time
-    private void UpdateUI (VisualElement root, CustomTerrain terrain) 
-    {
-        serializedObject.Update();
-        serializedObject.ApplyModifiedProperties();
-        root.Clear();
-        BuildUI(root);
-        // terrain.GenerateTerrain();
-    }
+        private void UpdateUI (VisualElement root, CustomTerrain terrain) 
+        {
+            serializedObject.Update();
+            serializedObject.ApplyModifiedProperties();
+            root.Clear();
+            BuildUI(root);
+            // terrain.GenerateTerrain();
+        }
 
         private void BuildUI(VisualElement root)
         {
@@ -74,14 +74,14 @@ namespace WorldGenerator
                 // Here you can handle the selection change. For example, updating a property or variable.
             });
 
-        // Add Biome Button
-        Button addBiomeButton = new Button(() =>
-        {
-            string selectedBiomeName = biomeDropdown.value;
-            if (biomePresets.TryGetValue(selectedBiomeName, out var preset))
+            // Add Biome Button
+            Button addBiomeButton = new Button(() =>
             {
-                // Assuming Biome is a class you can instantiate and has SetHeightMap and SetTexture methods
-                Biome newBiome = new Biome();
+                string selectedBiomeName = biomeDropdown.value;
+                if (biomePresets.TryGetValue(selectedBiomeName, out var preset))
+                {
+                    // Assuming Biome is a class you can instantiate and has SetHeightMap and SetTexture methods
+                    Biome newBiome = new Biome();
 
                     string biomeId = System.Guid.NewGuid().ToString();
                     Debug.Log(biomeId);
@@ -92,32 +92,32 @@ namespace WorldGenerator
                     Texture2D texture = Resources.Load<Texture2D>(preset.texture);
 
                     // Set the properties on the new biome
-                    newBiome.SetName("Change my name.");
+                    newBiome.SetName(selectedBiomeName + " ID : " + biomeId);
                     newBiome.SetHeightMap(heightmap);
                     newBiome.SetTexture(texture);
 
                     // Add the new biome to the terrain
                     terrain.AddBiome(newBiome);
 
-                UpdateUI(root, terrain);
-            }
-            else
+                    UpdateUI(root, terrain);
+                }
+                else
+                {
+                    Debug.LogError("Unrecognized Biome Option");
+                }
+            })
             {
-                Debug.LogError("Unrecognized Biome Option");
-            }
-        })
-        {
-            text = "Add Biome"
-        };
+                text = "Add Biome"
+            };
 
-        //GUI for Generate Terrain Button
-        Button generateButton = new Button(() =>
-        {
-            terrain.GenerateTerrain();
-        })
-        {
-            text = "Generate Terrain",
-        };
+            //GUI for Generate Terrain Button
+            Button generateButton = new Button(() =>
+            {
+                terrain.GenerateTerrain();
+            })
+            {
+                text = "Generate Terrain",
+            };
 
             SerializedProperty biomesProperty = serializedObject.FindProperty("_biomes");
             for (int i = 0; i < biomesProperty.arraySize; i++)
@@ -153,15 +153,15 @@ namespace WorldGenerator
                     biomeFoldout.text = string.IsNullOrEmpty(evt.newValue) ? "Biome " + i : evt.newValue;
                 });
 
-            //GUI for Delete Button
-            Button deleteButton = new Button(() =>
-            {
-                terrain.DeleteBiome(biomeId);
-                UpdateUI(root, terrain);
-            })
-            {
-                text = "Delete Biome",
-            };
+                //GUI for Delete Button
+                Button deleteButton = new Button(() =>
+                {
+                    terrain.DeleteBiome(biomeId);
+                    UpdateUI(root, terrain);
+                })
+                {
+                    text = "Delete Biome",
+                };
 
                 //GUI for each properties of heightmapProperty
                 Foldout heightmapFoldout = new Foldout();
@@ -317,11 +317,11 @@ namespace WorldGenerator
             //Styling for each elements outside of biome foldout
             biomeDropdown.style.marginTop = 10;
 
-        //Add elements to the root
-        root.Add(biomeDropdown);
-        root.Add(addBiomeButton);
-        root.Add(generateButton);
-    }
+            //Add elements to the root
+            root.Add(biomeDropdown);
+            root.Add(addBiomeButton);
+            root.Add(generateButton);
+        }
 
         public override VisualElement CreateInspectorGUI()
         {
