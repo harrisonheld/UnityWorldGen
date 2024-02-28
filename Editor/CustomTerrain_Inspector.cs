@@ -49,15 +49,15 @@ namespace WorldGenerator
         { "Import Custom", "Custom" }
     };
 
-        //Refresh GUI and generate terrain in real-time
-        private void UpdateUI(VisualElement root, CustomTerrain terrain)
-        {
-            serializedObject.Update();
-            serializedObject.ApplyModifiedProperties();
-            root.Clear();
-            BuildUI(root);
-            terrain.GenerateTerrain();
-        }
+    //Refresh GUI and generate terrain in real-time
+    private void UpdateUI (VisualElement root, CustomTerrain terrain) 
+    {
+        serializedObject.Update();
+        serializedObject.ApplyModifiedProperties();
+        root.Clear();
+        BuildUI(root);
+        // terrain.GenerateTerrain();
+    }
 
         private void BuildUI(VisualElement root)
         {
@@ -74,17 +74,14 @@ namespace WorldGenerator
                 // Here you can handle the selection change. For example, updating a property or variable.
             });
 
-            // Add Biome Button
-            Button addBiomeButton = new Button(() =>
+        // Add Biome Button
+        Button addBiomeButton = new Button(() =>
+        {
+            string selectedBiomeName = biomeDropdown.value;
+            if (biomePresets.TryGetValue(selectedBiomeName, out var preset))
             {
-                string selectedBiomeName = biomeDropdown.value;
-                if (biomePresets.TryGetValue(selectedBiomeName, out var preset))
-                {
-                    // Access the CustomTerrain target object
-                    CustomTerrain terrain = (CustomTerrain)target;
-
-                    // Assuming Biome is a class you can instantiate and has SetHeightMap and SetTexture methods
-                    Biome newBiome = new Biome();
+                // Assuming Biome is a class you can instantiate and has SetHeightMap and SetTexture methods
+                Biome newBiome = new Biome();
 
                     string biomeId = System.Guid.NewGuid().ToString();
                     Debug.Log(biomeId);
@@ -102,16 +99,25 @@ namespace WorldGenerator
                     // Add the new biome to the terrain
                     terrain.AddBiome(newBiome);
 
-                    UpdateUI(root, terrain);
-                }
-                else
-                {
-                    Debug.LogError("Unrecognized Biome Option");
-                }
-            })
+                UpdateUI(root, terrain);
+            }
+            else
             {
-                text = "Add Biome"
-            };
+                Debug.LogError("Unrecognized Biome Option");
+            }
+        })
+        {
+            text = "Add Biome"
+        };
+
+        //GUI for Generate Terrain Button
+        Button generateButton = new Button(() =>
+        {
+            terrain.GenerateTerrain();
+        })
+        {
+            text = "Generate Terrain",
+        };
 
             SerializedProperty biomesProperty = serializedObject.FindProperty("_biomes");
             for (int i = 0; i < biomesProperty.arraySize; i++)
@@ -147,16 +153,15 @@ namespace WorldGenerator
                     biomeFoldout.text = string.IsNullOrEmpty(evt.newValue) ? "Biome " + i : evt.newValue;
                 });
 
-                //GUI for Delete Button
-                Button deleteButton = new Button(() =>
-                {
-                    CustomTerrain terrain = (CustomTerrain)target;
-                    terrain.DeleteBiome(biomeId);
-                    UpdateUI(root, terrain);
-                })
-                {
-                    text = "Delete Biome",
-                };
+            //GUI for Delete Button
+            Button deleteButton = new Button(() =>
+            {
+                terrain.DeleteBiome(biomeId);
+                UpdateUI(root, terrain);
+            })
+            {
+                text = "Delete Biome",
+            };
 
                 //GUI for each properties of heightmapProperty
                 Foldout heightmapFoldout = new Foldout();
@@ -312,10 +317,11 @@ namespace WorldGenerator
             //Styling for each elements outside of biome foldout
             biomeDropdown.style.marginTop = 10;
 
-            //Add elements to the root
-            root.Add(biomeDropdown);
-            root.Add(addBiomeButton);
-        }
+        //Add elements to the root
+        root.Add(biomeDropdown);
+        root.Add(addBiomeButton);
+        root.Add(generateButton);
+    }
 
         public override VisualElement CreateInspectorGUI()
         {
