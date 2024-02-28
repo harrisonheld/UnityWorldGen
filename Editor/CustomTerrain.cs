@@ -293,13 +293,14 @@ public class CustomTerrain : MonoBehaviour
                         spawnedObject.transform.position = new Vector3(chunkX, 0, chunkZ) * _chunkSize;
                         // set position within chunk
                         spawnedObject.transform.position += vertex;
-                        spawnedObject.transform.rotation = Quaternion.Euler(0, rand.Next(0, 360), 0);
                         if (feature.SetNormal)
                         {
                             // make normal to terrain
                             Vector3 normal = mesh.normals[i];
                             spawnedObject.transform.rotation = Quaternion.FromToRotation(Vector3.up, normal);
                         }
+                        // spawnedObject.transform.rotation = Quaternion.Euler(0, rand.Next(0, 360), 0);
+                        spawnedObject.transform.Rotate(Vector3.up, rand.Next(0, 360));
                         // set parent as chunk
                         spawnedObject.transform.parent = chunk.transform;
                     }
