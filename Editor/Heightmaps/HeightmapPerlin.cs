@@ -2,15 +2,13 @@ using System;
 using UnityEngine;
 
 /// <summary>
-/// A heightmap that uses the Simplex noise algorithm.
+/// A heightmap that uses the Perlin noise algorithm.
 /// </summary>
-[CreateAssetMenu(fileName = "New Simplex Heightmap", menuName = "WorldGenerator/Simplex Heightmap")]
-public partial class HeightmapSimplex : HeightmapBase
+[CreateAssetMenu(fileName = "New Perlin Heightmap", menuName = "WorldGenerator/Perlin Heightmap")]
+public partial class HeightmapPerlin : HeightmapBase
 {
-    
     [field: SerializeField]
     [Tooltip("The amplitude of the noise. This will make peaks and valleys more extreme.")]
-    // [Range(0.0f, 100.0f)]
     public float Amplitude { get; set; } = 100.0f;
 
     [field: SerializeField]
@@ -20,7 +18,7 @@ public partial class HeightmapSimplex : HeightmapBase
     private float offsetX = 0;
     private float offsetZ = 0;
     private static readonly int[] _permutation = new int[512];
-    static HeightmapSimplex()
+    static HeightmapPerlin()
     {
         int[] _permTemp = {
             241, 126, 133, 49, 234, 73, 255, 200, 112, 99, 249, 217, 135, 219, 31, 89,
@@ -60,6 +58,16 @@ public partial class HeightmapSimplex : HeightmapBase
         new int[]{0,1,1}, new int[]{0,-1,1}, new int[]{0,1,-1}, new int[]{0,-1,-1}
     };
 
+    private float Fade(float value)
+    {
+        return value * value * value * (value * (value * 6 - 15) + 10);
+    }
+
+    private float Lerp(float value, float x, float z)
+    {
+        return x + value * (z - value);
+    }
+
     public override float GetHeight(float worldX, float worldZ)
     {
         worldX += offsetX;
@@ -67,78 +75,34 @@ public partial class HeightmapSimplex : HeightmapBase
         worldX /= Scale;
         worldZ /= Scale;
 
-        float noise1, noise2, noise3;
+        int x = FastFloor(worldX);
+        int z = FastFloor(worldZ);
 
-        float SkewFactor = ((float)Math.Sqrt(3) - 1.0f) * 0.5f;
-        float UnskewFactor = (3.0f - (float)Math.Sqrt(3)) / 6.0f;
+        worldX -= x;
+        worldZ -= z;
 
-        float skew = (worldX + worldZ) * SkewFactor;
-        int i = FastFloor(worldX + skew);
-        int j = FastFloor(worldZ + skew);
+        x = x & 255;
+        z = z & 255;
 
-        float unskew = (i + j) * UnskewFactor;
-        float dx = i - unskew;
-        float dz = j - unskew;
-        float x1 = worldX - dx;
-        float z1 = worldZ - dz;
+        float i = Fade(worldX);
+        float j = Fade(worldZ);
 
-        int i1, j1;
-        if (x1 > z1)
-        {
-            i1 = 1;
-            j1 = 0;
-        }
-        else
-        {
-            i1 = 0;
-            j1 = 1;
-        }
+        int hash1 = _permutation[x] + z;
+        int hash2 = _permutation[hash1];
+        int hash3 = _permutation[hash1 + 1];
+        int hash4 = _permutation[x + 1] + z;
+        int hash5 = _permutation[hash4];
+        int hash6 = _permutation[hash4 + 1];
 
-        float x2 = x1 - i1 + UnskewFactor;
-        float z2 = z1 - j1 + UnskewFactor;
-        float x3 = x1 - 1.0f + 2.0f * UnskewFactor;
-        float z3 = z1 - 1.0f + 2.0f * UnskewFactor;
+        float noise1 = Dot(grad3d[hash2 % 12], worldX, worldZ);
+        float noise2 = Dot(grad3d[hash3 % 12], worldX - 1, worldZ);
+        float noise3 = Dot(grad3d[hash5 % 12], worldX, worldZ - 1);
+        float noise4 = Dot(grad3d[hash6 % 12], worldX - 1, worldZ - 1);
 
-        int temp_i = i & 255;
-        int temp_j = j & 255;
-        int hash1 = _permutation[temp_i + _permutation[temp_j]] % 12;
-        int hash2 = _permutation[temp_i + i1 + _permutation[temp_j + j1]] % 12;
-        int hash3 = _permutation[temp_i + 1 + _permutation[temp_j + 1]] % 12;
+        float interp1 = Lerp(noise1, noise2, i);
+        float interp2 = Lerp(noise3, noise4, i);
 
-        float t1 = 0.5f - x1 * x1 - z1 * z1;
-        if (t1 < 0.0f)
-        {
-            noise1 = 0.0f;
-        }
-        else
-        {
-            t1 *= t1;
-            noise1 = t1 * t1 * Dot(grad3d[hash1], x1, z1);
-        }
-
-        float t2 = 0.5f - x2 * x2 - z2 * z2;
-        if (t2 < 0.0f)
-        {
-            noise2 = 0.0f;
-        }
-        else
-        {
-            t2 *= t2;
-            noise2 = t2 * t2 * Dot(grad3d[hash2], x2, z2);
-        }
-
-        float t3 = 0.5f - x3 * x3 - z3 * z3;
-        if (t3 < 0.0f)
-        {
-            noise3 = 0.0f;
-        }
-        else
-        {
-            t3 *= t3;
-            noise3 = t3 * t3 * Dot(grad3d[hash3], x3, z3);
-        }
-
-        return Amplitude * (noise1 + noise2 + noise3);
+        return Amplitude * Lerp(interp1, interp2, j);
     }
 
     public override void SetSeed(int seed)
