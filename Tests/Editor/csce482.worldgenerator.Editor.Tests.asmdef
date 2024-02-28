@@ -1,0 +1,15 @@
+{
+  "name": "csce482.worldgenerator.Editor.Tests",
+  "references": [
+    "csce482.worldgenerator.editor",
+    "worldgenerator.Editor",
+    "worldgenerator"
+  ],
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": []
+}

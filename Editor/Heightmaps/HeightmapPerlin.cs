@@ -1,26 +1,28 @@
 using System;
 using UnityEngine;
 
-/// <summary>
-/// A heightmap that uses the Perlin noise algorithm.
-/// </summary>
-[CreateAssetMenu(fileName = "New Perlin Heightmap", menuName = "WorldGenerator/Perlin Heightmap")]
-public partial class HeightmapPerlin : HeightmapBase
+namespace WorldGenerator
 {
-    [field: SerializeField]
-    [Tooltip("The amplitude of the noise. This will make peaks and valleys more extreme.")]
-    public float Amplitude { get; set; } = 100.0f;
-
-    [field: SerializeField]
-    [Tooltip("The scale of the noise. This will make the noise more or less frequent.")]
-    public float Scale { get; set; } = 10.0f;
-
-    private float offsetX = 0;
-    private float offsetZ = 0;
-    private static readonly int[] _permutation = new int[512];
-    static HeightmapPerlin()
+    /// <summary>
+    /// A heightmap that uses the Perlin noise algorithm.
+    /// </summary>
+    [CreateAssetMenu(fileName = "New Perlin Heightmap", menuName = "WorldGenerator/Perlin Heightmap")]
+    public partial class HeightmapPerlin : HeightmapBase
     {
-        int[] _permTemp = {
+        [field: SerializeField]
+        [Tooltip("The amplitude of the noise. This will make peaks and valleys more extreme.")]
+        public float Amplitude { get; set; } = 100.0f;
+
+        [field: SerializeField]
+        [Tooltip("The scale of the noise. This will make the noise more or less frequent.")]
+        public float Scale { get; set; } = 10.0f;
+
+        private float offsetX = 0;
+        private float offsetZ = 0;
+        private static readonly int[] _permutation = new int[512];
+        static HeightmapPerlin()
+        {
+            int[] _permTemp = {
             241, 126, 133, 49, 234, 73, 255, 200, 112, 99, 249, 217, 135, 219, 31, 89,
             115, 141, 170, 218, 230, 172, 164, 106, 15, 254, 181, 169, 157, 26, 41, 144,
             119, 224, 229, 44, 113, 187, 18, 110, 12, 5, 72, 250, 62, 45, 235, 225, 252,
@@ -38,76 +40,78 @@ public partial class HeightmapPerlin : HeightmapBase
             71, 204, 52, 143, 96, 160, 39, 85, 123, 66, 122, 203, 20, 131, 13, 182, 151
         };
 
-        for (int i = 0; i < 512; i++)
-        {
-            _permutation[i] = _permTemp[i & 255];
+            for (int i = 0; i < 512; i++)
+            {
+                _permutation[i] = _permTemp[i & 255];
+            }
         }
-    }
-    private int FastFloor(float value)
-    {
-        return value >= 0 ? (int)value : (int)value - 1;
-    }
-    private float Dot(int[] g, float x, float y)
-    {
-        return g[0] * x + g[1] * y;
-    }
+        private int FastFloor(float value)
+        {
+            return value >= 0 ? (int)value : (int)value - 1;
+        }
+        private float Dot(int[] g, float x, float y)
+        {
+            return g[0] * x + g[1] * y;
+        }
 
-    private int[][] grad3d = {
+        private int[][] grad3d = {
         new int[]{1,1,0}, new int[]{-1,1,0}, new int[]{1,-1,0}, new int[]{-1,-1,0},
         new int[]{1,0,1}, new int[]{-1,0,1}, new int[]{1,0,-1}, new int[]{-1,0,-1},
         new int[]{0,1,1}, new int[]{0,-1,1}, new int[]{0,1,-1}, new int[]{0,-1,-1}
     };
 
-    private float Fade(float value)
-    {
-        return value * value * value * (value * (value * 6 - 15) + 10);
+        private float Fade(float value)
+        {
+            return value * value * value * (value * (value * 6 - 15) + 10);
+        }
+
+        private float Lerp(float value, float x, float z)
+        {
+            return x + value * (z - value);
+        }
+
+        public override float GetHeight(float worldX, float worldZ)
+        {
+            worldX += offsetX;
+            worldZ += offsetZ;
+            worldX /= Scale;
+            worldZ /= Scale;
+
+            int x = FastFloor(worldX);
+            int z = FastFloor(worldZ);
+
+            worldX -= x;
+            worldZ -= z;
+
+            x = x & 255;
+            z = z & 255;
+
+            float i = Fade(worldX);
+            float j = Fade(worldZ);
+
+            int hash1 = _permutation[x] + z;
+            int hash2 = _permutation[hash1];
+            int hash3 = _permutation[hash1 + 1];
+            int hash4 = _permutation[x + 1] + z;
+            int hash5 = _permutation[hash4];
+            int hash6 = _permutation[hash4 + 1];
+
+            float noise1 = Dot(grad3d[hash2 % 12], worldX, worldZ);
+            float noise2 = Dot(grad3d[hash3 % 12], worldX - 1, worldZ);
+            float noise3 = Dot(grad3d[hash5 % 12], worldX, worldZ - 1);
+            float noise4 = Dot(grad3d[hash6 % 12], worldX - 1, worldZ - 1);
+
+            float interp1 = Lerp(noise1, noise2, i);
+            float interp2 = Lerp(noise3, noise4, i);
+
+            return Amplitude * Lerp(interp1, interp2, j);
+        }
+
+        public override void SetSeed(int seed)
+        {
+            offsetX = Helpers.MultiHash(seed, 0) % 100000;
+            offsetZ = Helpers.MultiHash(seed, 1) % 100000;
+        }
     }
 
-    private float Lerp(float value, float x, float z)
-    {
-        return x + value * (z - value);
-    }
-
-    public override float GetHeight(float worldX, float worldZ)
-    {
-        worldX += offsetX;
-        worldZ += offsetZ;
-        worldX /= Scale;
-        worldZ /= Scale;
-
-        int x = FastFloor(worldX);
-        int z = FastFloor(worldZ);
-
-        worldX -= x;
-        worldZ -= z;
-
-        x = x & 255;
-        z = z & 255;
-
-        float i = Fade(worldX);
-        float j = Fade(worldZ);
-
-        int hash1 = _permutation[x] + z;
-        int hash2 = _permutation[hash1];
-        int hash3 = _permutation[hash1 + 1];
-        int hash4 = _permutation[x + 1] + z;
-        int hash5 = _permutation[hash4];
-        int hash6 = _permutation[hash4 + 1];
-
-        float noise1 = Dot(grad3d[hash2 % 12], worldX, worldZ);
-        float noise2 = Dot(grad3d[hash3 % 12], worldX - 1, worldZ);
-        float noise3 = Dot(grad3d[hash5 % 12], worldX, worldZ - 1);
-        float noise4 = Dot(grad3d[hash6 % 12], worldX - 1, worldZ - 1);
-
-        float interp1 = Lerp(noise1, noise2, i);
-        float interp2 = Lerp(noise3, noise4, i);
-
-        return Amplitude * Lerp(interp1, interp2, j);
-    }
-
-    public override void SetSeed(int seed)
-    {
-        offsetX = Helpers.MultiHash(seed, 0) % 100000;
-        offsetZ = Helpers.MultiHash(seed, 1) % 100000;
-    }
 }
