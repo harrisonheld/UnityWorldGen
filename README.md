@@ -1,4 +1,6 @@
-# Installation
+# Installation from Git
+This is how you should download the project as an end user. If you just want to use our package, and are not interested in developing, do this.
+
 In Unity, go to the Package Manager.
 ![image](https://github.com/harrisonheld/UnityWorldGen/assets/24709296/fac65276-98cd-4a63-a0b0-73eb419cbc94)
 
@@ -7,6 +9,13 @@ In the package manager, select Add package from git URL.
 
 Enter 'https://github.com/harrisonheld/UnityWorldGen.git' and add it.
 ![image](https://github.com/harrisonheld/UnityWorldGen/assets/24709296/2878fc65-79ae-46e7-9ce5-ad00382f311e)
+
+# Installation from Disk
+If you are a developer and want to edit the package, use this method of installation.
+
+Download a release or this repo, and in the Package Manager, select Add package from Disk. Select the project's package.json.
+![image](https://github.com/harrisonheld/UnityWorldGen/assets/24709296/9910b1c1-5747-4e61-9ad5-e1706582336b)
+
 
 # Unit Testing
 Open your Unity project (this is your own project on your own local machine) in the file explorer.
