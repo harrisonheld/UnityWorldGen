@@ -53,7 +53,7 @@ public class CustomTerrain_Inspector : Editor
         serializedObject.ApplyModifiedProperties();
         root.Clear();
         BuildUI(root);
-        terrain.GenerateTerrain();
+        // terrain.GenerateTerrain();
     }
 
     private void BuildUI(VisualElement root)
@@ -77,9 +77,6 @@ public class CustomTerrain_Inspector : Editor
             string selectedBiomeName = biomeDropdown.value;
             if (biomePresets.TryGetValue(selectedBiomeName, out var preset))
             {
-                // Access the CustomTerrain target object
-                CustomTerrain terrain = (CustomTerrain)target;
-
                 // Assuming Biome is a class you can instantiate and has SetHeightMap and SetTexture methods
                 Biome newBiome = new Biome();
 
@@ -108,6 +105,15 @@ public class CustomTerrain_Inspector : Editor
         })
         {
             text = "Add Biome"
+        };
+
+        //GUI for Generate Terrain Button
+        Button generateButton = new Button(() =>
+        {
+            terrain.GenerateTerrain();
+        })
+        {
+            text = "Generate Terrain",
         };
 
         SerializedProperty biomesProperty = serializedObject.FindProperty("_biomes");
@@ -147,7 +153,6 @@ public class CustomTerrain_Inspector : Editor
             //GUI for Delete Button
             Button deleteButton = new Button(() =>
             {
-                CustomTerrain terrain = (CustomTerrain)target;
                 terrain.DeleteBiome(biomeId);
                 UpdateUI(root, terrain);
             })
@@ -312,6 +317,7 @@ public class CustomTerrain_Inspector : Editor
         //Add elements to the root
         root.Add(biomeDropdown);
         root.Add(addBiomeButton);
+        root.Add(generateButton);
     }
 
     public override VisualElement CreateInspectorGUI()
