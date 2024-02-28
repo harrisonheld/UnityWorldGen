@@ -20,6 +20,10 @@ public class BiomeFeature
     public float Size;
 
     [SerializeField]
+    [Tooltip("Whether or not the object should be normal to the terrain.")]
+    public bool SetNormal;
+
+    [SerializeField]
     [Tooltip("The GameObject to spawn.")]
     public GameObject Prefab;
 

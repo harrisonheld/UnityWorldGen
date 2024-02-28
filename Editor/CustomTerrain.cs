@@ -281,7 +281,9 @@ public class CustomTerrain : MonoBehaviour
             {
                 BiomeFeature feature = biome.GetFeatures()[j];
                 double randomProbability = rand.NextDouble();
-                double featureProbability = feature.Frequency * Math.Log(feature.Frequency + 1.0f) / 10000.0f;
+                // double featureProbability = feature.Frequency / 10000.0f;
+                // double featureProbability = feature.Frequency * Math.Log(feature.Frequency + 1.0f) / 10000.0f;
+                double featureProbability = 0.1f * Convert.ToInt32(feature.Frequency!=0) * (1f / (1f + Mathf.Exp(-((feature.Frequency*0.75f-50f)) / 5f)));
                 if (randomProbability < featureProbability)
                 {
                     if (feature.Prefab != null)
@@ -291,6 +293,13 @@ public class CustomTerrain : MonoBehaviour
                         spawnedObject.transform.position = new Vector3(chunkX, 0, chunkZ) * _chunkSize;
                         // set position within chunk
                         spawnedObject.transform.position += vertex;
+                        spawnedObject.transform.rotation = Quaternion.Euler(0, rand.Next(0, 360), 0);
+                        if (feature.SetNormal)
+                        {
+                            // make normal to terrain
+                            Vector3 normal = mesh.normals[i];
+                            spawnedObject.transform.rotation = Quaternion.FromToRotation(Vector3.up, normal);
+                        }
                         // set parent as chunk
                         spawnedObject.transform.parent = chunk.transform;
                     }
