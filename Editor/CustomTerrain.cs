@@ -16,56 +16,57 @@ namespace WorldGenerator
     [ExecuteInEditMode]
     public class CustomTerrain : MonoBehaviour
     {
-        // #if UNITY_EDITOR
-        //     [CustomEditor(typeof(CustomTerrain))]
-        //     public class CustomTerrainEditor : Editor
-        //     {
-        //         int selected_biome_preset_index = 0;
+#if UNITY_EDITOR
+        [CustomEditor(typeof(CustomTerrain))]
+        public class CustomTerrainEditor : Editor
+        {
+            int selected_biome_preset_index = 0;
 
-        //         public override void OnInspectorGUI()
-        //         {
-        //             base.OnInspectorGUI();
+            public override void OnInspectorGUI()
+            {
+                base.OnInspectorGUI();
 
-        //             CustomTerrain terrain = (CustomTerrain)this.target;
+                CustomTerrain terrain = (CustomTerrain)this.target;
 
-        //             GUILayout.Space(10);
+                GUILayout.Space(10);
 
-        // string[] preset_biome_options = new string[] { "Desert", "Hills", "Plains", "Mountain", "Valley", "Custom" };
-        // Dictionary<string, (string heightmap, string texture)> biomePresets = new Dictionary<string, (string, string)>
-        // {
-        //     { "Desert", ("Desert_Heightmap", "Sand") },
-        //     { "Hills", ("hills_simplex_heightmap", "Grass") },
-        //     { "Plains", ("plains_simplex_heightmap", "Grass") },
-        //     { "Mountain", ("mountain_simplex_heightmap", "Stone") },
-        //     { "Valley", ("valley_simplex_heightmap", "Grass") },
-        //     { "Custom", ("Flat0", "Grass") }
-        // };
-        // selected_biome_preset_index = EditorGUILayout.Popup("New Biome", selected_biome_preset_index, preset_biome_options);
+                string[] preset_biome_options = new string[] { "Desert", "Hills", "Plains", "Mountain", "Valley", "Custom" };
+                Dictionary<string, (string heightmap, string texture)> biomePresets = new Dictionary<string, (string, string)>
+                {
+                    { "Desert", ("DesertHeightmap", "Sand") },
+                    { "Hills", ("HillsHeightmap", "Grass") },
+                    { "Plains", ("plains_simplex_heightmap", "Grass") },
+                    { "Mountain", ("MountainHeightmap", "Stone") },
+                    { "Valley", ("valley_simplex_heightmap", "Grass") },
+                    { "Custom", ("Flat0", "Grass") }
+                };
+                selected_biome_preset_index = EditorGUILayout.Popup("New Biome", selected_biome_preset_index, preset_biome_options);
 
-        //             if (GUILayout.Button("Add Biome"))
-        //             {
-        //                 Biome newBiome = new();
+                if (GUILayout.Button("Add Biome"))
+                {
+                    Biome newBiome = new();
 
-        //                 if (biomePresets.TryGetValue(preset_biome_options[selected_biome_preset_index], out var preset))
-        //                 {
-        //                     newBiome.SetHeightMap(Resources.Load(preset.heightmap, typeof(HeightmapBase)) as HeightmapBase);
-        //                     newBiome.SetTexture(Resources.Load(preset.texture, typeof(Texture2D)) as Texture2D);
-        //                     terrain.AddBiome(newBiome);
-        //                 }
-        //                 else
-        //                 {
-        //                     Debug.LogError("Unrecognized Option");
-        //                 }
-        //             }
+                    if (biomePresets.TryGetValue(preset_biome_options[selected_biome_preset_index], out var preset))
+                    {
+                        newBiome.SetName(preset_biome_options[selected_biome_preset_index]);
+                        newBiome.SetHeightMap(Resources.Load(preset.heightmap, typeof(HeightmapBase)) as HeightmapBase);
+                        newBiome.SetTexture(Resources.Load(preset.texture, typeof(Texture2D)) as Texture2D);
+                        terrain.AddBiome(newBiome);
+                    }
+                    else
+                    {
+                        Debug.LogError("Unrecognized Option");
+                    }
+                }
 
-        //             if (GUILayout.Button("Generate Terrain"))
-        //             {
-        //                 terrain.GenerateTerrain();
-        //             }
+                if (GUILayout.Button("Generate Terrain"))
+                {
+                    terrain.GenerateTerrain();
+                }
 
-        //         }
-        //     }
-        // #endif
+            }
+        }
+#endif
 
         [Tooltip("The seed string used to generate the terrain. If left empty, a random seed will be used.")]
         [SerializeField] private string _worldSeedString = "";
@@ -90,28 +91,7 @@ namespace WorldGenerator
 
         public void AddBiome(Biome newBiome)
         {
-
             this._biomes.Add(newBiome);
-        }
-        public void DeleteBiome(string biomeId)
-        {
-            for (int i = 0; i < _biomes.Count; i++)
-            {
-                if (_biomes[i].GetBiomeId() == biomeId)
-                {
-                    Debug.Log(_biomes[i].GetBiomeId());
-                    _biomes.RemoveAt(i);
-                    Debug.Log($"Biome with ID {biomeId} deleted.");
-                    return; // Exit the method after deleting the biome
-                }
-            }
-            Debug.LogWarning($"Biome with ID {biomeId} not found.");
-            // if (index >= 0 && index < _biomes.Count)
-            // {
-            //     Debug.Log("HERE");
-            //     this._biomes.RemoveAt(index);
-            //     Debug.Log(this._biomes.Count);
-            // }
         }
         public void GenerateTerrain()
         {

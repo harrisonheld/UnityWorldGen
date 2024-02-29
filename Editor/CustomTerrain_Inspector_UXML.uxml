@@ -1,4 +1,0 @@
-<!-- <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
-    <Style src="project://database/Assets/custom_terrain.uss?fileID=7433441132597879392&amp;guid=293fd7950fd58d74fb10f2f69d810f8a&amp;type=3#custom_terrain" />
-    <uie:ObjectField label="Biomes" name="Biomes" binding-path="_biomes" />
-</ui:UXML> -->

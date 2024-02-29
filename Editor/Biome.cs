@@ -15,11 +15,8 @@ namespace WorldGenerator
     public class Biome
     {
         [SerializeField]
-        private string _biomeId;
-
-        [SerializeField]
-        [Tooltip("Name of the current biome.")]
-        private string _name;
+        [Tooltip("Name of the current biome. Does not affect world generation. Helpful for organizing!")]
+        private string _name = "New Biome";
 
         [SerializeField]
         [Tooltip("Select a custom heightmap for the biome.")]
@@ -28,11 +25,6 @@ namespace WorldGenerator
         [SerializeField]
         [Tooltip("The texture that will be used to paint this biome.")]
         private Texture2D _texture;
-
-        public string GetBiomeId()
-        {
-            return _biomeId;
-        }
 
         public string GetName()
         {
@@ -52,12 +44,6 @@ namespace WorldGenerator
 
             return _texture;
         }
-
-        public void SetBiomeId(string biomeId)
-        {
-            _biomeId = biomeId;
-        }
-
         public void SetName(string name)
         {
             _name = name;
