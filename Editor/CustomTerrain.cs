@@ -325,6 +325,97 @@ namespace WorldGenerator
             // set the position
             chunk.transform.position = new Vector3(chunkX * _chunkSize, 0, chunkZ * _chunkSize);
 
+            mesh.triangles = triangles;
+
+            // Normals
+            mesh.RecalculateNormals();
+
+            // add all components necessary for rendering a mesh
+            GameObject chunk = new GameObject($"Chunk ({chunkX}, {chunkZ})");
+            chunk.AddComponent<MeshFilter>();
+            chunk.AddComponent<MeshRenderer>();
+            chunk.AddComponent<MeshCollider>();
+            // set the meshes
+            chunk.GetComponent<MeshFilter>().sharedMesh = mesh;
+            chunk.GetComponent<MeshCollider>().sharedMesh = mesh;
+            // set mat
+            chunk.GetComponent<MeshRenderer>().sharedMaterial = multitextureMat;
+            // add as child
+            chunk.transform.parent = this.transform;
+            // set the position
+            chunk.transform.position = new Vector3(chunkX * _chunkSize, 0, chunkZ * _chunkSize);
+
+            // TODO: Adding features to each biome in the chunk
+            //
+            // for each biome in biome map:
+            //     get the x and z bounds of the biome
+            //     for each feature in the biome:
+            //         for loop (based on frequency):
+            //             feature_x = random number based on bounds of x
+            //             feature_z = random number based on bounds of z
+            //             feature_y = use heightmap at (feature_x, feature_y)
+            //             create the object at that coordinate
+            //             set object's parent as chunk
+            //
+            // OR
+            //
+            // for each vertex:
+            //     get the biome at that vertex
+            //     for feature in biome: go in order from lowest frequency to hgihest so that less freqent things get a chance to show up first (tree vs grass)
+            //         probability of showing up = frequency / 100 or something
+            //         if it shows up:
+            //             place object at that vertex's coords
+            //             set object's parent as chunk
+            //             move on to next vertex
+            //
+            // attempting the second solution below
+
+            int chunkSeed = Helpers.MultiHash(_worldSeed, chunkX, chunkZ);
+            System.Random rand = new System.Random(chunkSeed);
+
+            for (int i = 0; i < vertices.Length; i++)
+            {
+                Vector3 vertex = vertices[i]; // (offsetX, height, offsetZ)
+                int biomeIndex = (int)uv2s[i].x;
+                Biome biome = _biomes[biomeIndex];
+                for (int j = 0; j < biome.GetFeatures().Count; j++)
+                {
+                    BiomeFeature feature = biome.GetFeatures()[j];
+                    double randomProbability = rand.NextDouble();
+                    // double featureProbability = feature.Frequency / 10000.0f;
+                    // double featureProbability = feature.Frequency * Math.Log(feature.Frequency + 1.0f) / 10000.0f;
+                    double featureProbability = 0.1f * Convert.ToInt32(feature.Frequency != 0) * (1f / (1f + Mathf.Exp(-((feature.Frequency * 0.75f - 50f)) / 5f)));
+                    if (randomProbability < featureProbability)
+                    {
+                        if (feature.Prefab != null)
+                        {
+                            GameObject spawnedObject = Instantiate(feature.Prefab);
+                            spawnedObject.transform.localScale = feature.Scale;
+                            // move to chunk position
+                            spawnedObject.transform.position = new Vector3(chunkX, 0, chunkZ) * _chunkSize;
+                            // set position within chunk
+                            spawnedObject.transform.position += vertex;
+                            if (feature.SetNormal)
+                            {
+                                // make normal to terrain
+                                Vector3 normal = mesh.normals[i];
+                                spawnedObject.transform.rotation = Quaternion.FromToRotation(Vector3.up, normal);
+                            }
+                            // spawnedObject.transform.rotation = Quaternion.Euler(0, rand.Next(0, 360), 0);
+                            spawnedObject.transform.Rotate(Vector3.up, rand.Next(0, 360));
+                            // set parent as chunk
+                            spawnedObject.transform.parent = chunk.transform;
+                        }
+                        else
+                        {
+                            Debug.LogError("Prefab to spawn is not assigned!");
+                        }
+
+                        break; // stop adding objects to this vertex once one has been added
+                    }
+                }
+            }
+
             return chunk;
         }
     }
