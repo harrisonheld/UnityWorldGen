@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: HillsHeightmap
   m_EditorClassIdentifier: 
   <Amplitude>k__BackingField: 10
-  <Scale>k__BackingField: 25
+  <Scale>k__BackingField: 15
