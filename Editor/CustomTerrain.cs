@@ -48,7 +48,6 @@ namespace WorldGenerator
 
                     if (biomePresets.TryGetValue(preset_biome_options[selected_biome_preset_index], out var preset))
                     {
-                        newBiome.SetName(preset_biome_options[selected_biome_preset_index]);
                         newBiome.SetHeightMap(Resources.Load(preset.heightmap, typeof(HeightmapBase)) as HeightmapBase);
                         newBiome.SetTexture(Resources.Load(preset.texture, typeof(Texture2D)) as Texture2D);
                         terrain.AddBiome(newBiome);
@@ -320,26 +319,6 @@ namespace WorldGenerator
             chunk.GetComponent<MeshCollider>().sharedMesh = mesh;
             // set mat
             chunk.GetComponent<MeshRenderer>().sharedMaterial = _multitextureMat;
-            // add as child
-            chunk.transform.parent = this.transform;
-            // set the position
-            chunk.transform.position = new Vector3(chunkX * _chunkSize, 0, chunkZ * _chunkSize);
-
-            mesh.triangles = triangles;
-
-            // Normals
-            mesh.RecalculateNormals();
-
-            // add all components necessary for rendering a mesh
-            GameObject chunk = new GameObject($"Chunk ({chunkX}, {chunkZ})");
-            chunk.AddComponent<MeshFilter>();
-            chunk.AddComponent<MeshRenderer>();
-            chunk.AddComponent<MeshCollider>();
-            // set the meshes
-            chunk.GetComponent<MeshFilter>().sharedMesh = mesh;
-            chunk.GetComponent<MeshCollider>().sharedMesh = mesh;
-            // set mat
-            chunk.GetComponent<MeshRenderer>().sharedMaterial = multitextureMat;
             // add as child
             chunk.transform.parent = this.transform;
             // set the position
