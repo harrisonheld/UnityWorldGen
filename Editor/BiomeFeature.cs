@@ -12,7 +12,7 @@ public class BiomeFeature
     [SerializeField]
     [Tooltip("How often this feature will appear in the biome.")]
     [Range(0, 100)]
-    public int Frequency;
+    public int Frequency = 15;
 
     [SerializeField]
     [Tooltip("The scale of the features.")]
