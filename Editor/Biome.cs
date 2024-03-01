@@ -17,7 +17,7 @@ public class Biome
     // within the biome and their frequency and size.
     [SerializeField]
     [Tooltip("The features will appear throughout the biome.")]
-    private List<BiomeFeature> _features;
+    private List<BiomeFeature> _features = new();
 
     public HeightmapBase GetHeightmap()
     {
