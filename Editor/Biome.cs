@@ -36,6 +36,11 @@ public class Biome {
         return _name;
     }
 
+    [SerializeField]
+    [Range(1, 1000)]
+    [Tooltip("How often this biome will appear.")]
+    private int _frequencyWeight = 100;
+
     public HeightmapBase GetHeightmap()
     {
         return _heightmap;
@@ -58,6 +63,14 @@ public class Biome {
     public void SetName(string name)
     {
         _name = name;
+    }
+    public void SetFrequencyWeight(int frequencyWeight)
+    {
+        _frequencyWeight = frequencyWeight;
+    }
+    public int GetFrequencyWeight()
+    {
+        return _frequencyWeight;
     }
 
     public void SetHeightMap(HeightmapBase heightMap)

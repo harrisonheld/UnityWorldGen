@@ -99,5 +99,37 @@ namespace UnitTests
 
             Object.DestroyImmediate(heightmap);
         }
+
+        [Test]
+        public void HeightmapImageTest()
+        {
+            HeightmapImage heightmap = ScriptableObject.CreateInstance<HeightmapImage>();
+
+            heightmap.MinHeight = 0.0f;
+            heightmap.MaxHeight = 25.0f;
+            heightmap.TextureScale = 1.0f;
+            heightmap.Image = new Texture2D(2, 2);
+            heightmap.Image.SetPixel(0, 0, new Color(0, 0, 0));
+            heightmap.Image.SetPixel(0, 1, new Color(1, 1, 1));
+            heightmap.Image.SetPixel(1, 0, new Color(0.5f, 0.5f, 0.5f));
+            heightmap.Image.SetPixel(1, 1, new Color(0.25f, 0.25f, 0.25f));
+            heightmap.Image.Apply();
+
+            float tolerance = 0.05f;
+            Assert.AreEqual(0, heightmap.GetHeight(0f, 0f), tolerance);
+            Assert.AreEqual(25f, heightmap.GetHeight(0f, 1f), tolerance);
+            Assert.AreEqual(25f * 0.5f, heightmap.GetHeight(1f, 0f), tolerance);
+            Assert.AreEqual(25f * 0.25f, heightmap.GetHeight(1f, 1f), tolerance);
+
+            Object.DestroyImmediate(heightmap);
+        }
+
+        [Test]
+        public void HeightmapImageNullTest()
+        {
+            HeightmapImage heightmap = ScriptableObject.CreateInstance<HeightmapImage>();
+            Assert.Throws<System.ArgumentNullException>(() => heightmap.GetHeight(0f, 0f));
+            Object.DestroyImmediate(heightmap);
+        }
     }
 }
