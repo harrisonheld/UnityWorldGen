@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 039e2a0acdcc1f74cb2cd946b4e00fc5, type: 3}
-  m_Name: hills_simplex_heightmap
+  m_Name: DesertHeightmap
   m_EditorClassIdentifier: 
-  <Amplitude>k__BackingField: 100
-  <Scale>k__BackingField: 10
+  <Amplitude>k__BackingField: 1000
+  <Scale>k__BackingField: 100
