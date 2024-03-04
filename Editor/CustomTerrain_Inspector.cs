@@ -15,11 +15,11 @@ namespace WorldGenerator
         //Dictionary for biomes dropdown
         private Dictionary<string, (string heightmap, string texture)> biomePresets = new Dictionary<string, (string, string)>
         {
-            { "Desert", ("Desert_Heightmap", "Sand") },
-            { "Hills", ("Hills_Heightmap", "Grass") },
-            { "Plains", ("Plains_Heightmap", "Grass") },
-            { "Mountain", ("Mountain_Heightmap", "Stone") },
-            { "Valley", ("Valley_Heightmap", "Grass") },
+           { "Desert", ("DesertHeightmap", "Sand") },
+            { "Hills", ("HillsHeightmap", "Grass") },
+            { "Plains", ("plains_simplex_heightmap", "Grass") },
+            { "Mountain", ("MountainHeightmap", "Stone") },
+            { "Valley", ("valley_simplex_heightmap", "Grass") },
             { "Custom", ("Flat0", "Grass") }
         };
 
