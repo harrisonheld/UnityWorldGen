@@ -16,7 +16,7 @@ public class Biome {
 
     [SerializeField]
     [Tooltip("Name of the current biome.")]
-    private string _name = "Change my name.";
+    private string _name;
 
     [SerializeField]
     [Tooltip("Select a custom heightmap for the biome.")]
