@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 /// <summary>
 /// A BiomeMap is a Voronoi diagram that assigns a biome to each cell.
@@ -12,20 +13,29 @@ namespace WorldGenerator
     public class BiomeMap
     {
         private int _worldSeed;
-        private int _biomeCount;
         private int _biomesPerChunk;
         private float _chunkSize;
 
         private List<VoronoiSeed> _voronoiSeeds;
+        private List<Biome> _biomes;
 
-        public BiomeMap(int worldSeed, int biomeCount, float chunkSize, int chunkX, int chunkZ, int biomesPerChunk)
+        public BiomeMap(int worldSeed, List<Biome> biomes, float chunkSize, int chunkX, int chunkZ, int biomesPerChunk)
         {
             _worldSeed = worldSeed;
-            _biomeCount = biomeCount;
             _chunkSize = chunkSize;
             _biomesPerChunk = biomesPerChunk;
 
             _voronoiSeeds = new List<VoronoiSeed>();
+            _biomes = biomes;
+
+            float[] cumulativeWeights = new float[_biomes.Count];
+            float totalWeight = 0;
+
+            for (int i = 0; i < _biomes.Count; i++)
+            {
+                totalWeight += _biomes[i].GetFrequencyWeight();
+                cumulativeWeights[i] = totalWeight;
+            }
 
             // generate voronoi seeds for the chunk and its neighbors
             for (int x = -1; x <= 1; x++)
@@ -41,7 +51,12 @@ namespace WorldGenerator
                         float startZ = z * _chunkSize;
                         float seedX = startX + (float)random.NextDouble() * _chunkSize;
                         float seedZ = startZ + (float)random.NextDouble() * _chunkSize;
-                        int biome = random.Next(0, _biomeCount);
+                        float randomValue = (float)random.NextDouble() * totalWeight;
+                        int biome = Array.BinarySearch(cumulativeWeights, randomValue);
+                        if (biome < 0)
+                        {
+                            biome = ~biome;
+                        }
 
                         VoronoiSeed voronoiSeed = new VoronoiSeed
                         {
@@ -70,8 +85,8 @@ namespace WorldGenerator
             }
 
             // generate blank biome weights
-            BiomeWeight[] weights = new BiomeWeight[_biomeCount];
-            for (int i = 0; i < _biomeCount; i++)
+            BiomeWeight[] weights = new BiomeWeight[_biomes.Count];
+            for (int i = 0; i < _biomes.Count; i++)
             {
                 weights[i] = new BiomeWeight();
                 weights[i].BiomeIndex = i;

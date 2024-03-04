@@ -20,6 +20,11 @@ public class Biome
     [Tooltip("The features will appear throughout the biome.")]
     private List<BiomeFeature> _features = new();
 
+    [SerializeField]
+    [Range(1, 1000)]
+    [Tooltip("How often this biome will appear.")]
+    private int _frequencyWeight = 100;
+
     public HeightmapBase GetHeightmap()
     {
         return _heightmap;
@@ -37,6 +42,14 @@ public class Biome
     public List<BiomeFeature> GetFeatures()
     {
         return _features;
+    }
+    public void SetFrequencyWeight(int frequencyWeight)
+    {
+        _frequencyWeight = frequencyWeight;
+    }
+    public int GetFrequencyWeight()
+    {
+        return _frequencyWeight;
     }
 
     public void SetHeightMap(HeightmapBase heightMap)
