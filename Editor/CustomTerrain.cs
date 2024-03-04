@@ -100,6 +100,14 @@ namespace WorldGenerator
                 Debug.LogError("Cannot generate terrain because no biomes have been added to the terrain.");
                 return;
             }
+            // ensure all biomes have heightmap
+            for (int i = 0; i < _biomes.Count; i++)
+            {
+                if(_biomes[i].GetHeightmap() == null) {
+                    Debug.LogError($"Biome {i} does not have a heightmap assigned.");
+                    return;
+                }
+            }
 
             // warnings
             if (this.transform.position != Vector3.zero)
@@ -234,7 +242,7 @@ namespace WorldGenerator
 
             BiomeMap biomeMap = new(
                 worldSeed: _worldSeed,
-                biomeCount: _biomes.Count,
+                biomes: _biomes,
                 chunkSize: _chunkSize,
                 chunkX: chunkX,
                 chunkZ: chunkZ,
