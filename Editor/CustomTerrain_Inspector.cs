@@ -24,7 +24,7 @@ namespace WorldGenerator
         };
 
         //Dictionary for texture dropdown
-        private Dictionary<string, string> texturePresets = new Dictionary<string, string>
+        private Dictionary<string, string texture> texturePresets = new Dictionary<string, string>
         {
             { "Sand", "Sand" },
             { "Grass", "Grass" },
@@ -34,7 +34,7 @@ namespace WorldGenerator
         };
 
         //Dictionary for Skybox dropdown
-        private Dictionary<string, string> skyboxPresets = new Dictionary<string, string>
+        private Dictionary<string, string skybox> skyboxPresets = new Dictionary<string, string>
         {
             { "Cloudy", "Cloudy" },
             { "Sunny", "Sunny" },
@@ -92,7 +92,7 @@ namespace WorldGenerator
                     Texture2D texture = Resources.Load<Texture2D>(preset.texture);
 
                     // Set the properties on the new biome
-                    newBiome.SetName(selectedBiomeName + " ID : " + biomeId);
+                    newBiome.SetName(selectedBiomeName + " (ID: " + biomeId + ")");
                     newBiome.SetHeightMap(heightmap);
                     newBiome.SetTexture(texture);
 
@@ -176,33 +176,50 @@ namespace WorldGenerator
                     {
                         continue;
                     }
+                    
                     // Create UI elements for each heightmap property here
-                    Debug.Log(iterator.Copy().displayName);
-                    PropertyField propertyField = new PropertyField(iterator.Copy());
-                    switch (iterator.propertyType)
+                    SerializedProperty currentProperty = iterator.Copy();
+                    switch (currentProperty.propertyType)
                     {
                         case SerializedPropertyType.Float:
-                            // Define the range of slider
-                            float minValue = 0f; //minimum value
-                            float maxValue = 100f; //maximum value
+                            float minValue = 0f; // Minimum value
+                            float maxValue = 100f; // Maximum value
 
-
-                            var slider = new Slider(iterator.displayName, minValue, maxValue)
+                            var slider = new Slider(currentProperty.displayName, minValue, maxValue)
                             {
-                                value = iterator.floatValue
+                                value = currentProperty.floatValue
+                            };
+
+                            var floatField = new FloatField
+                            {
+                                value = currentProperty.floatValue
                             };
 
                             slider.RegisterValueChangedCallback(evt =>
                             {
-                                iterator.floatValue = evt.newValue;
-                                iterator.serializedObject.ApplyModifiedProperties();
+                                currentProperty.floatValue = evt.newValue;
+                                floatField.value = evt.newValue; // Update the floatField when slider changed
+                                currentProperty.serializedObject.ApplyModifiedProperties();
+                            });
+
+                            floatField.RegisterValueChangedCallback(evt =>
+                            {
+                                if (evt.newValue >= minValue && evt.newValue <= maxValue)
+                                {
+                                    currentProperty.floatValue = evt.newValue;
+                                    slider.value = evt.newValue; // Update the slider when floatField changed
+                                    currentProperty.serializedObject.ApplyModifiedProperties();
+                                } else {
+                                    Debug.Log("Out of Range");
+                                }
                             });
 
                             heightmapFoldout.Add(slider);
+                            heightmapFoldout.Add(floatField);
                             break;
 
                         default:
-                            var label = new Label($"{iterator.displayName}: {iterator.propertyType} not supported");
+                            var label = new Label($"{currentProperty.displayName}: {currentProperty.propertyType} not supported");
                             heightmapFoldout.Add(label);
                             break;
                     }
@@ -214,6 +231,16 @@ namespace WorldGenerator
                 {
                     // Placeholder for future functionality
                     Debug.Log($"Selected texture for Biome {i + 1}: {evt.newValue}");
+                    string selectedTextureName = evt.newValue;
+                    if (texturePresets.TryGetValue(selectedTextureName, out var preset))
+                    {
+                        var biomesList = terrain.biomes;
+                        var biome = biomesList[i];
+                        
+                        Texture2D texture = Resources.Load<Texture2D>(preset.texture);
+                        biomes.SetTexture(texture);
+                        
+                    }
                 });
 
                 //GUI for skybox
@@ -224,16 +251,16 @@ namespace WorldGenerator
                     Debug.Log($"Selected skybox for Biome {i + 1}: {evt.newValue}");
                 });
 
-                //GUI for Size
-                var sizeSlider = new Slider("Size", 0, 100) //Assuming a range of 0 to 100 for size
+                //GUI for Size of Biome
+                var sizeSlider = new Slider("Biome Size", 0, 100) //Assuming a range of 0 to 100 for size
                 {
-                    value = 50 //Default value
+                    value = 50
                 };
 
-                //GUI for Frequency
-                var frequencySlider = new Slider("Frequency", 0, 100) //Assuming a range of 0 to 100 for frequency
+                //GUI for Frequency of Biome
+                var frequencySlider = new Slider("Biome Frequency", 0, 100) //Assuming a range of 0 to 100 for frequency
                 {
-                    value = 20 //Default value
+                    value = 20
                 };
 
                 //GUI for Biome Feature foldout

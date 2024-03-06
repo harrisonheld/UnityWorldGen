@@ -36,6 +36,7 @@ public class Biome {
     [Range(1, 1000)]
     [Tooltip("How often this biome will appear.")]
     private int _frequencyWeight = 100;
+    
     public string GetBiomeId()
     {
         return _biomeId;
