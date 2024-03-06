@@ -11,7 +11,7 @@ namespace WorldGenerator
     {
         [field: SerializeField]
         [Tooltip("The amplitude of the noise. This will make peaks and valleys more extreme.")]
-        public float Amplitude { get; set; } = 100.0f;
+        public float Amplitude { get; set; } = 0.05f;
 
         [field: SerializeField]
         [Tooltip("The scale of the noise. This will make the noise more or less frequent.")]

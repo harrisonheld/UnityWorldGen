@@ -151,7 +151,6 @@ namespace UnitTests
             Assert.AreEqual(26, heightmap.GetHeight(100f, 100f));
             Assert.AreEqual(26, heightmap.GetHeight(-100f, -100f));
 
-
             Object.DestroyImmediate(heightmap1);
             Object.DestroyImmediate(heightmap2);
             Object.DestroyImmediate(heightmap);
