@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using WorldGenerator;
+
 
 /// <summary>
 /// Biome is a data class that holds all the information needed to generate a biome.
@@ -26,6 +28,14 @@ public class Biome {
     [Tooltip("The texture that will be used to paint this biome.")]
     private Texture2D _texture;
 
+    [SerializeField]
+    [Tooltip("The features will appear throughout the biome.")]
+    private List<BiomeFeature> _features = new();
+
+    [SerializeField]
+    [Range(1, 1000)]
+    [Tooltip("How often this biome will appear.")]
+    private int _frequencyWeight = 100;
     public string GetBiomeId()
     {
         return _biomeId;
@@ -35,11 +45,6 @@ public class Biome {
     {
         return _name;
     }
-
-    [SerializeField]
-    [Range(1, 1000)]
-    [Tooltip("How often this biome will appear.")]
-    private int _frequencyWeight = 100;
 
     public HeightmapBase GetHeightmap()
     {
@@ -53,6 +58,11 @@ public class Biome {
         }
 
         return _texture;
+    }
+
+    public List<BiomeFeature> GetFeatures()
+    {
+        return _features;
     }
 
     public void SetBiomeId(string biomeId)
