@@ -12,3 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8c401d64e9882fe45970a66f5893dcc3, type: 3}
   m_Name: MultiHeightmap
   m_EditorClassIdentifier: 
+  <Heightmaps>k__BackingField:
+  - {fileID: 11400000, guid: 6b7aace6ee9aa41c5aa174e0512186a5, type: 2}
+  - {fileID: 11400000}

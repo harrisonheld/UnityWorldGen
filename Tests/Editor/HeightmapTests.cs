@@ -131,5 +131,41 @@ namespace UnitTests
             Assert.Throws<System.ArgumentNullException>(() => heightmap.GetHeight(0f, 0f));
             Object.DestroyImmediate(heightmap);
         }
+
+        [Test]
+        public void MultiHeightmapTest()
+        {
+            // constituent heightmaps
+            HeightmapFlat heightmap1 = ScriptableObject.CreateInstance<HeightmapFlat>();
+            heightmap1.Height = 3;
+            HeightmapFlat heightmap2 = ScriptableObject.CreateInstance<HeightmapFlat>();
+            heightmap2.Height = 23;
+
+            // multi heightmap to be tested
+            HeightmapMulti heightmap = ScriptableObject.CreateInstance<HeightmapMulti>();
+            heightmap.Heightmaps = new List<HeightmapBase> { heightmap1, heightmap2 };
+
+            // test
+            Assert.AreEqual(26, heightmap.GetHeight(0f, 0f));
+            Assert.AreEqual(26, heightmap.GetHeight(1f, 1f));
+            Assert.AreEqual(26, heightmap.GetHeight(100f, 100f));
+            Assert.AreEqual(26, heightmap.GetHeight(-100f, -100f));
+
+
+            Object.DestroyImmediate(heightmap1);
+            Object.DestroyImmediate(heightmap2);
+            Object.DestroyImmediate(heightmap);
+        }
+
+        [Test]
+        public void MultiHeightmapCircularReference()
+        {
+            // a heightmap containing itself should throw an error
+            HeightmapMulti heightmap = ScriptableObject.CreateInstance<HeightmapMulti>();
+            heightmap.Heightmaps = new List<HeightmapBase> { heightmap };
+            Assert.Throws<System.InvalidOperationException>(() => heightmap.GetHeight(0f, 0f));
+
+            Object.DestroyImmediate(heightmap);
+        }
     }
 }

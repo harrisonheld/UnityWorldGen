@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b5889a62b2005f14aba76c41d7140d66, type: 3}
   m_Name: New Perlin Heightmap
   m_EditorClassIdentifier: 
-  <Amplitude>k__BackingField: 4
+  <Amplitude>k__BackingField: 0.1
   <Scale>k__BackingField: 1
