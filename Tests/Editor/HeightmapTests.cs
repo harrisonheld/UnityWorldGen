@@ -133,7 +133,7 @@ namespace UnitTests
         }
 
         [Test]
-        public void MultiHeightmapTest()
+        public void HeightmapMultiTest()
         {
             // constituent heightmaps
             HeightmapFlat heightmap1 = ScriptableObject.CreateInstance<HeightmapFlat>();
@@ -158,7 +158,7 @@ namespace UnitTests
         }
 
         [Test]
-        public void MultiHeightmapCircularReference()
+        public void HeightmapMultiCircularReference()
         {
             // a heightmap containing itself should throw an error
             HeightmapMulti heightmap = ScriptableObject.CreateInstance<HeightmapMulti>();
