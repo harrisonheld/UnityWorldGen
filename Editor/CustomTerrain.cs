@@ -88,6 +88,20 @@ namespace WorldGenerator
 
         private GameObject[,] _chunks;
 
+        public Biome GetBiome(string biomeId) 
+        {
+            foreach (var biome in _biomes)
+            {
+                if (biome.GetBiomeId() == biomeId)
+                {
+                    return biome;
+                }
+            }
+
+            Debug.LogWarning($"Biome with ID {biomeId} not found.");
+            return null;
+        }
+
         public void AddBiome(Biome newBiome)
         {
             this._biomes.Add(newBiome);
@@ -105,12 +119,6 @@ namespace WorldGenerator
                 }
             }
             Debug.LogWarning($"Biome with ID {biomeId} not found.");
-            // if (index >= 0 && index < _biomes.Count)
-            // {
-            //     Debug.Log("HERE");
-            //     this._biomes.RemoveAt(index);
-            //     Debug.Log(this._biomes.Count);
-            // }
         }
         public void GenerateTerrain()
         {

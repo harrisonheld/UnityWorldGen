@@ -24,7 +24,7 @@ namespace WorldGenerator
         };
 
         //Dictionary for texture dropdown
-        private Dictionary<string, string texture> texturePresets = new Dictionary<string, string>
+        private Dictionary<string, string> texturePresets = new Dictionary<string, string>
         {
             { "Sand", "Sand" },
             { "Grass", "Grass" },
@@ -34,7 +34,7 @@ namespace WorldGenerator
         };
 
         //Dictionary for Skybox dropdown
-        private Dictionary<string, string skybox> skyboxPresets = new Dictionary<string, string>
+        private Dictionary<string, string > skyboxPresets = new Dictionary<string, string>
         {
             { "Cloudy", "Cloudy" },
             { "Sunny", "Sunny" },
@@ -230,17 +230,12 @@ namespace WorldGenerator
                 textureDropdown.RegisterValueChangedCallback(evt =>
                 {
                     // Placeholder for future functionality
-                    Debug.Log($"Selected texture for Biome {i + 1}: {evt.newValue}");
-                    string selectedTextureName = evt.newValue;
-                    if (texturePresets.TryGetValue(selectedTextureName, out var preset))
-                    {
-                        var biomesList = terrain.biomes;
-                        var biome = biomesList[i];
-                        
-                        Texture2D texture = Resources.Load<Texture2D>(preset.texture);
-                        biomes.SetTexture(texture);
-                        
-                    }
+                    Debug.Log($"Selected texture for Biome {biomeId}: {evt.newValue}");
+                    string selectedTextureName = evt.newValue;                   
+                    var biome = terrain.GetBiome(biomeId);
+                    string texturePath = texturePresets[selectedTextureName];
+                    Texture2D texture = Resources.Load<Texture2D>(texturePath);
+                    biome.SetTexture(texture);
                 });
 
                 //GUI for skybox
