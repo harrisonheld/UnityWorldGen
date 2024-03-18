@@ -81,19 +81,38 @@ namespace WorldGenerator
         [Tooltip("The biomes that will be used to generate the terrain.")]
         [SerializeField] private List<Biome> _biomes = new();
 
+        [SerializeField] private bool _generateOnlyFeatures = false;
+
         private int _worldSeed;
 
         const int TEX_SIZE = 512;
         private Material _multitextureMat;
 
         private GameObject[,] _chunks;
+        private int _chunkCount = 3;
 
+
+        private Dictionary<(int, int), (Vector3[], Vector2[])> _chunkInfo = new Dictionary<(int chunkX, int chunkZ), (Vector3[] vertices, Vector2[] uv2s)>();
+        // private (Vector3[], Vector2[])[,] _chunkInfo;
         public void AddBiome(Biome newBiome)
         {
             this._biomes.Add(newBiome);
         }
         public void GenerateTerrain()
         {
+            if (_generateOnlyFeatures && _chunks != null && _chunks.GetLength(0) > 0)
+            {
+                for (int x = 0; x < _chunkCount; x++)
+                {
+                    for (int z = 0; z < _chunkCount; z++)
+                    {
+                        Debug.Log($"Checkpoint {x} {z}");
+                        (Vector3[], Vector2[]) chunk_info = _chunkInfo[(x, z)];
+                        GenerateFeatures(x, z, chunk_info.Item1, chunk_info.Item2);
+                    }
+                }
+                return;
+            }
             // errors
             if (_biomes.Count == 0)
             {
@@ -170,17 +189,20 @@ namespace WorldGenerator
             }
 
             // chunk
-            int chunkCount = 3;
+            int chunkCount = _chunkCount;
             _chunks = new GameObject[chunkCount, chunkCount];
             for (int x = 0; x < chunkCount; x++)
             {
                 for (int z = 0; z < chunkCount; z++)
                 {
                     _chunks[x, z] = GenerateChunk(x, z);
+                    (Vector3[], Vector2[]) chunk_info = _chunkInfo[(x, z)];
+                    GenerateFeatures(x, z, chunk_info.Item1, chunk_info.Item2);
                 }
             }
 
             StitchChunks();
+            
         }
 
         private void StitchChunks()
@@ -332,8 +354,14 @@ namespace WorldGenerator
             // set the position
             chunk.transform.position = new Vector3(chunkX * _chunkSize, 0, chunkZ * _chunkSize);
 
-            // TODO: Adding features to each biome in the chunk
-            //
+            _chunkInfo[(chunkX, chunkZ)] = (vertices, uv2s);
+            // _chunkInfo[chunkX, chunkZ] = (vertices, uv2s);
+
+            return chunk;
+        }
+
+        public void GenerateFeatures(int chunkX, int chunkZ, Vector3[] vertices, Vector2[] uv2s)
+        {
             // for each biome in biome map:
             //     get the x and z bounds of the biome
             //     for each feature in the biome:
@@ -385,12 +413,13 @@ namespace WorldGenerator
                             if (feature.SetNormal)
                             {
                                 // make normal to terrain
+                                Mesh mesh = _chunks[chunkX, chunkZ].GetComponent<MeshFilter>().sharedMesh;
                                 Vector3 normal = mesh.normals[i];
                                 spawnedObject.transform.rotation = Quaternion.FromToRotation(Vector3.up, normal);
                             }
-                            // spawnedObject.transform.rotation = Quaternion.Euler(0, rand.Next(0, 360), 0);
                             spawnedObject.transform.Rotate(Vector3.up, rand.Next(0, 360));
                             // set parent as chunk
+                            GameObject chunk = _chunks[chunkX, chunkZ];
                             spawnedObject.transform.parent = chunk.transform;
                         }
                         else
@@ -402,8 +431,6 @@ namespace WorldGenerator
                     }
                 }
             }
-
-            return chunk;
         }
     }
 }
