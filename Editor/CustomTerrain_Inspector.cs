@@ -64,6 +64,69 @@ namespace WorldGenerator
             //Access the CustomTerrain target object
             CustomTerrain terrain = (CustomTerrain)target;
 
+            SerializedProperty worldSeedStringProperty = serializedObject.FindProperty("_worldSeedString");
+            SerializedProperty chunkSizeProperty = serializedObject.FindProperty("_chunkSize");
+            SerializedProperty chunkResolutionProperty = serializedObject.FindProperty("_chunkResolution");
+            SerializedProperty biomesPerChunkProperty = serializedObject.FindProperty("_biomesPerChunk");
+
+            //World Seeds
+            TextField worldSeeds = new TextField("World Seed")
+            {
+                value = worldSeedStringProperty.stringValue
+            };
+            worldSeeds.RegisterValueChangedCallback(evt =>
+            {
+                worldSeedStringProperty.stringValue = evt.newValue;
+                serializedObject.ApplyModifiedProperties();
+            });
+
+            // Create sliders and int fields for TerrainSize, BiomesFrequency and BiomesResolution
+            var sizeSlider = new Slider("Terrain Size", 10, 1000) { value = chunkSizeProperty.intValue };
+            var sizeField = new IntegerField { value = chunkSizeProperty.intValue };
+
+            var frequencySlider = new Slider("Biomes Frequency", 1, 10) { value = biomesPerChunkProperty.intValue };
+            var frequencyField = new IntegerField { value = biomesPerChunkProperty.intValue };
+
+            var resolutionSlider = new Slider("Biomes Resolution", 2, 250) { value = chunkResolutionProperty.intValue };
+            var resolutionField = new IntegerField { value = chunkResolutionProperty.intValue };
+            
+            // Sync slider with int field
+            void SyncSliderAndField(Slider slider, IntegerField field, SerializedProperty property, bool enforceEven = false) {
+                slider.RegisterValueChangedCallback(evt => {
+                    int newValue = (int)evt.newValue;
+                    if (enforceEven) {
+                        newValue -= newValue % 2;
+                    }
+                    property.intValue = newValue;
+                    field.value = newValue;
+                    serializedObject.ApplyModifiedProperties();
+                });
+                field.RegisterValueChangedCallback(evt => {
+                    int newValue = evt.newValue;
+                    if (enforceEven) {
+                        newValue -= newValue % 2;
+                    }
+                    property.intValue = newValue;
+                    slider.value = newValue;
+                    serializedObject.ApplyModifiedProperties();
+                });
+            }
+
+            // Apply synchronization
+            SyncSliderAndField(sizeSlider, sizeField, chunkSizeProperty, true);
+            SyncSliderAndField(frequencySlider, frequencyField, biomesPerChunkProperty);
+            SyncSliderAndField(resolutionSlider, resolutionField, chunkResolutionProperty);
+
+            //Add elements to the root on the top
+            root.Add(worldSeeds);
+            root.Add(sizeSlider);
+            root.Add(sizeField); 
+            root.Add(frequencySlider);
+            root.Add(frequencyField);
+            root.Add(resolutionSlider);
+            root.Add(resolutionField);
+
+
             //Biome Selection Dropdown
             var biomeDropdown = new PopupField<string>("New Biome", new List<string>(biomePresets.Keys), 0);
 
@@ -246,18 +309,6 @@ namespace WorldGenerator
                     Debug.Log($"Selected skybox for Biome {i + 1}: {evt.newValue}");
                 });
 
-                //GUI for Size of Biome
-                var sizeSlider = new Slider("Biome Size", 0, 100) //Assuming a range of 0 to 100 for size
-                {
-                    value = 50
-                };
-
-                //GUI for Frequency of Biome
-                var frequencySlider = new Slider("Biome Frequency", 0, 100) //Assuming a range of 0 to 100 for frequency
-                {
-                    value = 20
-                };
-
                 //GUI for Biome Feature foldout
                 Foldout biomeFeatureFoldout = new Foldout()
                 {
@@ -317,29 +368,30 @@ namespace WorldGenerator
                 heightmapFoldout.style.marginBottom = 5;
                 textureDropdown.style.marginTop = 5;
                 skyboxDropdown.style.marginTop = 5;
-                sizeSlider.style.marginTop = 5;
-                frequencySlider.style.marginTop = 5;
                 biomeFeatureFoldout.style.marginTop = 5;
-                deleteButton.style.marginTop = 10;
+                deleteButton.style.marginTop = 5;
                 addFeatureButton.style.marginBottom = 10;
                 addFeatureButton.style.width = 100;
 
                 //Add Element to Biome Foldout
+                
                 biomeFoldout.Add(nameField);
                 biomeFoldout.Add(heightmapFoldout);
                 biomeFoldout.Add(textureDropdown);
                 biomeFoldout.Add(skyboxDropdown);
-                biomeFoldout.Add(sizeSlider);
-                biomeFoldout.Add(frequencySlider);
                 biomeFoldout.Add(biomeFeatureFoldout);
                 biomeFoldout.Add(deleteButton);
                 // biomeFoldout.Add(texture);
             }
 
             //Styling for each elements outside of biome foldout
-            biomeDropdown.style.marginTop = 10;
+            sizeSlider.style.marginTop = 5;
+            resolutionSlider.style.marginTop = 5;
+            frequencySlider.style.marginTop = 5;
+            resolutionField.style.marginBottom = 20;
+            biomeDropdown.style.marginTop = 20;
 
-            //Add elements to the root
+            //Add elements to the root on the bottom
             root.Add(biomeDropdown);
             root.Add(addBiomeButton);
             root.Add(generateButton);
