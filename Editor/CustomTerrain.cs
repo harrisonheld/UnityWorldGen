@@ -69,6 +69,8 @@ namespace WorldGenerator
 
         [Tooltip("The seed string used to generate the terrain. If left empty, a random seed will be used.")]
         [SerializeField] private string _worldSeedString = "";
+        [Tooltip("The seed string used to generate the features. If left empty, a random seed will be used.")]
+        [SerializeField] private string _featureSeedString = "";
 
         [Tooltip("The size of each chunk in world units. This is the number of units along each side of the chunk.")]
         [SerializeField] private int _chunkSize = 50;
@@ -90,6 +92,7 @@ namespace WorldGenerator
 
         private GameObject[,] _chunks;
         private int _chunkCount = 3;
+        private int _featureSeed;
 
 
         private Dictionary<(int, int), (Vector3[], Vector2[])> _chunkInfo = new Dictionary<(int chunkX, int chunkZ), (Vector3[] vertices, Vector2[] uv2s)>();
@@ -106,7 +109,6 @@ namespace WorldGenerator
                 {
                     for (int z = 0; z < _chunkCount; z++)
                     {
-                        Debug.Log($"Checkpoint {x} {z}");
                         (Vector3[], Vector2[]) chunk_info = _chunkInfo[(x, z)];
                         GenerateFeatures(x, z, chunk_info.Item1, chunk_info.Item2);
                     }
@@ -385,7 +387,45 @@ namespace WorldGenerator
             //
             // attempting the second solution below
 
-            int chunkSeed = Helpers.MultiHash(_worldSeed, chunkX, chunkZ);
+            // Removing existing features
+            // for (int x = 0; x < _chunkCount; x++)
+            // {
+            //     for (int z = 0; z < _chunkCount; z++)
+            //     {
+            //         GameObject chunk = _chunks[x, z];
+            //         Debug.Log($"Chunk child count = {chunk.transform.childCount}")
+            //         for (int i = chunk.transform.childCount - 1; i >= 0; i--)
+            //         {
+            //             GameObject.DestroyImmediate(chunk.transform.GetChild(i).gameObject);
+            //         }
+            //     }
+            // }
+
+            // Iterate over each chunk
+            for (int i = this.transform.childCount - 1; i >= 0; i--)
+            {
+                Transform child = this.transform.GetChild(i);
+                
+                for (int j = child.gameObject.transform.childCount - 1; j >= 0; j--)
+                {
+                    Transform grandchild = child.gameObject.transform.GetChild(j);
+                    
+                    // Destroy the child GameObject
+                    GameObject.DestroyImmediate(grandchild.gameObject);
+                }
+            }
+
+            // seed
+            if (_featureSeedString == "")
+            {
+                _featureSeed = ((int)DateTime.Now.Ticks);
+            }
+            else
+            {
+                _featureSeed = Helpers.MultiHash(_featureSeedString);
+            }
+
+            int chunkSeed = Helpers.MultiHash(_featureSeed, chunkX, chunkZ);
             System.Random rand = new System.Random(chunkSeed);
 
             for (int i = 0; i < vertices.Length; i++)
