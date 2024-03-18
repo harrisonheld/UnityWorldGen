@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using static UnityEngine.GraphicsBuffer;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -86,7 +87,16 @@ namespace WorldGenerator
         const int TEX_SIZE = 512;
         private Material _multitextureMat;
 
+        [SerializeField]
         private GameObject[,] _chunks;
+
+
+        public void Awake()
+        {
+            // generate the terrain at runtime
+            GenerateTerrain();
+        }
+
 
         public void AddBiome(Biome newBiome)
         {
@@ -182,7 +192,6 @@ namespace WorldGenerator
 
             StitchChunks();
         }
-
         private void StitchChunks()
         {
             for (int x = 0; x < _chunks.GetLength(0); x++)
@@ -234,8 +243,7 @@ namespace WorldGenerator
                 }
             }
         }
-
-        public GameObject GenerateChunk(int chunkX, int chunkZ)
+        private GameObject GenerateChunk(int chunkX, int chunkZ)
         {
             Mesh mesh = new Mesh();
             mesh.name = $"Chunk Mesh ({chunkX}, {chunkZ})";
@@ -404,6 +412,42 @@ namespace WorldGenerator
             }
 
             return chunk;
+        }
+
+
+        public void SetPlayerPos(Vector3 pos)
+        {
+            // check error
+            if (_chunks == null)
+            {
+                Debug.LogError("Cannot set player position because the terrain has not been generated yet.");
+                return;
+            }
+            // get chunk the player is in, remember that chunk 0,0 is at the origin
+            int chunkX = Mathf.FloorToInt((pos.x / _chunkSize) + 0.5f);
+            int chunkZ = Mathf.FloorToInt((pos.z / _chunkSize) + 0.5f);
+            Debug.Log($"Player is in chunk ({chunkX}, {chunkZ})");
+            if(chunkX < 0 || chunkX >= _chunks.GetLength(0) || chunkZ < 0 || chunkZ >= _chunks.GetLength(1))
+            {
+                return;
+            }
+            GameObject chunk = _chunks[chunkX, chunkZ];
+
+            // get player offset within chunk
+            Vector3 offset = pos - chunk.transform.position;
+            offset += new Vector3(_chunkSize / 2, 0, _chunkSize / 2);
+            Debug.Log("Player offset: " + offset.ToString());
+        
+            // get the dominant biome at that offset
+            Mesh mesh = chunk.GetComponent<MeshFilter>().sharedMesh;
+            int x = Mathf.FloorToInt(offset.x / _chunkSize * _chunkResolution);
+            int z = Mathf.FloorToInt(offset.z / _chunkSize * _chunkResolution);
+            int i = x * _chunkResolution + z;
+            int biomeIndex = (int)mesh.uv2[i].x; // uv2.x is the texture index
+            Biome biome = _biomes[biomeIndex];
+
+            // set skybox
+            RenderSettings.skybox = biome.GetSkybox();
         }
     }
 }
