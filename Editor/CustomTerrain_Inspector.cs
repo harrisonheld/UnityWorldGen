@@ -4,6 +4,8 @@ using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 using System.Collections.Generic;
+using System.Linq;
+using System.IO;
 
 namespace WorldGenerator
 {
@@ -26,11 +28,10 @@ namespace WorldGenerator
         //Dictionary for texture dropdown
         private Dictionary<string, string> texturePresets = new Dictionary<string, string>
         {
+            { "Import Custom", "Custom" },
             { "Sand", "Sand" },
-            { "Grass", "Grass" },
+            { "Grass", "grass" },
             { "Stone", "Stone" },
-            { "Metallic", "Metallic" },
-            { "Import Custom", "Custom" }
         };
 
         //Dictionary for Skybox dropdown
@@ -280,7 +281,7 @@ namespace WorldGenerator
                             heightmapFoldout.Add(slider);
                             heightmapFoldout.Add(floatField);
                             break;
-
+                        
                         default:
                             var label = new Label($"{currentProperty.displayName}: {currentProperty.propertyType} not supported");
                             heightmapFoldout.Add(label);
@@ -289,17 +290,37 @@ namespace WorldGenerator
                 }
 
                 //GUI for Texture
-                var textureDropdown = new PopupField<string>("Texture", new List<string>(texturePresets.Keys), 0);
+                Texture2D currentTexture = terrain.GetBiome(biomeId).GetTexture();
+                //Handle the default Selection for Texture GUI
+                string currentTexturePath = Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(currentTexture));
+                string currentTextureName = texturePresets.FirstOrDefault(x => x.Value == currentTexturePath).Key;
+                int defaultTextureIndex = currentTextureName != null ? new List<string>(texturePresets.Keys).IndexOf(currentTextureName) : 0;
+                var textureDropdown = new PopupField<string>("Texture", new List<string>(texturePresets.Keys), defaultTextureIndex);
+                PropertyField textureField = new PropertyField(textureProperty, "Import Texture: ");
+                if (textureDropdown.value == "Import Custom") {
+                    textureField.style.display = DisplayStyle.Flex;
+                } else {
+                    textureField.style.display = DisplayStyle.None; 
+                }
+                //Texture dropdown
                 textureDropdown.RegisterValueChangedCallback(evt =>
                 {
-                    // Placeholder for future functionality
                     Debug.Log($"Selected texture for Biome {biomeId}: {evt.newValue}");
-                    string selectedTextureName = evt.newValue;                   
-                    var biome = terrain.GetBiome(biomeId);
-                    string texturePath = texturePresets[selectedTextureName];
-                    Texture2D texture = Resources.Load<Texture2D>(texturePath);
-                    biome.SetTexture(texture);
+                    string selectedTextureName = evt.newValue;              
+                    if (selectedTextureName == "Import Custom")
+                    {
+                        textureField.style.display = DisplayStyle.Flex;
+                    } 
+                    else 
+                    { 
+                        textureField.style.display = DisplayStyle.None; 
+                        var biome = terrain.GetBiome(biomeId);
+                        string texturePath = texturePresets[selectedTextureName];
+                        Texture2D texture = Resources.Load<Texture2D>(texturePath);
+                        biome.SetTexture(texture);
+                    }
                 });
+                
 
                 //GUI for skybox
                 var skyboxDropdown = new PopupField<string>("Skybox", new List<string>(skyboxPresets.Keys), 0);
@@ -378,6 +399,7 @@ namespace WorldGenerator
                 biomeFoldout.Add(nameField);
                 biomeFoldout.Add(heightmapFoldout);
                 biomeFoldout.Add(textureDropdown);
+                biomeFoldout.Add(textureField);
                 biomeFoldout.Add(skyboxDropdown);
                 biomeFoldout.Add(biomeFeatureFoldout);
                 biomeFoldout.Add(deleteButton);
