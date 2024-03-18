@@ -67,7 +67,11 @@ namespace WorldGenerator
             }
         }
 #endif
+        [Header("Debug Settings")]
+        [Tooltip("If true, a box will be drawn around each chunk. Make sure Gizmos are enabled in the Unity Editor.")]
+        [SerializeField] private bool _drawChunkGizmos = true;
 
+        [Header("Generation Settings")]
         [Tooltip("The seed string used to generate the terrain. If left empty, a random seed will be used.")]
         [SerializeField] private string _worldSeedString = "";
 
@@ -412,6 +416,26 @@ namespace WorldGenerator
             }
 
             return chunk;
+        }
+
+
+
+        private void OnDrawGizmos()
+        {
+            if(_drawChunkGizmos && _chunks != null)
+            {
+                Gizmos.color = Color.red;
+
+                for (int x = 0; x < _chunks.GetLength(0); x++)
+                {
+                    for (int z = 0; z < _chunks.GetLength(1); z++)
+                    {
+                        Vector3 chunkCenter = new Vector3(x * _chunkSize, 0, z * _chunkSize);
+                        Vector3 chunkSize = new Vector3(_chunkSize, 0, _chunkSize);
+                        Gizmos.DrawWireCube(chunkCenter, chunkSize);
+                    }
+                }
+            }
         }
 
 
