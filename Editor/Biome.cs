@@ -14,6 +14,10 @@ public class Biome
     [Tooltip("The texture that will be used to paint this biome.")]
     private Texture2D _texture;
 
+    [SerializeField]
+    [Tooltip("The skybox that will be used for this biome.")]
+    private Material _skybox;
+
     // _features will store the different features (such as rocks and trees) that are present 
     // within the biome and their frequency and size.
     [SerializeField]
@@ -27,13 +31,18 @@ public class Biome
 
     public HeightmapBase GetHeightmap()
     {
+        if (_heightmap == null)
+        {
+            Debug.LogError("The heightmap for this biome is null. Please assign one.");
+        }
+
         return _heightmap;
     }
     public Texture2D GetTexture()
     {
         if (_texture == null)
         {
-            Debug.LogError("The texture for this biome is null. Please assign a texture to the biome.");
+            Debug.LogError("The texture for this biome is null. Please assign one.");
         }
 
         return _texture;
@@ -42,6 +51,15 @@ public class Biome
     public List<BiomeFeature> GetFeatures()
     {
         return _features;
+    }
+    public Material GetSkybox()
+    {
+        if (_skybox == null)
+        {
+            Debug.LogError("The skybox for this biome is null. Please assign one.");
+        }
+
+        return _skybox;
     }
     public void SetFrequencyWeight(int frequencyWeight)
     {
@@ -68,5 +86,9 @@ public class Biome
         // adding features (CustomTerrain::GenerateChunk)
         features.Sort((x, y) => x.Frequency.CompareTo(y.Frequency));
         _features = features;
+    }
+    public void SetSkybox(Material skybox)
+    {
+        _skybox = skybox;
     }
 }
