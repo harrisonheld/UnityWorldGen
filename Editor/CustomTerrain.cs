@@ -38,7 +38,7 @@ namespace WorldGenerator
                     { "Hills", ("HillsHeightmap", "Grass") },
                     { "Plains", ("plains_simplex_heightmap", "Grass") },
                     { "Mountain", ("MountainHeightmap", "Stone") },
-                    { "Valley", ("valley_simplex_heightmap", "Grass") },
+                    { "Valley", ("Valley_Heightmap", "Grass") },
                     { "Custom", ("Flat0", "Grass") }
                 };
                 selected_biome_preset_index = EditorGUILayout.Popup("New Biome", selected_biome_preset_index, preset_biome_options);
