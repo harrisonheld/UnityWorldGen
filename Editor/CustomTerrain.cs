@@ -74,6 +74,8 @@ namespace WorldGenerator
         [Header("Generation Settings")]
         [Tooltip("The seed string used to generate the terrain. If left empty, a random seed will be used.")]
         [SerializeField] private string _worldSeedString = "";
+        [Tooltip("The seed string used to generate the features. If left empty, a random seed will be used.")]
+        [SerializeField] private string _featureSeedString = "";
 
         [Tooltip("The size of each chunk in world units. This is the number of units along each side of the chunk.")]
         [SerializeField] private int _chunkSize = 50;
@@ -86,6 +88,8 @@ namespace WorldGenerator
         [Tooltip("The biomes that will be used to generate the terrain.")]
         [SerializeField] private List<Biome> _biomes = new();
 
+        [SerializeField] private bool _generateOnlyFeatures = false;
+
         private int _worldSeed;
 
         const int TEX_SIZE = 512;
@@ -93,7 +97,11 @@ namespace WorldGenerator
 
         [SerializeField]
         private GameObject[,] _chunks;
+        private int _chunkCount = 3;
+        private int _featureSeed;
 
+
+        private Dictionary<(int, int), (Vector3[], Vector2[])> _chunkInfo = new Dictionary<(int chunkX, int chunkZ), (Vector3[] vertices, Vector2[] uv2s)>();
 
         public void Awake()
         {
@@ -108,6 +116,32 @@ namespace WorldGenerator
         }
         public void GenerateTerrain()
         {
+            if (_generateOnlyFeatures && _chunks != null && _chunks.GetLength(0) > 0)
+            {
+                // Iterate over each chunk and remove all features
+                for (int i = this.transform.childCount - 1; i >= 0; i--)
+                {
+                    Transform child = this.transform.GetChild(i);
+                    
+                    for (int j = child.gameObject.transform.childCount - 1; j >= 0; j--)
+                    {
+                        Transform grandchild = child.gameObject.transform.GetChild(j);
+                        
+                        // Destroy the child GameObject
+                        GameObject.DestroyImmediate(grandchild.gameObject);
+                    }
+                }
+                // generate features for each chunk
+                for (int x = 0; x < _chunkCount; x++)
+                {
+                    for (int z = 0; z < _chunkCount; z++)
+                    {
+                        (Vector3[], Vector2[]) chunk_info = _chunkInfo[(x, z)];
+                        GenerateFeatures(x, z, chunk_info.Item1, chunk_info.Item2);
+                    }
+                }
+                return;
+            }
             // errors
             if (_biomes.Count == 0)
             {
@@ -184,17 +218,20 @@ namespace WorldGenerator
             }
 
             // chunk
-            int chunkCount = 3;
+            int chunkCount = _chunkCount;
             _chunks = new GameObject[chunkCount, chunkCount];
             for (int x = 0; x < chunkCount; x++)
             {
                 for (int z = 0; z < chunkCount; z++)
                 {
                     _chunks[x, z] = GenerateChunk(x, z);
+                    (Vector3[], Vector2[]) chunk_info = _chunkInfo[(x, z)];
+                    GenerateFeatures(x, z, chunk_info.Item1, chunk_info.Item2);
                 }
             }
 
             StitchChunks();
+            
         }
         private void StitchChunks()
         {
@@ -344,8 +381,14 @@ namespace WorldGenerator
             // set the position
             chunk.transform.position = new Vector3(chunkX * _chunkSize, 0, chunkZ * _chunkSize);
 
-            // TODO: Adding features to each biome in the chunk
-            //
+            _chunkInfo[(chunkX, chunkZ)] = (vertices, uv2s);
+            // _chunkInfo[chunkX, chunkZ] = (vertices, uv2s);
+
+            return chunk;
+        }
+
+        public void GenerateFeatures(int chunkX, int chunkZ, Vector3[] vertices, Vector2[] uv2s)
+        {
             // for each biome in biome map:
             //     get the x and z bounds of the biome
             //     for each feature in the biome:
@@ -369,7 +412,17 @@ namespace WorldGenerator
             //
             // attempting the second solution below
 
-            int chunkSeed = Helpers.MultiHash(_worldSeed, chunkX, chunkZ);
+            // seed
+            if (_featureSeedString == "")
+            {
+                _featureSeed = ((int)DateTime.Now.Ticks);
+            }
+            else
+            {
+                _featureSeed = Helpers.MultiHash(_featureSeedString);
+            }
+
+            int chunkSeed = Helpers.MultiHash(_featureSeed, chunkX, chunkZ);
             System.Random rand = new System.Random(chunkSeed);
 
             for (int i = 0; i < vertices.Length; i++)
@@ -397,12 +450,13 @@ namespace WorldGenerator
                             if (feature.SetNormal)
                             {
                                 // make normal to terrain
+                                Mesh mesh = _chunks[chunkX, chunkZ].GetComponent<MeshFilter>().sharedMesh;
                                 Vector3 normal = mesh.normals[i];
                                 spawnedObject.transform.rotation = Quaternion.FromToRotation(Vector3.up, normal);
                             }
-                            // spawnedObject.transform.rotation = Quaternion.Euler(0, rand.Next(0, 360), 0);
                             spawnedObject.transform.Rotate(Vector3.up, rand.Next(0, 360));
                             // set parent as chunk
+                            GameObject chunk = _chunks[chunkX, chunkZ];
                             spawnedObject.transform.parent = chunk.transform;
                         }
                         else
@@ -414,8 +468,6 @@ namespace WorldGenerator
                     }
                 }
             }
-
-            return chunk;
         }
 
 
