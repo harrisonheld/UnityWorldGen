@@ -35,7 +35,7 @@ namespace WorldGenerator
         };
 
         //Dictionary for Skybox dropdown
-        private Dictionary<string, string > skyboxPresets = new Dictionary<string, string>
+        private Dictionary<string, string> skyboxPresets = new Dictionary<string, string>
         {
             { "Cloudy", "Cloudy" },
             { "Sunny", "Sunny" },
@@ -50,8 +50,8 @@ namespace WorldGenerator
             { "Import Custom", "Custom" }
         };
 
-    //Refresh GUI and generate terrain in real-time
-        private void UpdateUI (VisualElement root, CustomTerrain terrain) 
+        //Refresh GUI and generate terrain in real-time
+        private void UpdateUI(VisualElement root, CustomTerrain terrain)
         {
             serializedObject.Update();
             serializedObject.ApplyModifiedProperties();
@@ -90,21 +90,26 @@ namespace WorldGenerator
 
             var resolutionSlider = new Slider("Biomes Resolution", 2, 250) { value = chunkResolutionProperty.intValue };
             var resolutionField = new IntegerField { value = chunkResolutionProperty.intValue };
-            
+
             // Sync slider with int field
-            void SyncSliderAndField(Slider slider, IntegerField field, SerializedProperty property, bool enforceEven = false) {
-                slider.RegisterValueChangedCallback(evt => {
+            void SyncSliderAndField(Slider slider, IntegerField field, SerializedProperty property, bool enforceEven = false)
+            {
+                slider.RegisterValueChangedCallback(evt =>
+                {
                     int newValue = (int)evt.newValue;
-                    if (enforceEven) {
+                    if (enforceEven)
+                    {
                         newValue -= newValue % 2;
                     }
                     property.intValue = newValue;
                     field.value = newValue;
                     serializedObject.ApplyModifiedProperties();
                 });
-                field.RegisterValueChangedCallback(evt => {
+                field.RegisterValueChangedCallback(evt =>
+                {
                     int newValue = evt.newValue;
-                    if (enforceEven) {
+                    if (enforceEven)
+                    {
                         newValue -= newValue % 2;
                     }
                     property.intValue = newValue;
@@ -121,7 +126,7 @@ namespace WorldGenerator
             //Add elements to the root on the top
             root.Add(worldSeeds);
             root.Add(sizeSlider);
-            root.Add(sizeField); 
+            root.Add(sizeField);
             root.Add(frequencySlider);
             root.Add(frequencyField);
             root.Add(resolutionSlider);
@@ -240,7 +245,7 @@ namespace WorldGenerator
                     {
                         continue;
                     }
-                    
+
                     // Create UI elements for each heightmap property here
                     SerializedProperty currentProperty = iterator.Copy();
                     switch (currentProperty.propertyType)
@@ -273,7 +278,9 @@ namespace WorldGenerator
                                     currentProperty.floatValue = evt.newValue;
                                     slider.value = evt.newValue; // Update the slider when floatField changed
                                     currentProperty.serializedObject.ApplyModifiedProperties();
-                                } else {
+                                }
+                                else
+                                {
                                     Debug.Log("Out of Range");
                                 }
                             });
@@ -281,7 +288,7 @@ namespace WorldGenerator
                             heightmapFoldout.Add(slider);
                             heightmapFoldout.Add(floatField);
                             break;
-                        
+
                         default:
                             var label = new Label($"{currentProperty.displayName}: {currentProperty.propertyType} not supported");
                             heightmapFoldout.Add(label);
@@ -297,30 +304,33 @@ namespace WorldGenerator
                 int defaultTextureIndex = currentTextureName != null ? new List<string>(texturePresets.Keys).IndexOf(currentTextureName) : 0;
                 var textureDropdown = new PopupField<string>("Texture", new List<string>(texturePresets.Keys), defaultTextureIndex);
                 PropertyField textureField = new PropertyField(textureProperty, "Import Texture: ");
-                if (textureDropdown.value == "Import Custom") {
+                if (textureDropdown.value == "Import Custom")
+                {
                     textureField.style.display = DisplayStyle.Flex;
-                } else {
-                    textureField.style.display = DisplayStyle.None; 
+                }
+                else
+                {
+                    textureField.style.display = DisplayStyle.None;
                 }
                 //Texture dropdown
                 textureDropdown.RegisterValueChangedCallback(evt =>
                 {
                     Debug.Log($"Selected texture for Biome {biomeId}: {evt.newValue}");
-                    string selectedTextureName = evt.newValue;              
+                    string selectedTextureName = evt.newValue;
                     if (selectedTextureName == "Import Custom")
                     {
                         textureField.style.display = DisplayStyle.Flex;
-                    } 
-                    else 
-                    { 
-                        textureField.style.display = DisplayStyle.None; 
+                    }
+                    else
+                    {
+                        textureField.style.display = DisplayStyle.None;
                         var biome = terrain.GetBiome(biomeId);
                         string texturePath = texturePresets[selectedTextureName];
                         Texture2D texture = Resources.Load<Texture2D>(texturePath);
                         biome.SetTexture(texture);
                     }
                 });
-                
+
 
                 //GUI for skybox
                 var skyboxDropdown = new PopupField<string>("Skybox", new List<string>(skyboxPresets.Keys), 0);
@@ -379,6 +389,7 @@ namespace WorldGenerator
                 {
                     text = "Add Feature"
                 };
+                addFeatureButton.AddToClassList("test");
 
                 //Add Element to Biome Feature foldout
                 biomeFeatureFoldout.Add(newFeatureDropdown);
@@ -395,7 +406,7 @@ namespace WorldGenerator
                 addFeatureButton.style.width = 100;
 
                 //Add Element to Biome Foldout
-                
+
                 biomeFoldout.Add(nameField);
                 biomeFoldout.Add(heightmapFoldout);
                 biomeFoldout.Add(textureDropdown);
@@ -423,8 +434,14 @@ namespace WorldGenerator
         {
             // Create a new VisualElement to be the root of our inspector UI
             VisualElement root = new VisualElement();
+
+            // load stylesheet and add to root
+            StyleSheet uss = Resources.Load<StyleSheet>("styles");
+            root.styleSheets.Add(uss);
+    
             root.AddToClassList("customInspectorRoot");
             BuildUI(root);
+            
             return root;
         }
     }
