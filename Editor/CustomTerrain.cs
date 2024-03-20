@@ -91,8 +91,6 @@ namespace WorldGenerator
         [Tooltip("The biomes that will be used to generate the terrain.")]
         [SerializeField] private List<Biome> _biomes = new();
 
-        [SerializeField] private bool _generateOnlyFeatures = false;
-
         private int _worldSeed;
 
         const int TEX_SIZE = 512;
