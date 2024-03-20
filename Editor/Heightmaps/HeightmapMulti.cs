@@ -23,5 +23,13 @@ namespace WorldGenerator
 
             return Heightmaps.Sum(hm => hm.GetHeight(x, z));
         }
+
+        public override void SetSeed(int seed)
+        {
+            foreach (var heightmap in Heightmaps)
+            {
+                heightmap.SetSeed(seed);
+            }
+        }
     }
 }
