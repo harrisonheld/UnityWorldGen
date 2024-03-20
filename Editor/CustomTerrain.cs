@@ -105,6 +105,20 @@ namespace WorldGenerator
         {
             if (_generateOnlyFeatures && _chunks != null && _chunks.GetLength(0) > 0)
             {
+                // Iterate over each chunk and remove all features
+                for (int i = this.transform.childCount - 1; i >= 0; i--)
+                {
+                    Transform child = this.transform.GetChild(i);
+                    
+                    for (int j = child.gameObject.transform.childCount - 1; j >= 0; j--)
+                    {
+                        Transform grandchild = child.gameObject.transform.GetChild(j);
+                        
+                        // Destroy the child GameObject
+                        GameObject.DestroyImmediate(grandchild.gameObject);
+                    }
+                }
+                // generate features for each chunk
                 for (int x = 0; x < _chunkCount; x++)
                 {
                     for (int z = 0; z < _chunkCount; z++)
@@ -401,19 +415,6 @@ namespace WorldGenerator
             //     }
             // }
 
-            // Iterate over each chunk
-            for (int i = this.transform.childCount - 1; i >= 0; i--)
-            {
-                Transform child = this.transform.GetChild(i);
-                
-                for (int j = child.gameObject.transform.childCount - 1; j >= 0; j--)
-                {
-                    Transform grandchild = child.gameObject.transform.GetChild(j);
-                    
-                    // Destroy the child GameObject
-                    GameObject.DestroyImmediate(grandchild.gameObject);
-                }
-            }
 
             // seed
             if (_featureSeedString == "")
