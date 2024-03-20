@@ -80,7 +80,9 @@ namespace UnitTests
             float val1 = heightmap.GetHeight(0f, 0f);
             heightmap.SetSeed(1);
             float val2 = heightmap.GetHeight(0f, 0f);
+            float val3 = heightmap.GetHeight(0f, 0f);
             Assert.AreNotEqual(val1, val2);
+            Assert.AreEqual(val2, val3);
 
             Object.DestroyImmediate(heightmap);
         }
@@ -95,7 +97,9 @@ namespace UnitTests
             float val1 = heightmap.GetHeight(0f, 0f);
             heightmap.SetSeed(1);
             float val2 = heightmap.GetHeight(0f, 0f);
+            float val3 = heightmap.GetHeight(0f, 0f);
             Assert.AreNotEqual(val1, val2);
+            Assert.AreEqual(val2, val3);
 
             Object.DestroyImmediate(heightmap);
         }
