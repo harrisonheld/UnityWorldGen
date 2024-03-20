@@ -401,21 +401,6 @@ namespace WorldGenerator
             //
             // attempting the second solution below
 
-            // Removing existing features
-            // for (int x = 0; x < _chunkCount; x++)
-            // {
-            //     for (int z = 0; z < _chunkCount; z++)
-            //     {
-            //         GameObject chunk = _chunks[x, z];
-            //         Debug.Log($"Chunk child count = {chunk.transform.childCount}")
-            //         for (int i = chunk.transform.childCount - 1; i >= 0; i--)
-            //         {
-            //             GameObject.DestroyImmediate(chunk.transform.GetChild(i).gameObject);
-            //         }
-            //     }
-            // }
-
-
             // seed
             if (_featureSeedString == "")
             {
