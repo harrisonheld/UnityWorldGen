@@ -63,7 +63,10 @@ namespace WorldGenerator
                 {
                     terrain.GenerateTerrain();
                 }
-
+                if (GUILayout.Button("Regenerate Features"))
+                {
+                    terrain.GenerateAllFeatures();
+                }
             }
         }
 #endif
@@ -116,32 +119,6 @@ namespace WorldGenerator
         }
         public void GenerateTerrain()
         {
-            if (_generateOnlyFeatures && _chunks != null && _chunks.GetLength(0) > 0)
-            {
-                // Iterate over each chunk and remove all features
-                for (int i = this.transform.childCount - 1; i >= 0; i--)
-                {
-                    Transform child = this.transform.GetChild(i);
-                    
-                    for (int j = child.gameObject.transform.childCount - 1; j >= 0; j--)
-                    {
-                        Transform grandchild = child.gameObject.transform.GetChild(j);
-                        
-                        // Destroy the child GameObject
-                        GameObject.DestroyImmediate(grandchild.gameObject);
-                    }
-                }
-                // generate features for each chunk
-                for (int x = 0; x < _chunkCount; x++)
-                {
-                    for (int z = 0; z < _chunkCount; z++)
-                    {
-                        (Vector3[], Vector2[]) chunk_info = _chunkInfo[(x, z)];
-                        GenerateFeatures(x, z, chunk_info.Item1, chunk_info.Item2);
-                    }
-                }
-                return;
-            }
             // errors
             if (_biomes.Count == 0)
             {
@@ -218,15 +195,14 @@ namespace WorldGenerator
             }
 
             // chunk
-            int chunkCount = _chunkCount;
-            _chunks = new GameObject[chunkCount, chunkCount];
-            for (int x = 0; x < chunkCount; x++)
+            _chunks = new GameObject[_chunkCount, _chunkCount];
+            for (int x = 0; x < _chunkCount; x++)
             {
-                for (int z = 0; z < chunkCount; z++)
+                for (int z = 0; z < _chunkCount; z++)
                 {
                     _chunks[x, z] = GenerateChunk(x, z);
                     (Vector3[], Vector2[]) chunk_info = _chunkInfo[(x, z)];
-                    GenerateFeatures(x, z, chunk_info.Item1, chunk_info.Item2);
+                    GenerateChunkFeatures(x, z, chunk_info.Item1, chunk_info.Item2);
                 }
             }
 
@@ -387,7 +363,33 @@ namespace WorldGenerator
             return chunk;
         }
 
-        public void GenerateFeatures(int chunkX, int chunkZ, Vector3[] vertices, Vector2[] uv2s)
+        public void GenerateAllFeatures()
+        {
+
+            // Iterate over each chunk and remove all features
+            for (int i = this.transform.childCount - 1; i >= 0; i--)
+            {
+                Transform child = this.transform.GetChild(i);
+
+                for (int j = child.gameObject.transform.childCount - 1; j >= 0; j--)
+                {
+                    Transform grandchild = child.gameObject.transform.GetChild(j);
+
+                    // Destroy the child GameObject
+                    GameObject.DestroyImmediate(grandchild.gameObject);
+                }
+            }
+            // generate features for each chunk
+            for (int x = 0; x < _chunkCount; x++)
+            {
+                for (int z = 0; z < _chunkCount; z++)
+                {
+                    (Vector3[], Vector2[]) chunk_info = _chunkInfo[(x, z)];
+                    GenerateChunkFeatures(x, z, chunk_info.Item1, chunk_info.Item2);
+                }
+            }
+        }
+        public void GenerateChunkFeatures(int chunkX, int chunkZ, Vector3[] vertices, Vector2[] uv2s)
         {
             // for each biome in biome map:
             //     get the x and z bounds of the biome
@@ -502,7 +504,6 @@ namespace WorldGenerator
             // get chunk the player is in, remember that chunk 0,0 is at the origin
             int chunkX = Mathf.FloorToInt((pos.x / _chunkSize) + 0.5f);
             int chunkZ = Mathf.FloorToInt((pos.z / _chunkSize) + 0.5f);
-            Debug.Log($"Player is in chunk ({chunkX}, {chunkZ})");
             if(chunkX < 0 || chunkX >= _chunks.GetLength(0) || chunkZ < 0 || chunkZ >= _chunks.GetLength(1))
             {
                 return;
@@ -512,7 +513,6 @@ namespace WorldGenerator
             // get player offset within chunk
             Vector3 offset = pos - chunk.transform.position;
             offset += new Vector3(_chunkSize / 2, 0, _chunkSize / 2);
-            Debug.Log("Player offset: " + offset.ToString());
         
             // get the dominant biome at that offset
             Mesh mesh = chunk.GetComponent<MeshFilter>().sharedMesh;
