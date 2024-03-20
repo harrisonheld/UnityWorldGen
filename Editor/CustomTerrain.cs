@@ -403,7 +403,7 @@ namespace WorldGenerator
             //
             // for each vertex:
             //     get the biome at that vertex
-            //     for feature in biome: go in order from lowest frequency to hgihest so that less freqent things get a chance to show up first (tree vs grass)
+            //     for feature in biome: go in order from lowest frequency to highest so that less frequent things get a chance to show up first (tree vs grass)
             //         probability of showing up = frequency / 100 or something
             //         if it shows up:
             //             place object at that vertex's coords
