@@ -191,6 +191,7 @@ namespace WorldGenerator
                 SerializedProperty biomeIdProperty = biomeElement.FindPropertyRelative("_biomeId");
                 string biomeId = biomeIdProperty.stringValue;
                 SerializedProperty nameProperty = biomeElement.FindPropertyRelative("_name");
+                SerializedProperty frequencyWeightProperty = biomeElement.FindPropertyRelative("_frequencyWeight");
                 SerializedProperty heightmapProperty = biomeElement.FindPropertyRelative("_heightmap");
                 SerializedProperty textureProperty = biomeElement.FindPropertyRelative("_texture");
 
@@ -215,6 +216,36 @@ namespace WorldGenerator
                     biomeElement.serializedObject.ApplyModifiedProperties();
                     Debug.Log($"Biome name changed to: {nameProperty.stringValue}");
                     biomeFoldout.text = string.IsNullOrEmpty(evt.newValue) ? "Biome " + i : evt.newValue;
+                });
+
+                //GUI for frequencyWeightProperty
+                var frequencyWeightSlider = new Slider("Frequency: ", 1, 1000)
+                {
+                    value = frequencyWeightProperty.intValue
+                };
+                var frequencyWeightIntField = new IntegerField
+                {
+                    value = frequencyWeightProperty.intValue
+                };
+
+                frequencyWeightSlider.RegisterValueChangedCallback(evt =>
+                {
+                    int newValue = (int)evt.newValue;
+                    frequencyWeightProperty.intValue = newValue;
+                    frequencyWeightIntField.value = newValue;
+                    biomeElement.serializedObject.ApplyModifiedProperties();
+                });
+
+                frequencyWeightIntField.RegisterValueChangedCallback(evt =>
+                {
+                    if (evt.newValue >= 1 && evt.newValue <= 1000)
+                    {
+                        frequencyWeightProperty.intValue = evt.newValue;
+                        frequencyWeightSlider.value = evt.newValue; 
+                        biomeElement.serializedObject.ApplyModifiedProperties();
+                    } else {
+                        Debug.Log("Out of Range");
+                    }
                 });
 
                 //GUI for Delete Button
@@ -397,6 +428,8 @@ namespace WorldGenerator
                 //Add Element to Biome Foldout
                 
                 biomeFoldout.Add(nameField);
+                biomeFoldout.Add(frequencyWeightSlider);
+                biomeFoldout.Add(frequencyWeightIntField);
                 biomeFoldout.Add(heightmapFoldout);
                 biomeFoldout.Add(textureDropdown);
                 biomeFoldout.Add(textureField);
