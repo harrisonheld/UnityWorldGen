@@ -65,26 +65,52 @@ namespace WorldGenerator
         // builds all aspects of the UI
         private void BuildUI(VisualElement root)
         {
+            /*
+                WORLD OPTIONS
+            */
+
             // access the CustomTerrain target object and get all of its properties
             CustomTerrain terrain = (CustomTerrain)target;
 
+            SerializedProperty drawGizmosProperty = serializedObject.FindProperty("_drawChunkGizmos");
             SerializedProperty worldSeedStringProperty = serializedObject.FindProperty("_worldSeedString");
+            SerializedProperty featureSeedStringProperty = serializedObject.FindProperty("_featureSeedString");
             SerializedProperty chunkSizeProperty = serializedObject.FindProperty("_chunkSize");
             SerializedProperty chunkResolutionProperty = serializedObject.FindProperty("_chunkResolution");
             SerializedProperty biomesPerChunkProperty = serializedObject.FindProperty("_biomesPerChunk");
 
-            //World Seeds
-            TextField worldSeeds = new TextField("World Seed")
+            var drawGizmosField = new Toggle("Draw Chunk Gizmos")
+            {
+                value = drawGizmosProperty.boolValue
+            };
+            drawGizmosField.RegisterValueChangedCallback(evt =>
+            {
+                drawGizmosProperty.boolValue = evt.newValue;
+                serializedObject.ApplyModifiedProperties();
+            });
+
+            // world seeds
+            TextField worldSeed = new TextField("World Seed")
             {
                 value = worldSeedStringProperty.stringValue
             };
-            worldSeeds.RegisterValueChangedCallback(evt =>
+            worldSeed.RegisterValueChangedCallback(evt =>
             {
                 worldSeedStringProperty.stringValue = evt.newValue;
                 serializedObject.ApplyModifiedProperties();
             });
 
-            // Create sliders and int fields for TerrainSize, BiomesFrequency and BiomesResolution
+            TextField featureSeed = new TextField("Feature Seed")
+            {
+                value = featureSeedStringProperty.stringValue
+            };
+            featureSeed.RegisterValueChangedCallback(evt =>
+            {
+                featureSeedStringProperty.stringValue = evt.newValue;
+                serializedObject.ApplyModifiedProperties();
+            });
+
+            // create sliders and int fields for TerrainSize, BiomesFrequency and BiomesResolution
             var sizeSlider = new Slider("Terrain Size", 10, 1000) { value = chunkSizeProperty.intValue };
             var sizeField = new IntegerField { value = chunkSizeProperty.intValue };
 
@@ -94,7 +120,7 @@ namespace WorldGenerator
             var resolutionSlider = new Slider("Biomes Resolution", 2, 250) { value = chunkResolutionProperty.intValue };
             var resolutionField = new IntegerField { value = chunkResolutionProperty.intValue };
 
-            // Sync slider with int field
+            // sync slider with int field
             void SyncSliderAndField(Slider slider, IntegerField field, SerializedProperty property, bool enforceEven = false)
             {
                 slider.RegisterValueChangedCallback(evt =>
@@ -121,28 +147,21 @@ namespace WorldGenerator
                 });
             }
 
-            // Apply synchronization
+            // apply synchronization
             SyncSliderAndField(sizeSlider, sizeField, chunkSizeProperty, true);
             SyncSliderAndField(frequencySlider, frequencyField, biomesPerChunkProperty);
             SyncSliderAndField(resolutionSlider, resolutionField, chunkResolutionProperty);
 
-            //Add elements to the root on the top
-            root.Add(worldSeeds);
+            // add elements to the root on the top
+            root.Add(drawGizmosField);
+            root.Add(worldSeed);
+            root.Add(featureSeed);
             root.Add(sizeSlider);
             root.Add(sizeField);
             root.Add(frequencySlider);
             root.Add(frequencyField);
             root.Add(resolutionSlider);
             root.Add(resolutionField);
-
-            // generate terrain button
-            Button generateButton = new Button(() =>
-            {
-                terrain.GenerateTerrain();
-            })
-            {
-                text = "Generate Terrain",
-            };
 
             /*
                 ADD BIOME SECTION
@@ -412,7 +431,29 @@ namespace WorldGenerator
                 biomeFoldout.Add(deleteButton);
             }
 
+            /*
+                GENERATE BUTTONS
+            */
+            // generate terrain button
+            Button generateButton = new Button(() =>
+            {
+                terrain.GenerateTerrain();
+            })
+            {
+                text = "Generate Terrain"
+            };
+
+            // regenerate features button
+            Button regenerateFeatures = new Button(() =>
+            {
+                terrain.GenerateAllFeatures();
+            })
+            {
+                text = "Regenerate Features"
+            };
+
             root.Add(generateButton);
+            root.Add(regenerateFeatures);
         }
 
         private void BuildBiomeFeaturesField(VisualElement root, CustomTerrain terrain, int i, string biomeId, SerializedProperty featuresProperty, Foldout biomeFoldout)
