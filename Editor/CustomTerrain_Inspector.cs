@@ -117,7 +117,7 @@ namespace WorldGenerator
             var frequencySlider = new Slider("Biomes Frequency", 1, 10) { value = biomesPerChunkProperty.intValue };
             var frequencyField = new IntegerField { value = biomesPerChunkProperty.intValue };
 
-            var resolutionSlider = new Slider("Biomes Resolution", 2, 250) { value = chunkResolutionProperty.intValue };
+            var resolutionSlider = new Slider("Chunk Resolution", 2, 250) { value = chunkResolutionProperty.intValue };
             var resolutionField = new IntegerField { value = chunkResolutionProperty.intValue };
 
             // sync slider with int field
