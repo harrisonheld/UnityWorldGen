@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using static UnityEngine.GraphicsBuffer;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -41,6 +42,17 @@ namespace WorldGenerator
 //                     { "Custom", ("Flat0", "Grass") }
 //                 };
 //                 selected_biome_preset_index = EditorGUILayout.Popup("New Biome", selected_biome_preset_index, preset_biome_options);
+                // string[] preset_biome_options = new string[] { "Desert", "Hills", "Plains", "Mountain", "Valley", "Custom" };
+                // Dictionary<string, (string heightmap, string texture)> biomePresets = new Dictionary<string, (string, string)>
+                // {
+                //     { "Desert", ("DesertHeightmap", "Sand") },
+                //     { "Hills", ("HillsHeightmap", "Grass") },
+                //     { "Plains", ("plains_simplex_heightmap", "Grass") },
+                //     { "Mountain", ("MountainHeightmap", "Stone") },
+                //     { "Valley", ("Valley_Heightmap", "Grass") },
+                //     { "Custom", ("Flat0", "Grass") }
+                // };
+                // selected_biome_preset_index = EditorGUILayout.Popup("New Biome", selected_biome_preset_index, preset_biome_options);
 
 //                 if (GUILayout.Button("Add Biome"))
 //                 {
@@ -66,9 +78,26 @@ namespace WorldGenerator
 //             }
 //         }
 // #endif
+//                 if (GUILayout.Button("Generate Terrain"))
+//                 {
+//                     terrain.GenerateTerrain();
+//                 }
+//                 if (GUILayout.Button("Regenerate Features"))
+//                 {
+//                     terrain.GenerateAllFeatures();
+//                 }
+//             }
+//         }
+// #endif
+        [Header("Debug Settings")]
+        [Tooltip("If true, a box will be drawn around each chunk. Make sure Gizmos are enabled in the Unity Editor.")]
+        [SerializeField] private bool _drawChunkGizmos = true;
 
+        [Header("Generation Settings")]
         [Tooltip("The seed string used to generate the terrain. If left empty, a random seed will be used.")]
         [SerializeField] private string _worldSeedString = "";
+        [Tooltip("The seed string used to generate the features. If left empty, a random seed will be used.")]
+        [SerializeField] private string _featureSeedString = "";
 
         [Tooltip("The size of each chunk in world units. This is the number of units along each side of the chunk.")]
         [SerializeField] private int _chunkSize = 50;
@@ -86,7 +115,20 @@ namespace WorldGenerator
         const int TEX_SIZE = 512;
         private Material _multitextureMat;
 
+        [SerializeField]
         private GameObject[,] _chunks;
+        private int _chunkCount = 3;
+        private int _featureSeed;
+
+
+        private Dictionary<(int, int), (Vector3[], Vector2[])> _chunkInfo = new Dictionary<(int chunkX, int chunkZ), (Vector3[] vertices, Vector2[] uv2s)>();
+
+        public void Awake()
+        {
+            // generate the terrain at runtime
+            GenerateTerrain();
+        }
+
 
         public Biome GetBiome(string biomeId) 
         {
@@ -198,19 +240,20 @@ namespace WorldGenerator
             }
 
             // chunk
-            int chunkCount = 3;
-            _chunks = new GameObject[chunkCount, chunkCount];
-            for (int x = 0; x < chunkCount; x++)
+            _chunks = new GameObject[_chunkCount, _chunkCount];
+            for (int x = 0; x < _chunkCount; x++)
             {
-                for (int z = 0; z < chunkCount; z++)
+                for (int z = 0; z < _chunkCount; z++)
                 {
                     _chunks[x, z] = GenerateChunk(x, z);
+                    (Vector3[], Vector2[]) chunk_info = _chunkInfo[(x, z)];
+                    GenerateChunkFeatures(x, z, chunk_info.Item1, chunk_info.Item2);
                 }
             }
 
             StitchChunks();
+            
         }
-
         private void StitchChunks()
         {
             for (int x = 0; x < _chunks.GetLength(0); x++)
@@ -262,8 +305,7 @@ namespace WorldGenerator
                 }
             }
         }
-
-        public GameObject GenerateChunk(int chunkX, int chunkZ)
+        private GameObject GenerateChunk(int chunkX, int chunkZ)
         {
             Mesh mesh = new Mesh();
             mesh.name = $"Chunk Mesh ({chunkX}, {chunkZ})";
@@ -360,8 +402,40 @@ namespace WorldGenerator
             // set the position
             chunk.transform.position = new Vector3(chunkX * _chunkSize, 0, chunkZ * _chunkSize);
 
-            // TODO: Adding features to each biome in the chunk
-            //
+            _chunkInfo[(chunkX, chunkZ)] = (vertices, uv2s);
+            // _chunkInfo[chunkX, chunkZ] = (vertices, uv2s);
+
+            return chunk;
+        }
+
+        public void GenerateAllFeatures()
+        {
+
+            // Iterate over each chunk and remove all features
+            for (int i = this.transform.childCount - 1; i >= 0; i--)
+            {
+                Transform child = this.transform.GetChild(i);
+
+                for (int j = child.gameObject.transform.childCount - 1; j >= 0; j--)
+                {
+                    Transform grandchild = child.gameObject.transform.GetChild(j);
+
+                    // Destroy the child GameObject
+                    GameObject.DestroyImmediate(grandchild.gameObject);
+                }
+            }
+            // generate features for each chunk
+            for (int x = 0; x < _chunkCount; x++)
+            {
+                for (int z = 0; z < _chunkCount; z++)
+                {
+                    (Vector3[], Vector2[]) chunk_info = _chunkInfo[(x, z)];
+                    GenerateChunkFeatures(x, z, chunk_info.Item1, chunk_info.Item2);
+                }
+            }
+        }
+        public void GenerateChunkFeatures(int chunkX, int chunkZ, Vector3[] vertices, Vector2[] uv2s)
+        {
             // for each biome in biome map:
             //     get the x and z bounds of the biome
             //     for each feature in the biome:
@@ -376,7 +450,7 @@ namespace WorldGenerator
             //
             // for each vertex:
             //     get the biome at that vertex
-            //     for feature in biome: go in order from lowest frequency to hgihest so that less freqent things get a chance to show up first (tree vs grass)
+            //     for feature in biome: go in order from lowest frequency to highest so that less frequent things get a chance to show up first (tree vs grass)
             //         probability of showing up = frequency / 100 or something
             //         if it shows up:
             //             place object at that vertex's coords
@@ -385,7 +459,17 @@ namespace WorldGenerator
             //
             // attempting the second solution below
 
-            int chunkSeed = Helpers.MultiHash(_worldSeed, chunkX, chunkZ);
+            // seed
+            if (_featureSeedString == "")
+            {
+                _featureSeed = ((int)DateTime.Now.Ticks);
+            }
+            else
+            {
+                _featureSeed = Helpers.MultiHash(_featureSeedString);
+            }
+
+            int chunkSeed = Helpers.MultiHash(_featureSeed, chunkX, chunkZ);
             System.Random rand = new System.Random(chunkSeed);
 
             for (int i = 0; i < vertices.Length; i++)
@@ -413,12 +497,13 @@ namespace WorldGenerator
                             if (feature.SetNormal)
                             {
                                 // make normal to terrain
+                                Mesh mesh = _chunks[chunkX, chunkZ].GetComponent<MeshFilter>().sharedMesh;
                                 Vector3 normal = mesh.normals[i];
                                 spawnedObject.transform.rotation = Quaternion.FromToRotation(Vector3.up, normal);
                             }
-                            // spawnedObject.transform.rotation = Quaternion.Euler(0, rand.Next(0, 360), 0);
                             spawnedObject.transform.Rotate(Vector3.up, rand.Next(0, 360));
                             // set parent as chunk
+                            GameObject chunk = _chunks[chunkX, chunkZ];
                             spawnedObject.transform.parent = chunk.transform;
                         }
                         else
@@ -430,8 +515,60 @@ namespace WorldGenerator
                     }
                 }
             }
+        }
 
-            return chunk;
+
+
+        private void OnDrawGizmos()
+        {
+            if(_drawChunkGizmos && _chunks != null)
+            {
+                Gizmos.color = Color.red;
+
+                for (int x = 0; x < _chunks.GetLength(0); x++)
+                {
+                    for (int z = 0; z < _chunks.GetLength(1); z++)
+                    {
+                        Vector3 chunkCenter = new Vector3(x * _chunkSize, 0, z * _chunkSize);
+                        Vector3 chunkSize = new Vector3(_chunkSize, 0, _chunkSize);
+                        Gizmos.DrawWireCube(chunkCenter, chunkSize);
+                    }
+                }
+            }
+        }
+
+
+        public void SetPlayerPos(Vector3 pos)
+        {
+            // check error
+            if (_chunks == null)
+            {
+                Debug.LogError("Cannot set player position because the terrain has not been generated yet.");
+                return;
+            }
+            // get chunk the player is in, remember that chunk 0,0 is at the origin
+            int chunkX = Mathf.FloorToInt((pos.x / _chunkSize) + 0.5f);
+            int chunkZ = Mathf.FloorToInt((pos.z / _chunkSize) + 0.5f);
+            if(chunkX < 0 || chunkX >= _chunks.GetLength(0) || chunkZ < 0 || chunkZ >= _chunks.GetLength(1))
+            {
+                return;
+            }
+            GameObject chunk = _chunks[chunkX, chunkZ];
+
+            // get player offset within chunk
+            Vector3 offset = pos - chunk.transform.position;
+            offset += new Vector3(_chunkSize / 2, 0, _chunkSize / 2);
+        
+            // get the dominant biome at that offset
+            Mesh mesh = chunk.GetComponent<MeshFilter>().sharedMesh;
+            int x = Mathf.FloorToInt(offset.x / _chunkSize * _chunkResolution);
+            int z = Mathf.FloorToInt(offset.z / _chunkSize * _chunkResolution);
+            int i = x * _chunkResolution + z;
+            int biomeIndex = (int)mesh.uv2[i].x; // uv2.x is the texture index
+            Biome biome = _biomes[biomeIndex];
+
+            // set skybox
+            RenderSettings.skybox = biome.GetSkybox();
         }
     }
 }
