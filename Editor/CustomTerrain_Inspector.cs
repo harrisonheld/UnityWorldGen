@@ -44,9 +44,9 @@ namespace WorldGenerator
 
         private Dictionary<string, string> biomeFeaturePresets = new Dictionary<string, string>
         {
-            { "Trees", "Trees" },
-            { "Rocks", "Rocks" },
-            { "Rivers", "Rivers" },
+            { "Trees", "tree" },
+            { "Rocks", "horse" },
+            { "Rivers", "tree_b" },
             { "Import Custom", "Custom" }
         };
 
@@ -153,7 +153,6 @@ namespace WorldGenerator
                     Biome newBiome = new Biome();
 
                     string biomeId = System.Guid.NewGuid().ToString();
-                    Debug.Log(biomeId);
                     newBiome.SetBiomeId(biomeId);
 
                     // Load the assets based on the preset names
@@ -199,6 +198,7 @@ namespace WorldGenerator
                 SerializedProperty frequencyWeightProperty = biomeElement.FindPropertyRelative("_frequencyWeight");
                 SerializedProperty heightmapProperty = biomeElement.FindPropertyRelative("_heightmap");
                 SerializedProperty textureProperty = biomeElement.FindPropertyRelative("_texture");
+                SerializedProperty featuresProperty = biomeElement.FindPropertyRelative("_features");
 
                 //Create Main Foldout for a Biome
                 Foldout biomeFoldout = new Foldout();
@@ -334,7 +334,7 @@ namespace WorldGenerator
                 string currentTextureName = texturePresets.FirstOrDefault(x => x.Value == currentTexturePath).Key;
                 int defaultTextureIndex = currentTextureName != null ? new List<string>(texturePresets.Keys).IndexOf(currentTextureName) : 0;
                 var textureDropdown = new PopupField<string>("Texture", new List<string>(texturePresets.Keys), defaultTextureIndex);
-                PropertyField textureField = new PropertyField(textureProperty, "Import Texture: ");
+                PropertyField textureField = new PropertyField(textureProperty, "Custom Texture");
                 if (textureDropdown.value == "Import Custom")
                 {
                     textureField.style.display = DisplayStyle.Flex;
@@ -372,11 +372,152 @@ namespace WorldGenerator
                 });
 
                 //GUI for Biome Feature foldout
-                Foldout biomeFeatureFoldout = new Foldout()
+                Foldout biomeFeaturesFoldout = new Foldout()
                 {
                     text = "Biome Feature",
                     value = false
                 };
+
+                for (int j = 0; j < featuresProperty.arraySize; j++)
+                {
+                    SerializedProperty featureElement = featuresProperty.GetArrayElementAtIndex(j);
+                    SerializedProperty featureIdProperty = featureElement.FindPropertyRelative("_featureId");
+                    string featureId = featureIdProperty.stringValue;
+                    SerializedProperty featureNameProperty = featureElement.FindPropertyRelative("Name");
+                    SerializedProperty featureFrequencyProperty = featureElement.FindPropertyRelative("Frequency");
+                    SerializedProperty featureScaleProperty = featureElement.FindPropertyRelative("Scale");
+                    SerializedProperty featureNormalProperty = featureElement.FindPropertyRelative("SetNormal");
+                    SerializedProperty featurePrefabProperty = featureElement.FindPropertyRelative("Prefab");
+
+                    Foldout featureFoldout = new Foldout()
+                    {
+                        text = string.IsNullOrEmpty(featureNameProperty.stringValue) ? "Feature " + j : featureNameProperty.stringValue,
+                        value = false
+                    };
+
+                    //GUI for nameProperty
+                    TextField featureNameField = new TextField("Feature Name")
+                    {
+                        value = featureNameProperty.stringValue
+                    };
+
+                    featureNameField.RegisterValueChangedCallback(evt =>
+                    {
+                        featureNameProperty.stringValue = evt.newValue;
+                        featureElement.serializedObject.ApplyModifiedProperties();
+                        Debug.Log($"Feature name changed to: {featureNameProperty.stringValue}");
+                        featureFoldout.text = string.IsNullOrEmpty(evt.newValue) ? "Feature " + j : evt.newValue;
+                    });
+
+                    //GUI for frequencyWeightProperty
+                    var featureFrequencySlider = new Slider("Frequency: ", 0, 100)
+                    {
+                        value = featureFrequencyProperty.intValue
+                    };
+                    var featureFrequencyIntField = new IntegerField
+                    {
+                        value = featureFrequencyProperty.intValue
+                    };
+
+                    featureFrequencySlider.RegisterValueChangedCallback(evt =>
+                    {
+                        int newValue = (int)evt.newValue;
+                        featureFrequencyProperty.intValue = newValue;
+                        featureFrequencyIntField.value = newValue;
+                        featureElement.serializedObject.ApplyModifiedProperties();
+                    });
+
+                    featureFrequencyIntField.RegisterValueChangedCallback(evt =>
+                    {
+                        if (evt.newValue >= 0 && evt.newValue <= 100)
+                        {
+                            featureFrequencyProperty.intValue = evt.newValue;
+                            featureFrequencySlider.value = evt.newValue; 
+                            featureElement.serializedObject.ApplyModifiedProperties();
+                        } else {
+                            Debug.Log("Out of Range");
+                        }
+                    });
+
+                    var featureScaleField = new Vector3Field("Scale")
+                    {
+                        value = featureScaleProperty.vector3Value
+                    };
+
+                    featureScaleField.RegisterValueChangedCallback(evt =>
+                    {
+                        featureScaleProperty.vector3Value = evt.newValue;
+                        featureElement.serializedObject.ApplyModifiedProperties();
+                    });
+
+                    var featureNormalField = new Toggle("Set Normal")
+                    {
+                        value = featureNormalProperty.boolValue
+                    };
+
+                    featureNormalField.RegisterValueChangedCallback(evt =>
+                    {
+                        featureNormalProperty.boolValue = evt.newValue;
+                        featureElement.serializedObject.ApplyModifiedProperties();
+                    });
+
+                    //GUI for Texture
+                    GameObject currentPrefab = terrain.GetBiome(biomeId).GetFeature(featureId).Prefab;
+                    //Handle the default Selection for Texture GUI
+                    string currentPrefabPath = Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(currentPrefab));
+                    string currentPrefabName = biomeFeaturePresets.FirstOrDefault(x => x.Value == currentPrefabPath).Key;
+                    int defaultPrefabIndex = currentPrefabName != null ? new List<string>(biomeFeaturePresets.Keys).IndexOf(currentPrefabName) : 0;
+                    var prefabDropdown = new PopupField<string>("Feature", new List<string>(biomeFeaturePresets.Keys), defaultPrefabIndex);
+                    PropertyField prefabField = new PropertyField(featurePrefabProperty, "Custom Feature");
+                    if (prefabDropdown.value == "Import Custom")
+                    {
+                        prefabField.style.display = DisplayStyle.Flex;
+                    }
+                    else
+                    {
+                        prefabField.style.display = DisplayStyle.None;
+                    }
+
+                    //Texture dropdown
+                    prefabDropdown.RegisterValueChangedCallback(evt =>
+                    {
+                        string selectedPrefabName = evt.newValue;
+                        if (selectedPrefabName == "Import Custom")
+                        {
+                            prefabField.style.display = DisplayStyle.Flex;
+                        }
+                        else
+                        {
+                            prefabField.style.display = DisplayStyle.None;
+                            var feature = terrain.GetBiome(biomeId).GetFeature(featureId);
+                            string prefabPath = biomeFeaturePresets[selectedPrefabName];
+                            GameObject prefab = Resources.Load<GameObject>(prefabPath);
+                            feature.Prefab = prefab;
+                        }
+                    });
+
+                    //GUI for Delete Button
+                    Button deleteFeatureButton = new Button(() =>
+                    {
+                        terrain.GetBiome(biomeId).DeleteFeature(featureId);
+                        UpdateUI(root, terrain);
+                    })
+                    {
+                        text = "Delete Feature",
+                    };
+
+                    featureFoldout.Add(featureNameField);
+                    featureFoldout.Add(featureFrequencySlider);
+                    featureFoldout.Add(featureFrequencyIntField);
+                    featureFoldout.Add(featureScaleField);
+                    featureFoldout.Add(featureNormalField);
+                    featureFoldout.Add(prefabDropdown);
+                    featureFoldout.Add(prefabField);
+                    featureFoldout.Add(deleteFeatureButton);
+                    biomeFeaturesFoldout.Add(featureFoldout);
+                }
+
+                
 
                 //GUI for New Feature dropdown
                 var newFeatureDropdown = new PopupField<string>("New Feature", new List<string>(biomeFeaturePresets.Keys), 0);
@@ -391,6 +532,18 @@ namespace WorldGenerator
                 {
                     //Get the selected feature name
                     string selectedFeatureName = newFeatureDropdown.value;
+
+                    BiomeFeature newFeature = new BiomeFeature();
+                    string featureId = System.Guid.NewGuid().ToString();
+                    
+                    newFeature.SetFeatureId(featureId);
+                    newFeature.Name = selectedFeatureName;
+                    string featurePath = biomeFeaturePresets[selectedFeatureName];
+                    GameObject featurePrefab = Resources.Load<GameObject>(featurePath);
+                    newFeature.Prefab = featurePrefab;
+
+                    terrain.GetBiome(biomeId).AddFeature(newFeature);
+
 
                     //Create a new foldout for the selected feature
                     Foldout newFeatureFoldout = new Foldout
@@ -415,7 +568,7 @@ namespace WorldGenerator
                     newFeatureFoldout.Add(featureFrequencySlider);
 
                     // Add the new feature foldout to the biomeFeaturesFoldout
-                    biomeFeatureFoldout.Add(newFeatureFoldout);
+                    biomeFeaturesFoldout.Add(newFeatureFoldout);
                 })
                 {
                     text = "Add Feature"
@@ -423,15 +576,15 @@ namespace WorldGenerator
                 addFeatureButton.AddToClassList("test");
 
                 //Add Element to Biome Feature foldout
-                biomeFeatureFoldout.Add(newFeatureDropdown);
-                biomeFeatureFoldout.Add(addFeatureButton);
+                biomeFeaturesFoldout.Add(newFeatureDropdown);
+                biomeFeaturesFoldout.Add(addFeatureButton);
 
                 //Styling for each elements in the biome foldout
                 heightmapFoldout.style.marginTop = 5;
                 heightmapFoldout.style.marginBottom = 5;
                 textureDropdown.style.marginTop = 5;
                 skyboxDropdown.style.marginTop = 5;
-                biomeFeatureFoldout.style.marginTop = 5;
+                biomeFeaturesFoldout.style.marginTop = 5;
                 deleteButton.style.marginTop = 5;
                 addFeatureButton.style.marginBottom = 10;
                 addFeatureButton.style.width = 100;
@@ -445,7 +598,7 @@ namespace WorldGenerator
                 biomeFoldout.Add(textureDropdown);
                 biomeFoldout.Add(textureField);
                 biomeFoldout.Add(skyboxDropdown);
-                biomeFoldout.Add(biomeFeatureFoldout);
+                biomeFoldout.Add(biomeFeaturesFoldout);
                 biomeFoldout.Add(deleteButton);
                 // biomeFoldout.Add(texture);
             }

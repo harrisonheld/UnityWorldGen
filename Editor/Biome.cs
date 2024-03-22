@@ -126,4 +126,38 @@ public class Biome {
     {
         _skybox = skybox;
     }
+
+    public BiomeFeature GetFeature(string featureId) 
+    {
+        foreach (var feature in _features)
+        {
+            if (feature.GetFeatureId() == featureId)
+            {
+                return feature;
+            }
+        }
+
+        Debug.LogWarning($"Feature with ID {featureId} not found.");
+        return null;
+    }
+
+    public void AddFeature(BiomeFeature newFeature)
+    {
+        this._features.Add(newFeature);
+    }
+
+    public void DeleteFeature(string featureId)
+    {
+        for (int i = 0; i < _features.Count; i++)
+        {
+            if (_features[i].GetFeatureId() == featureId)
+            {
+                Debug.Log(_features[i].GetFeatureId());
+                _features.RemoveAt(i);
+                Debug.Log($"Feature with ID {featureId} deleted.");
+                return;
+            }
+        }
+        Debug.LogWarning($"Feature with ID {featureId} not found.");
+    }
 }

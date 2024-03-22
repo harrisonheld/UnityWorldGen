@@ -6,6 +6,9 @@ using UnityEngine;
 public class BiomeFeature
 {
     [SerializeField]
+    private string _featureId;
+
+    [SerializeField]
     [Tooltip("The name of the biome feature.")]
     public string Name;
 
@@ -25,5 +28,15 @@ public class BiomeFeature
     [SerializeField]
     [Tooltip("The GameObject to spawn.")]
     public GameObject Prefab;
+
+    public string GetFeatureId()
+    {
+        return _featureId;
+    }
+
+    public void SetFeatureId(string featureId)
+    {
+        _featureId = featureId;
+    }
 
 }
