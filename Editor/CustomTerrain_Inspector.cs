@@ -17,12 +17,23 @@ namespace WorldGenerator
         // presets for biomes dropdown
         private Dictionary<string, (string heightmap, string texture)> biomePresets = new Dictionary<string, (string, string)>
         {
-           { "Desert", ("DesertHeightmap", "Sand") },
+            { "Desert", ("DesertHeightmap", "Sand") },
             { "Hills", ("HillsHeightmap", "Grass") },
             { "Plains", ("plains_simplex_heightmap", "Grass") },
             { "Mountain", ("MountainHeightmap", "Stone") },
             { "Valley", ("valley_simplex_heightmap", "Grass") },
             { "Custom", ("Flat0", "Grass") }
+        };
+
+        // presets for heightmaps dropdown
+        private Dictionary<string, string> heightmapPresets = new Dictionary<string, string>
+        {
+            { "Desert", "DesertHeightmap" },
+            { "Hills", "HillsHeightmap" },
+            { "Plains", "plains_simplex_heightmap" },
+            { "Mountain", "MountainHeightmap" },
+            { "Valley", "valley_simplex_heightmap" },
+            { "Import Custom", "Custom" }
         };
 
         // presets for texture dropdown
@@ -265,7 +276,45 @@ namespace WorldGenerator
                     text = "Heightmap",
                     value = false
                 };
-            
+
+                // add heightmaps dropdown
+                HeightmapBase currentHeightmap = terrain.GetBiome(biomeId).GetHeightmap();
+                string currentHeightmapPath = Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(currentHeightmap));
+                string currentHeightmapName = heightmapPresets.FirstOrDefault(x => x.Value == currentHeightmapPath).Key;
+                int defaultHeightmapIndex = currentHeightmapName != null ? new List<string>(heightmapPresets.Keys).IndexOf(currentHeightmapName) : 0;
+                var heightmapDropdown = new PopupField<string>("Type", new List<string>(heightmapPresets.Keys), defaultHeightmapIndex);
+                PropertyField heightmapField = new PropertyField(heightmapProperty, "Custom Heightmap");
+                if (heightmapDropdown.value == "Import Custom")
+                {
+                    heightmapField.style.display = DisplayStyle.Flex;
+                }
+                else
+                {
+                    heightmapField.style.display = DisplayStyle.None;
+                }
+
+                heightmapDropdown.RegisterValueChangedCallback(evt =>
+                {
+                    Debug.Log($"Selected heightmap for Biome {biomeId}: {evt.newValue}");
+                    string selectedHeightmapName = evt.newValue;
+                    if (selectedHeightmapName == "Import Custom")
+                    {
+                        heightmapField.style.display = DisplayStyle.Flex;
+                    }
+                    else
+                    {
+                        heightmapField.style.display = DisplayStyle.None;
+                        var biome = terrain.GetBiome(biomeId);
+                        string heightmapPath = heightmapPresets[selectedHeightmapName];
+                        HeightmapBase heightmap = Resources.Load<HeightmapBase>(heightmapPath);
+                        biome.SetHeightMap(heightmap);
+                    }
+                });
+
+                heightmapFoldout.Add(heightmapDropdown);
+                heightmapFoldout.Add(heightmapField);
+
+                // add other properties based on selected heightmap
                 SerializedObject heightmapSerializedObject = new SerializedObject(heightmapProperty.objectReferenceValue);
                 SerializedProperty iterator = heightmapSerializedObject.GetIterator();
 
