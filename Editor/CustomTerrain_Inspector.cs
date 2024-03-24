@@ -39,10 +39,10 @@ namespace WorldGenerator
         // presets for texture dropdown
         private Dictionary<string, string> texturePresets = new Dictionary<string, string>
         {
-            { "Import Custom", "Custom" },
             { "Sand", "Sand" },
             { "Grass", "grass" },
             { "Stone", "Stone" },
+            { "Import Custom", "Custom" }
         };
 
         // presets for skybox dropdown
@@ -90,6 +90,14 @@ namespace WorldGenerator
             SerializedProperty chunkResolutionProperty = serializedObject.FindProperty("_chunkResolution");
             SerializedProperty biomesPerChunkProperty = serializedObject.FindProperty("_biomesPerChunk");
 
+            /*
+                DEBUG SECTION
+            */
+            Label debugSectionLabel = new Label("Debug Options");
+            debugSectionLabel.AddToClassList("h1");
+            root.Add(debugSectionLabel);
+
+            Box debugSection = new Box();
             var drawGizmosField = new Toggle("Draw Chunk Gizmos")
             {
                 value = drawGizmosProperty.boolValue
@@ -100,7 +108,18 @@ namespace WorldGenerator
                 serializedObject.ApplyModifiedProperties();
             });
 
-            // world seeds
+            debugSection.Add(drawGizmosField);
+            root.Add(debugSection);
+
+            /* 
+                WORLD OPTIONS SECTION
+            */
+            Label worldOptSectionLabel = new Label("World Options");
+            worldOptSectionLabel.AddToClassList("h1");
+            root.Add(worldOptSectionLabel);
+
+            Box worldOptSection = new Box();
+
             TextField worldSeed = new TextField("World Seed")
             {
                 value = worldSeedStringProperty.stringValue
@@ -122,14 +141,17 @@ namespace WorldGenerator
             });
 
             // create sliders and int fields for TerrainSize, BiomesFrequency and BiomesResolution
-            var sizeSlider = new Slider("Terrain Size", 10, 1000) { value = chunkSizeProperty.intValue };
+            var sizeSlider = new Slider(10, 1000) { value = chunkSizeProperty.intValue };
             var sizeField = new IntegerField { value = chunkSizeProperty.intValue };
+            VisualElement sizeContainer = GroupSliderAndInt(sizeSlider, sizeField, "Terrain Size");
 
-            var frequencySlider = new Slider("Biomes Frequency", 1, 10) { value = biomesPerChunkProperty.intValue };
+            var frequencySlider = new Slider(1, 10) { value = biomesPerChunkProperty.intValue };
             var frequencyField = new IntegerField { value = biomesPerChunkProperty.intValue };
+            VisualElement frequencyContainer = GroupSliderAndInt(frequencySlider, frequencyField, "Biomes Frequency");
 
-            var resolutionSlider = new Slider("Chunk Resolution", 2, 250) { value = chunkResolutionProperty.intValue };
+            var resolutionSlider = new Slider(2, 250) { value = chunkResolutionProperty.intValue };
             var resolutionField = new IntegerField { value = chunkResolutionProperty.intValue };
+            VisualElement resolutionContainer = GroupSliderAndInt(resolutionSlider, resolutionField, "Chunk Resolution");
 
             // sync slider with int field
             void SyncSliderAndField(Slider slider, IntegerField field, SerializedProperty property, bool enforceEven = false)
@@ -164,28 +186,38 @@ namespace WorldGenerator
             SyncSliderAndField(resolutionSlider, resolutionField, chunkResolutionProperty);
 
             // add elements to the root on the top
-            root.Add(drawGizmosField);
-            root.Add(worldSeed);
-            root.Add(featureSeed);
-            root.Add(sizeSlider);
-            root.Add(sizeField);
-            root.Add(frequencySlider);
-            root.Add(frequencyField);
-            root.Add(resolutionSlider);
-            root.Add(resolutionField);
+            worldSeed.AddToClassList("options-field");
+            featureSeed.AddToClassList("options-field");
+            sizeContainer.AddToClassList("options-field");
+            frequencyContainer.AddToClassList("options-field");
+            resolutionContainer.AddToClassList("options-field");
+//
+            worldOptSection.Add(worldSeed);
+            worldOptSection.Add(featureSeed);
+            worldOptSection.Add(sizeContainer);
+            worldOptSection.Add(frequencyContainer);
+            worldOptSection.Add(resolutionContainer);
+
+            root.Add(worldOptSection);
 
             /*
                 ADD BIOME SECTION
             */
-            var biomeDropdown = new PopupField<string>("New Biome", new List<string>(biomePresets.Keys), 0);
+            Label addBiomeSectionLabel = new Label("Add Biome");
+            addBiomeSectionLabel.AddToClassList("h1");
+            root.Add(addBiomeSectionLabel);
 
+            Box addBiomeSection = new Box();
+
+            var biomeDropdown = new PopupField<string>("New Biome", new List<string>(biomePresets.Keys), 0);
             biomeDropdown.RegisterValueChangedCallback(evt =>
             {
                 // evt.newValue contains the newly selected option as a string
                 Debug.Log("Selected biome: " + evt.newValue);
                 // Here you can handle the selection change. For example, updating a property or variable.
             });
-
+            biomeDropdown.AddToClassList("add-biome-field");
+//
             // create add biome button
             Button addBiomeButton = new Button(() =>
             {
@@ -202,7 +234,7 @@ namespace WorldGenerator
                     Texture2D texture = Resources.Load<Texture2D>(preset.texture);
 
                     // set the properties on the new biome
-                    newBiome.SetName(selectedBiomeName + " (ID: " + biomeId + ")");
+                    newBiome.SetName(selectedBiomeName);
                     newBiome.SetHeightMap(heightmap);
                     newBiome.SetTexture(texture);
 
@@ -220,12 +252,19 @@ namespace WorldGenerator
                 text = "Add Biome"
             };
 
-            root.Add(biomeDropdown);
-            root.Add(addBiomeButton);
+            addBiomeSection.Add(biomeDropdown);
+            addBiomeSection.Add(addBiomeButton);
+            root.Add(addBiomeSection);
 
             /*
-                INDIVIDUAL BIOMES
+                BIOMES SECTION
             */
+            Label biomesSectionLabel = new Label("Biomes");
+            biomesSectionLabel.AddToClassList("h1");
+            root.Add(biomesSectionLabel);
+
+            // Box biomesSection = new Box();
+
             // for each biome, add its properties to the GUI
             SerializedProperty biomesProperty = serializedObject.FindProperty("_biomes");
             for (int i = 0; i < biomesProperty.arraySize; i++)
@@ -247,16 +286,16 @@ namespace WorldGenerator
                     text = string.IsNullOrEmpty(nameProperty.stringValue) ? "Biome " + i : nameProperty.stringValue,
                     value = false
                 };
+                biomeFoldout.AddToClassList("biome-foldout");
 
-                root.Add(biomeFoldout);
+                // biomesSection.Add(biomeFoldout);
+
+                Box biomeProperties = new Box();
 
                 /*
                     BIOME NAME
                 */
-                TextField nameField = new TextField("Biome Name")
-                {
-                    value = nameProperty.stringValue
-                };
+                TextField nameField = new TextField("Biome Name") { value = nameProperty.stringValue };
 
                 nameField.RegisterValueChangedCallback(evt =>
                 {
@@ -265,117 +304,8 @@ namespace WorldGenerator
                     Debug.Log($"Biome name changed to: {nameProperty.stringValue}");
                     biomeFoldout.text = string.IsNullOrEmpty(evt.newValue) ? "Biome " + i : evt.newValue;
                 });
-
-                biomeFoldout.Add(nameField);
-
-                /* 
-                    HEIGHTMAP
-                */
-                Foldout heightmapFoldout = new Foldout()
-                {
-                    text = "Heightmap",
-                    value = false
-                };
-
-                // add heightmaps dropdown
-                HeightmapBase currentHeightmap = terrain.GetBiome(biomeId).GetHeightmap();
-                string currentHeightmapPath = Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(currentHeightmap));
-                string currentHeightmapName = heightmapPresets.FirstOrDefault(x => x.Value == currentHeightmapPath).Key;
-                int defaultHeightmapIndex = currentHeightmapName != null ? new List<string>(heightmapPresets.Keys).IndexOf(currentHeightmapName) : 0;
-                var heightmapDropdown = new PopupField<string>("Type", new List<string>(heightmapPresets.Keys), defaultHeightmapIndex);
-                PropertyField heightmapField = new PropertyField(heightmapProperty, "Custom Heightmap");
-                if (heightmapDropdown.value == "Import Custom")
-                {
-                    heightmapField.style.display = DisplayStyle.Flex;
-                }
-                else
-                {
-                    heightmapField.style.display = DisplayStyle.None;
-                }
-
-                heightmapDropdown.RegisterValueChangedCallback(evt =>
-                {
-                    Debug.Log($"Selected heightmap for Biome {biomeId}: {evt.newValue}");
-                    string selectedHeightmapName = evt.newValue;
-                    if (selectedHeightmapName == "Import Custom")
-                    {
-                        heightmapField.style.display = DisplayStyle.Flex;
-                    }
-                    else
-                    {
-                        heightmapField.style.display = DisplayStyle.None;
-                        var biome = terrain.GetBiome(biomeId);
-                        string heightmapPath = heightmapPresets[selectedHeightmapName];
-                        HeightmapBase heightmap = Resources.Load<HeightmapBase>(heightmapPath);
-                        biome.SetHeightMap(heightmap);
-                    }
-                });
-
-                heightmapFoldout.Add(heightmapDropdown);
-                heightmapFoldout.Add(heightmapField);
-
-                // add other properties based on selected heightmap
-                SerializedObject heightmapSerializedObject = new SerializedObject(heightmapProperty.objectReferenceValue);
-                SerializedProperty iterator = heightmapSerializedObject.GetIterator();
-
-                while (iterator.NextVisible(true))
-                {
-                    if (iterator.name == "m_Script")
-                    {
-                        continue;
-                    }
-
-                    // create UI elements for each heightmap property
-                    SerializedProperty currentProperty = iterator.Copy();
-                    switch (currentProperty.propertyType)
-                    {
-                        case SerializedPropertyType.Float:
-                            float minValue = 0f;
-                            float maxValue = 100f;
-
-                            var slider = new Slider(currentProperty.displayName, minValue, maxValue)
-                            {
-                                value = currentProperty.floatValue
-                            };
-
-                            var floatField = new FloatField
-                            {
-                                value = currentProperty.floatValue
-                            };
-
-                            slider.RegisterValueChangedCallback(evt =>
-                            {
-                                currentProperty.floatValue = evt.newValue;
-                                floatField.value = evt.newValue;
-                                currentProperty.serializedObject.ApplyModifiedProperties();
-                            });
-
-                            floatField.RegisterValueChangedCallback(evt =>
-                            {
-                                if (evt.newValue >= minValue && evt.newValue <= maxValue)
-                                {
-                                    currentProperty.floatValue = evt.newValue;
-                                    slider.value = evt.newValue;
-                                    currentProperty.serializedObject.ApplyModifiedProperties();
-                                }
-                                else
-                                {
-                                    Debug.Log("Out of Range");
-                                }
-                            });
-
-                            heightmapFoldout.Add(slider);
-                            heightmapFoldout.Add(floatField);
-                            break;
-
-                        default:
-                            var label = new Label($"{currentProperty.displayName}: {currentProperty.propertyType} not supported");
-                            heightmapFoldout.Add(label);
-                            break;
-                    }
-                }
-
-                biomeFoldout.Add(heightmapFoldout);
+                nameField.AddToClassList("biome-field");
+                biomeProperties.Add(nameField);
 
                 /*
                     TEXTURE
@@ -413,6 +343,13 @@ namespace WorldGenerator
                     }
                 });
 
+                VisualElement textureContainer = new VisualElement();
+                textureContainer.Add(textureDropdown);
+                textureContainer.Add(textureField);
+                textureContainer.AddToClassList("biome-field");
+
+                biomeProperties.Add(textureContainer);
+
                 /*
                     SKYBOX
                 */
@@ -422,13 +359,13 @@ namespace WorldGenerator
                     // Placeholder for future functionality
                     Debug.Log($"Selected skybox for Biome {i + 1}: {evt.newValue}");
                 });
-
-                biomeFoldout.Add(skyboxDropdown);
+                skyboxDropdown.AddToClassList("biome-field");
+                biomeProperties.Add(skyboxDropdown);
 
                 /*
                     FREQUENCY
                 */
-                var frequencyWeightSlider = new Slider("Frequency: ", 1, 1000)
+                var frequencyWeightSlider = new Slider(1, 1000)
                 {
                     value = frequencyWeightProperty.intValue
                 };
@@ -436,6 +373,9 @@ namespace WorldGenerator
                 {
                     value = frequencyWeightProperty.intValue
                 };
+
+                VisualElement frequencyWeightContainer = GroupSliderAndInt(frequencyWeightSlider, frequencyWeightIntField, "Frequency");
+                frequencyWeightContainer.AddToClassList("biome-field");
 
                 frequencyWeightSlider.RegisterValueChangedCallback(evt =>
                 {
@@ -457,13 +397,125 @@ namespace WorldGenerator
                     }
                 });
 
-                biomeFoldout.Add(frequencyWeightSlider);
-                biomeFoldout.Add(frequencyWeightIntField);
+                biomeProperties.Add(frequencyWeightContainer);
+
+                /*  
+                    HEIGHTMAP
+                */
+                Foldout heightmapFoldout = new Foldout()
+                {
+                    text = "Heightmap",
+                    value = false
+                };
+                heightmapFoldout.AddToClassList("heightmap-foldout");
+                heightmapFoldout.AddToClassList("biome-field");
+
+                Box heightmapProperties = new Box();
+
+                // add heightmaps dropdown
+                HeightmapBase currentHeightmap = terrain.GetBiome(biomeId).GetHeightmap();
+                string currentHeightmapPath = Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(currentHeightmap));
+                string currentHeightmapName = heightmapPresets.FirstOrDefault(x => x.Value == currentHeightmapPath).Key;
+                int defaultHeightmapIndex = currentHeightmapName != null ? new List<string>(heightmapPresets.Keys).IndexOf(currentHeightmapName) : 0;
+                var heightmapDropdown = new PopupField<string>("Type", new List<string>(heightmapPresets.Keys), defaultHeightmapIndex);
+                PropertyField heightmapField = new PropertyField(heightmapProperty, "Custom Heightmap");
+                if (heightmapDropdown.value == "Import Custom")
+                {
+                    heightmapField.style.display = DisplayStyle.Flex;
+                }
+                else
+                {
+                    heightmapField.style.display = DisplayStyle.None;
+                }
+
+                heightmapDropdown.RegisterValueChangedCallback(evt =>
+                {
+                    Debug.Log($"Selected heightmap for Biome {biomeId}: {evt.newValue}");
+                    string selectedHeightmapName = evt.newValue;
+                    if (selectedHeightmapName == "Import Custom")
+                    {
+                        heightmapField.style.display = DisplayStyle.Flex;
+                    }
+                    else
+                    {
+                        heightmapField.style.display = DisplayStyle.None;
+                        var biome = terrain.GetBiome(biomeId);
+                        string heightmapPath = heightmapPresets[selectedHeightmapName];
+                        HeightmapBase heightmap = Resources.Load<HeightmapBase>(heightmapPath);
+                        biome.SetHeightMap(heightmap);
+                    }
+                });
+
+                VisualElement heightmapType = new VisualElement();
+                heightmapType.Add(heightmapDropdown);
+                heightmapType.Add(heightmapField);
+                heightmapType.AddToClassList("heightmap-field");
+
+                heightmapProperties.Clear();
+                heightmapProperties.Add(heightmapType);
+            
+                // add other properties based on selected heightmap
+                SerializedObject heightmapSerializedObject = new SerializedObject(heightmapProperty.objectReferenceValue);
+                SerializedProperty iterator = heightmapSerializedObject.GetIterator();
+
+                while (iterator.NextVisible(true))
+                {
+                    if (iterator.name == "m_Script")
+                    {
+                        continue;
+                    }
+
+                    // create UI elements for each heightmap property
+                    SerializedProperty currentProperty = iterator.Copy();
+                    switch (currentProperty.propertyType)
+                    {
+                        case SerializedPropertyType.Float:
+                            float minValue = 0f;
+                            float maxValue = 100f;
+
+                            var slider = new Slider(minValue, maxValue) { value = currentProperty.floatValue };
+                            var floatField = new FloatField { value = currentProperty.floatValue };
+
+                            VisualElement sliderContainer = GroupSliderAndFloat(slider, floatField, currentProperty.displayName);
+                            sliderContainer.AddToClassList("heightmap-field");
+
+                            slider.RegisterValueChangedCallback(evt =>
+                            {
+                                currentProperty.floatValue = evt.newValue;
+                                floatField.value = evt.newValue;
+                                currentProperty.serializedObject.ApplyModifiedProperties();
+                            });
+
+                            floatField.RegisterValueChangedCallback(evt =>
+                            {
+                                if (evt.newValue >= minValue && evt.newValue <= maxValue)
+                                {
+                                    currentProperty.floatValue = evt.newValue;
+                                    slider.value = evt.newValue;
+                                    currentProperty.serializedObject.ApplyModifiedProperties();
+                                }
+                                else
+                                {
+                                    Debug.Log("Out of Range");
+                                }
+                            });
+
+                            heightmapProperties.Add(sliderContainer);
+                            break;
+
+                        default:
+                            var label = new Label($"{currentProperty.displayName}: {currentProperty.propertyType} not supported");
+                            heightmapProperties.Add(label);
+                            break;
+                    }
+                }
+                heightmapFoldout.Add(heightmapProperties);
+                biomeProperties.Add(heightmapFoldout);
 
                 /* 
                     FEATURES
                 */
-                BuildBiomeFeaturesField(root, terrain, i, biomeId, featuresProperty, biomeFoldout);
+                BuildBiomeFeaturesField(root, terrain, i, biomeId, featuresProperty, biomeProperties);
 
                 /*
                     DELETE BIOME BUTTON
@@ -477,8 +529,12 @@ namespace WorldGenerator
                     text = "Delete Biome",
                 };
 
+                biomeFoldout.Add(biomeProperties);
                 biomeFoldout.Add(deleteButton);
+                root.Add(biomeFoldout);
             }
+
+            // root.Add(biomesSection);
 
             /*
                 GENERATE BUTTONS
@@ -505,13 +561,19 @@ namespace WorldGenerator
             root.Add(regenerateFeatures);
         }
 
-        private void BuildBiomeFeaturesField(VisualElement root, CustomTerrain terrain, int i, string biomeId, SerializedProperty featuresProperty, Foldout biomeFoldout)
+        private void BuildBiomeFeaturesField(VisualElement root, CustomTerrain terrain, int i, string biomeId, SerializedProperty featuresProperty, Box biomeProperties)
         {
             Foldout biomeFeaturesFoldout = new Foldout()
             {
                 text = "Features",
                 value = false
             };
+
+            biomeFeaturesFoldout.AddToClassList("features-foldout");
+            biomeFeaturesFoldout.AddToClassList("biome-field");
+
+            Box featuresProperties = new Box();
+
 
             /*
                 INDIVIDUAL FEATURES
@@ -698,7 +760,49 @@ namespace WorldGenerator
 
             biomeFeaturesFoldout.Add(newFeatureDropdown);
             biomeFeaturesFoldout.Add(addFeatureButton);
-            biomeFoldout.Add(biomeFeaturesFoldout);
+            biomeProperties.Add(biomeFeaturesFoldout);
+        }
+
+        private VisualElement GroupSliderAndInt(Slider slider, IntegerField field, string label)
+        {
+            // create parent container
+            VisualElement container = new VisualElement();
+            Label containerLabel = new Label(label);
+
+            // group fields
+            VisualElement fields = new VisualElement();
+            fields.Add(slider);
+            fields.Add(field);
+            fields.AddToClassList("slider-int-field");
+
+            // add to parent container
+            container.Add(containerLabel);
+            container.Add(fields);
+
+            container.AddToClassList("slider-int-container");
+
+            return container;
+        }
+
+        private VisualElement GroupSliderAndFloat(Slider slider, FloatField field, string label)
+        {
+            // create parent container
+            VisualElement container = new VisualElement();
+            Label containerLabel = new Label(label);
+
+            // group fields
+            VisualElement fields = new VisualElement();
+            fields.Add(slider);
+            fields.Add(field);
+            fields.AddToClassList("slider-float-field");
+
+            // add to parent container
+            container.Add(containerLabel);
+            container.Add(fields);
+
+            container.AddToClassList("slider-float-container");
+
+            return container;
         }
 
         public override VisualElement CreateInspectorGUI()
@@ -710,7 +814,7 @@ namespace WorldGenerator
             StyleSheet uss = Resources.Load<StyleSheet>("styles");
             root.styleSheets.Add(uss);
     
-            root.AddToClassList("customInspectorRoot");
+            root.AddToClassList("root");
             BuildUI(root);
             
             return root;
