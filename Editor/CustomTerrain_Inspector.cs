@@ -15,14 +15,14 @@ namespace WorldGenerator
         public VisualTreeAsset m_InspectorXML;
 
         // presets for biomes dropdown
-        private Dictionary<string, (string heightmap, string texture)> biomePresets = new Dictionary<string, (string, string)>
+        private Dictionary<string, (string heightmap, string texture, string skybox)> biomePresets = new Dictionary<string, (string, string, string)>
         {
-            { "Desert", ("DesertHeightmap", "Sand") },
-            { "Hills", ("HillsHeightmap", "Grass") },
-            { "Plains", ("plains_simplex_heightmap", "Grass") },
-            { "Mountain", ("MountainHeightmap", "Stone") },
-            { "Valley", ("valley_simplex_heightmap", "Grass") },
-            { "Custom", ("Flat0", "Grass") }
+            { "Desert", ("DesertHeightmap", "Sand", "SkyboxMountain") },
+            { "Hills", ("HillsHeightmap", "Grass", "SkyboxMountain") },
+            { "Plains", ("plains_simplex_heightmap", "Grass", "SkyboxMountain") },
+            { "Mountain", ("MountainHeightmap", "Stone", "SkyboxMountain") },
+            { "Valley", ("valley_simplex_heightmap", "Grass", "SkyboxMountain") },
+            { "Custom", ("Flat0", "Grass", "SkyboxMountain") }
         };
 
         // presets for heightmaps dropdown
@@ -48,8 +48,8 @@ namespace WorldGenerator
         // presets for skybox dropdown
         private Dictionary<string, string> skyboxPresets = new Dictionary<string, string>
         {
-            { "Cloudy", "Cloudy" },
-            { "Sunny", "Sunny" },
+            { "Sunny", "SkyboxMountain" },
+            { "Cloudy", "SkyboxHell" },
             { "Import Custom", "Custom" }
         };
 
@@ -57,8 +57,7 @@ namespace WorldGenerator
         private Dictionary<string, string> biomeFeaturePresets = new Dictionary<string, string>
         {
             { "Trees", "tree" },
-            { "Rocks", "horse" },
-            { "Rivers", "tree_b" },
+            { "Horses", "horse" },
             { "Import Custom", "Custom" }
         };
 
@@ -267,11 +266,13 @@ namespace WorldGenerator
                     // load the assets based on the preset names
                     HeightmapBase heightmap = Resources.Load<HeightmapBase>(preset.heightmap);
                     Texture2D texture = Resources.Load<Texture2D>(preset.texture);
+                    Material skybox = Resources.Load<Material>(preset.skybox);
 
                     // set the properties on the new biome
                     newBiome.SetName(selectedBiomeName);
                     newBiome.SetHeightMap(heightmap);
                     newBiome.SetTexture(texture);
+                    newBiome.SetSkybox(skybox);
 
                     // add the new biome to the terrain
                     terrain.AddBiome(newBiome);
@@ -310,6 +311,7 @@ namespace WorldGenerator
                 SerializedProperty nameProperty = biomeElement.FindPropertyRelative("_name");
                 SerializedProperty heightmapProperty = biomeElement.FindPropertyRelative("_heightmap");
                 SerializedProperty textureProperty = biomeElement.FindPropertyRelative("_texture");
+                SerializedProperty skyboxProperty = biomeElement.FindPropertyRelative("_skybox");
                 SerializedProperty frequencyWeightProperty = biomeElement.FindPropertyRelative("_frequencyWeight");
                 SerializedProperty featuresProperty = biomeElement.FindPropertyRelative("_features");
 
@@ -384,14 +386,46 @@ namespace WorldGenerator
                 /*
                     SKYBOX
                 */
-                var skyboxDropdown = new PopupField<string>("Skybox", new List<string>(skyboxPresets.Keys), 0);
+                Material currentSkybox = terrain.GetBiome(biomeId).GetSkybox();
+                string currentSkyboxPath = Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(currentSkybox));
+                string currentSkyboxName = skyboxPresets.FirstOrDefault(x => x.Value == currentSkyboxPath).Key;
+                int defaultSkyboxIndex = currentSkyboxName != null ? new List<string>(skyboxPresets.Keys).IndexOf(currentSkyboxName) : 0;
+                var skyboxDropdown = new PopupField<string>("Skybox", new List<string>(skyboxPresets.Keys), defaultSkyboxIndex);
+                PropertyField skyboxField = new PropertyField(skyboxProperty, "Custom Skybox");
+                if (skyboxDropdown.value == "Import Custom")
+                {
+                    skyboxField.style.display = DisplayStyle.Flex;
+                }
+                else
+                {
+                    skyboxField.style.display = DisplayStyle.None;
+                }
+
                 skyboxDropdown.RegisterValueChangedCallback(evt =>
                 {
                     // Placeholder for future functionality
-                    Debug.Log($"Selected skybox for Biome {i + 1}: {evt.newValue}");
+                    Debug.Log($"Selected skybox for Biome {biomeId}: {evt.newValue}");
+                    string selectedSkyboxName = evt.newValue;
+                    if (selectedSkyboxName == "Import Custom")
+                    {
+                        skyboxField.style.display = DisplayStyle.Flex;
+                    }
+                    else
+                    {
+                        skyboxField.style.display = DisplayStyle.None;
+                        var biome = terrain.GetBiome(biomeId);
+                        string skyboxPath = skyboxPresets[selectedSkyboxName];
+                        Material skybox = Resources.Load<Material>(skyboxPath);
+                        biome.SetSkybox(skybox);
+                    }
                 });
-                skyboxDropdown.AddToClassList("biome-field");
-                biomeProperties.Add(skyboxDropdown);
+
+                VisualElement skyboxContainer = new VisualElement();
+                skyboxContainer.Add(skyboxDropdown);
+                skyboxContainer.Add(skyboxField);
+                skyboxContainer.AddToClassList("biome-field");
+
+                biomeProperties.Add(skyboxContainer);
 
                 /*
                     FREQUENCY
