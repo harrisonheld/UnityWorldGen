@@ -1,3 +1,7 @@
+/* 
+    GLOBAL STYLES 
+*/
+
 * {
     margin: 0;
     padding: 0;
@@ -17,22 +21,30 @@
     padding-bottom: 4px;
 }
 
+.h2 {
+    font-size: 15px;
+    -unity-font-style: bold;
+    padding-bottom: 4px;
+}
 
-
-
-
+.add-feature-label {
+    margin-top: 8px;
+}
 
 /*
     CONTAINERS
 */
+
+/* box */
 .unity-box {
     margin-bottom: 8px;
     padding: 8px;
     border-radius: 8px;
     border-width: 2px;
-    border-color: black;
+    border-color: rgba(0, 0, 0, 0.4);
 }
 
+/* foldout */
 .unity-foldout__toggle {
     margin-bottom: 4px;
 }
@@ -46,18 +58,21 @@
     font-size: 15px;
 }
 
+.biome-field .unity-foldout__text,
+.feature-foldout .unity-foldout__text {
+    font-size: 12px;
+}
+
 #unity-checkmark {
     margin-right: 4px;
 }
 
-.biome-foldout {
+.biome-foldout,
+.feature-foldout {
     margin-bottom: 4px;
 }
 
-/* .unity-toggle, {
-    cursor: link;
-} */
-
+/* button */
 Button {
     padding: 4px;
     width: 200px;
@@ -67,13 +82,37 @@ Button {
     transition: 0.1s;
 }
 
+.generate-buttons {
+    display: flex;
+    flex-direction: row;
+    align-self: center;
+}
+
+.generate-buttons.column {
+    flex-direction: column;
+}
+
+.generate-buttons Button {
+    width: 150px;
+}
+
+.generate-buttons .generate-button {
+    margin-right: 20px;
+}
+
+.generate-buttons.column .generate-button {
+    margin-right: 0;
+    margin-bottom: 8px;
+}
+
 /* 
     INPUT FIELDS 
 */
 
 /* toggle field */
 .unity-toggle Label {
-    margin-right: 4px;
+    margin-right: 12px;
+    min-width: 0;
 }
 
 .unity-toggle__input {
@@ -203,14 +242,59 @@ Button {
     cursor: link;
 }
 
+/* vector3 field */
+.unity-vector3-field {
+    display: flex;
+    flex-direction: column;
+}
+
+.unity-vector3-field > Label {
+    margin-bottom: 4px;
+}
+
+.unity-vector3-field__input {
+    justify-content: space-between;
+}
+
+#unity-x-input,
+#unity-y-input {
+    margin-right: 20px;
+}
+
+.unity-vector3-field .unity-float-field Label {
+    margin-right: 4px;
+}
+
+
+
+.unity-vector3-field__input {
+    /* width: 40px; */
+    /* max-width: 40px;  */
+}
+
+.unity-vector3-field__input * {
+    /* min-width: 40px; */
+}
+
+.unity-float-field {
+    padding: 0;
+    
+}
+
+
 /*
     PROPERTY FIELDS
 */
 .options-field,
 .add-biome-field,
 .biome-field,
-.heightmap-field {
+.heightmap-field,
+.feature-field {
     margin-bottom: 8px;
     padding: 4px;
     border-radius: 4px;
+}
+
+.feature-foldout.feature-field {
+    margin-bottom: 0;
 }

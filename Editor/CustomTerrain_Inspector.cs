@@ -185,18 +185,53 @@ namespace WorldGenerator
             SyncSliderAndField(frequencySlider, frequencyField, biomesPerChunkProperty);
             SyncSliderAndField(resolutionSlider, resolutionField, chunkResolutionProperty);
 
+            /*
+                GENERATE BUTTONS
+            */
+            // generate terrain button
+            Button generateButton = new Button(() =>
+            {
+                terrain.GenerateTerrain();
+            })
+            {
+                text = "Generate Terrain"
+            };
+            generateButton.AddToClassList("generate-button");
+
+            // regenerate features button
+            Button regenerateFeatures = new Button(() =>
+            {
+                terrain.GenerateAllFeatures();
+            })
+            {
+                text = "Regenerate Features"
+            };
+
+            VisualElement generateBtnsContainer = new VisualElement();
+            generateBtnsContainer.Add(generateButton);
+            generateBtnsContainer.Add(regenerateFeatures);
+            generateBtnsContainer.AddToClassList("generate-buttons");
+
+            // change class of generate buttons container depending on inspector width
+            root.RegisterCallback<GeometryChangedEvent>(evt =>
+            {
+                if (evt.newRect.width < 350) { generateBtnsContainer.AddToClassList("column"); }
+                else { generateBtnsContainer.RemoveFromClassList("column"); }
+            });
+
             // add elements to the root on the top
             worldSeed.AddToClassList("options-field");
             featureSeed.AddToClassList("options-field");
             sizeContainer.AddToClassList("options-field");
             frequencyContainer.AddToClassList("options-field");
             resolutionContainer.AddToClassList("options-field");
-//
+
             worldOptSection.Add(worldSeed);
             worldOptSection.Add(featureSeed);
             worldOptSection.Add(sizeContainer);
             worldOptSection.Add(frequencyContainer);
             worldOptSection.Add(resolutionContainer);
+            worldOptSection.Add(generateBtnsContainer);
 
             root.Add(worldOptSection);
 
@@ -217,7 +252,7 @@ namespace WorldGenerator
                 // Here you can handle the selection change. For example, updating a property or variable.
             });
             biomeDropdown.AddToClassList("add-biome-field");
-//
+
             // create add biome button
             Button addBiomeButton = new Button(() =>
             {
@@ -263,8 +298,6 @@ namespace WorldGenerator
             biomesSectionLabel.AddToClassList("h1");
             root.Add(biomesSectionLabel);
 
-            // Box biomesSection = new Box();
-
             // for each biome, add its properties to the GUI
             SerializedProperty biomesProperty = serializedObject.FindProperty("_biomes");
             for (int i = 0; i < biomesProperty.arraySize; i++)
@@ -287,8 +320,6 @@ namespace WorldGenerator
                     value = false
                 };
                 biomeFoldout.AddToClassList("biome-foldout");
-
-                // biomesSection.Add(biomeFoldout);
 
                 Box biomeProperties = new Box();
 
@@ -510,7 +541,7 @@ namespace WorldGenerator
                     }
                 }
                 heightmapFoldout.Add(heightmapProperties);
-                biomeProperties.Add(heightmapFoldout);
+                biomeProperties.Add(heightmapFoldout);//
 
                 /* 
                     FEATURES
@@ -533,47 +564,13 @@ namespace WorldGenerator
                 biomeFoldout.Add(deleteButton);
                 root.Add(biomeFoldout);
             }
-
-            // root.Add(biomesSection);
-
-            /*
-                GENERATE BUTTONS
-            */
-            // generate terrain button
-            Button generateButton = new Button(() =>
-            {
-                terrain.GenerateTerrain();
-            })
-            {
-                text = "Generate Terrain"
-            };
-
-            // regenerate features button
-            Button regenerateFeatures = new Button(() =>
-            {
-                terrain.GenerateAllFeatures();
-            })
-            {
-                text = "Regenerate Features"
-            };
-
-            root.Add(generateButton);
-            root.Add(regenerateFeatures);
         }
 
         private void BuildBiomeFeaturesField(VisualElement root, CustomTerrain terrain, int i, string biomeId, SerializedProperty featuresProperty, Box biomeProperties)
         {
-            Foldout biomeFeaturesFoldout = new Foldout()
-            {
-                text = "Features",
-                value = false
-            };
-
-            biomeFeaturesFoldout.AddToClassList("features-foldout");
-            biomeFeaturesFoldout.AddToClassList("biome-field");
-
-            Box featuresProperties = new Box();
-
+            Label featuresSectionLabel = new Label("Features");
+            featuresSectionLabel.AddToClassList("h2");
+            biomeProperties.Add(featuresSectionLabel);
 
             /*
                 INDIVIDUAL FEATURES
@@ -597,14 +594,16 @@ namespace WorldGenerator
                     text = string.IsNullOrEmpty(featureNameProperty.stringValue) ? "Feature " + j : featureNameProperty.stringValue,
                     value = false
                 };
+                featureFoldout.AddToClassList("feature-foldout");
+                featureFoldout.AddToClassList("feature-field");
+
+                Box featuresProperties = new Box();
 
                 /*
                     FEATURE NAME
                 */
-                TextField featureNameField = new TextField("Feature Name")
-                {
-                    value = featureNameProperty.stringValue
-                };
+                TextField featureNameField = new TextField("Feature Name") { value = featureNameProperty.stringValue };
+                featureNameField.AddToClassList("feature-field");
 
                 featureNameField.RegisterValueChangedCallback(evt =>
                 {
@@ -617,7 +616,7 @@ namespace WorldGenerator
                 /*
                     FREQUENCY
                 */
-                var featureFrequencySlider = new Slider("Frequency: ", 0, 100)
+                var featureFrequencySlider = new Slider(0, 100)
                 {
                     value = featureFrequencyProperty.intValue
                 };
@@ -625,6 +624,9 @@ namespace WorldGenerator
                 {
                     value = featureFrequencyProperty.intValue
                 };
+
+                VisualElement featureFrequencyField = GroupSliderAndInt(featureFrequencySlider, featureFrequencyIntField, "Frequency");
+                featureFrequencyField.AddToClassList("feature-field");
 
                 featureFrequencySlider.RegisterValueChangedCallback(evt =>
                 {
@@ -649,10 +651,8 @@ namespace WorldGenerator
                 /*
                     SCALE
                 */
-                var featureScaleField = new Vector3Field("Scale")
-                {
-                    value = featureScaleProperty.vector3Value
-                };
+                var featureScaleField = new Vector3Field("Scale") { value = featureScaleProperty.vector3Value };
+                featureScaleField.AddToClassList("feature-field");
 
                 featureScaleField.RegisterValueChangedCallback(evt =>
                 {
@@ -663,10 +663,8 @@ namespace WorldGenerator
                 /*
                     NORMALITY
                 */
-                var featureNormalField = new Toggle("Set Normal")
-                {
-                    value = featureNormalProperty.boolValue
-                };
+                var featureNormalField = new Toggle("Set Normal") { value = featureNormalProperty.boolValue };
+                featureNormalField.AddToClassList("feature-field");
 
                 featureNormalField.RegisterValueChangedCallback(evt =>
                 {
@@ -709,6 +707,11 @@ namespace WorldGenerator
                     }
                 });
 
+                VisualElement prefabContainer = new VisualElement();
+                prefabContainer.Add(prefabDropdown);
+                prefabContainer.Add(prefabField);
+                prefabContainer.AddToClassList("feature-field");
+
                 /*
                     DELETE FEATURE BUTTON
                 */
@@ -721,21 +724,27 @@ namespace WorldGenerator
                     text = "Delete Feature",
                 };
 
-                featureFoldout.Add(featureNameField);
-                featureFoldout.Add(featureFrequencySlider);
-                featureFoldout.Add(featureFrequencyIntField);
-                featureFoldout.Add(featureScaleField);
-                featureFoldout.Add(featureNormalField);
-                featureFoldout.Add(prefabDropdown);
-                featureFoldout.Add(prefabField);
-                featureFoldout.Add(deleteFeatureButton);
-                biomeFeaturesFoldout.Add(featureFoldout);
+                featuresProperties.Add(featureNameField);
+                featuresProperties.Add(featureFrequencyField);
+                featuresProperties.Add(featureScaleField);
+                featuresProperties.Add(featureNormalField);
+                featuresProperties.Add(prefabContainer);
+                featuresProperties.Add(deleteFeatureButton);
+                featureFoldout.Add(featuresProperties);
+                biomeProperties.Add(featureFoldout);
             }
 
             /*
                 ADD FEATURE SECTION
             */
+            Label addFeatureLabel = new Label("Add Feature");
+            addFeatureLabel.AddToClassList("h2");
+            addFeatureLabel.AddToClassList("add-feature-label");//
+
+            biomeProperties.Add(addFeatureLabel);
+
             var newFeatureDropdown = new PopupField<string>("New Feature", new List<string>(biomeFeaturePresets.Keys), 0);
+            newFeatureDropdown.AddToClassList("feature-field");
 
             // add feature button
             Button addFeatureButton = new Button(() =>
@@ -758,9 +767,8 @@ namespace WorldGenerator
                 text = "Add Feature"
             };
 
-            biomeFeaturesFoldout.Add(newFeatureDropdown);
-            biomeFeaturesFoldout.Add(addFeatureButton);
-            biomeProperties.Add(biomeFeaturesFoldout);
+            biomeProperties.Add(newFeatureDropdown);
+            biomeProperties.Add(addFeatureButton);
         }
 
         private VisualElement GroupSliderAndInt(Slider slider, IntegerField field, string label)
