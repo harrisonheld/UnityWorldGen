@@ -15,7 +15,7 @@ namespace WorldGenerator
         public VisualTreeAsset m_InspectorXML;
 
         // presets for biomes dropdown
-        private Dictionary<string, (string heightmap, string texture, string skybox)> biomePresets = new Dictionary<string, (string, string, string)>
+        private readonly Dictionary<string, (string heightmap, string texture, string skybox)> biomePresets = new Dictionary<string, (string, string, string)>
         {
             { "Desert",   ("Heightmaps/Desert",   "Textures/Sand",  "Skyboxes/Dusk"   ) },
             { "Hills",    ("Heightmaps/Hills",    "Textures/Grass", "Skyboxes/Default") },
@@ -26,7 +26,7 @@ namespace WorldGenerator
         };
 
         // presets for heightmaps dropdown
-        private Dictionary<string, string> heightmapPresets = new Dictionary<string, string>
+        private readonly Dictionary<string, string> heightmapPresets = new Dictionary<string, string>
         {
             { "Desert",        "Heightmaps/Desert"   },
             { "Hills",         "Heightmaps/Hills"    },
@@ -37,7 +37,7 @@ namespace WorldGenerator
         };
 
         // presets for texture dropdown
-        private Dictionary<string, string> texturePresets = new Dictionary<string, string>
+        private readonly Dictionary<string, string> texturePresets = new Dictionary<string, string>
         {
             { "Sand",          "Textures/Sand"  },
             { "Grass",         "Textures/Grass" },
@@ -46,7 +46,7 @@ namespace WorldGenerator
         };
 
         // presets for skybox dropdown
-        private Dictionary<string, string> skyboxPresets = new Dictionary<string, string>
+        private readonly Dictionary<string, string> skyboxPresets = new Dictionary<string, string>
         {
             { "Default",       "Skyboxes/Default" },
             { "Thin",          "Skyboxes/Thing"   },
@@ -55,7 +55,7 @@ namespace WorldGenerator
         };
 
         // presets for features dropdown
-        private Dictionary<string, string> biomeFeaturePresets = new Dictionary<string, string>
+        private readonly Dictionary<string, string> biomeFeaturePresets = new Dictionary<string, string>
         {
             { "Trees",         "Features/tree"  },
             { "Horses",        "Features/horse" },
