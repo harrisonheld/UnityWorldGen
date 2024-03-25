@@ -9,8 +9,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 039e2a0acdcc1f74cb2cd946b4e00fc5, type: 3}
-  m_Name: plains_simplex_heightmap
+  m_Script: {fileID: 11500000, guid: 8c401d64e9882fe45970a66f5893dcc3, type: 3}
+  m_Name: Valley
   m_EditorClassIdentifier: 
-  <Amplitude>k__BackingField: 10
-  <Scale>k__BackingField: 10
+  <Heightmaps>k__BackingField:
+  - {fileID: 11400000, guid: e282c66976f6646b684f53c856efe0a3, type: 2}
+  - {fileID: 11400000, guid: c9b5dff326381f54ebf33c5264289c54, type: 2}
