@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4eeb6814ecfbfac43b2caf21d365d817, type: 3}
   m_Name: MountainHeightmap
   m_EditorClassIdentifier: 
-  <Amplitude>k__BackingField: 30
-  <Scale>k__BackingField: 10
+  <Amplitude>k__BackingField: 37
+  <Scale>k__BackingField: 16.6

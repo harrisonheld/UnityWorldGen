@@ -3,9 +3,23 @@ using System.Collections.Generic;
 using UnityEngine;
 using WorldGenerator;
 
+
+/// <summary>
+/// Biome is a data class that holds all the information needed to generate a biome.
+/// A heightmap to generate the surface.
+/// A texture to paint the surface.
+/// A list of features to be generated in this biome.
+/// A skybox to be rendered when the camera is in this biome.
+/// </summary>
 [Serializable]
-public class Biome
-{
+public class Biome {
+    [SerializeField]
+    private string _biomeId;
+
+    [SerializeField]
+    [Tooltip("Name of the current biome.")]
+    private string _name;
+
     [SerializeField]
     [Tooltip("Select a custom heightmap for the biome.")]
     private HeightmapBase _heightmap;
@@ -28,6 +42,16 @@ public class Biome
     [Range(1, 1000)]
     [Tooltip("How often this biome will appear.")]
     private int _frequencyWeight = 100;
+    
+    public string GetBiomeId()
+    {
+        return _biomeId;
+    }
+
+    public string GetName()
+    {
+        return _name;
+    }
 
     public HeightmapBase GetHeightmap()
     {
@@ -52,6 +76,17 @@ public class Biome
     {
         return _features;
     }
+
+    public void SetBiomeId(string biomeId)
+    {
+        _biomeId = biomeId;
+    }
+
+    public void SetName(string name)
+    {
+        _name = name;
+    }
+
     public Material GetSkybox()
     {
         if (_skybox == null)
@@ -90,5 +125,39 @@ public class Biome
     public void SetSkybox(Material skybox)
     {
         _skybox = skybox;
+    }
+
+    public BiomeFeature GetFeature(string featureId) 
+    {
+        foreach (var feature in _features)
+        {
+            if (feature.GetFeatureId() == featureId)
+            {
+                return feature;
+            }
+        }
+
+        Debug.LogWarning($"Feature with ID {featureId} not found.");
+        return null;
+    }
+
+    public void AddFeature(BiomeFeature newFeature)
+    {
+        this._features.Add(newFeature);
+    }
+
+    public void DeleteFeature(string featureId)
+    {
+        for (int i = 0; i < _features.Count; i++)
+        {
+            if (_features[i].GetFeatureId() == featureId)
+            {
+                Debug.Log(_features[i].GetFeatureId());
+                _features.RemoveAt(i);
+                Debug.Log($"Feature with ID {featureId} deleted.");
+                return;
+            }
+        }
+        Debug.LogWarning($"Feature with ID {featureId} not found.");
     }
 }
