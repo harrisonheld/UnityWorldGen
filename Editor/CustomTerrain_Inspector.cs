@@ -14,6 +14,11 @@ namespace WorldGenerator
     {
         public VisualTreeAsset m_InspectorXML;
 
+        private Dictionary<string, Foldout> foldoutStates = new Dictionary<string, Foldout>();
+
+        // Foldout test = new Foldout();
+        
+
         // presets for biomes dropdown
         private Dictionary<string, (string heightmap, string texture, string skybox)> biomePresets = new Dictionary<string, (string, string, string)>
         {
@@ -316,11 +321,24 @@ namespace WorldGenerator
                 SerializedProperty featuresProperty = biomeElement.FindPropertyRelative("_features");
 
                 // create main foldout for biome
-                Foldout biomeFoldout = new Foldout()
-                {
+                Foldout biomeFoldout = new Foldout() 
+                { 
                     text = string.IsNullOrEmpty(nameProperty.stringValue) ? "Biome " + i : nameProperty.stringValue,
                     value = false
                 };
+
+                // if foldout already exists, load from dictionary
+                if (foldoutStates.ContainsKey(biomeId)) 
+                {
+                    Debug.Log(biomeId);
+                    biomeFoldout = foldoutStates[biomeId];
+                    biomeFoldout.Clear();
+                } 
+                // if doesn't exist, add to dictionary
+                else
+                {
+                    foldoutStates[biomeId] = biomeFoldout;
+                }
                 biomeFoldout.AddToClassList("biome-foldout");
 
                 Box biomeProperties = new Box();
@@ -472,6 +490,20 @@ namespace WorldGenerator
                     text = "Heightmap",
                     value = false
                 };
+
+                // if foldout already exists, load from dictionary
+                string heightmapId = "heightmap" + biomeId;
+                if (foldoutStates.ContainsKey(heightmapId))
+                {
+                    heightmapFoldout = foldoutStates[heightmapId];
+                    heightmapFoldout.Clear();
+                }
+                // if doesn't exist, add to dictionary
+                else
+                {
+                    foldoutStates[heightmapId] = heightmapFoldout;
+                }
+
                 heightmapFoldout.AddToClassList("heightmap-foldout");
                 heightmapFoldout.AddToClassList("biome-field");
 
@@ -628,6 +660,19 @@ namespace WorldGenerator
                     text = string.IsNullOrEmpty(featureNameProperty.stringValue) ? "Feature " + j : featureNameProperty.stringValue,
                     value = false
                 };
+
+                // if foldout already exists, load from dictionary
+                if (foldoutStates.ContainsKey(featureId))
+                {
+                    featureFoldout = foldoutStates[featureId];
+                    featureFoldout.Clear();
+                }
+                // if doesn't exist, add to dictionary
+                else
+                {
+                    foldoutStates[featureId] = featureFoldout;
+                }
+
                 featureFoldout.AddToClassList("feature-foldout");
                 featureFoldout.AddToClassList("feature-field");
 
