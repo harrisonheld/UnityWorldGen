@@ -142,15 +142,15 @@ namespace WorldGenerator
             // create sliders and int fields for TerrainSize, BiomesFrequency and BiomesResolution
             var sizeSlider = new Slider(10, 1000) { value = chunkSizeProperty.intValue };
             var sizeField = new IntegerField { value = chunkSizeProperty.intValue };
-            VisualElement sizeContainer = GroupSliderAndInt(sizeSlider, sizeField, "Terrain Size");
-
-            var frequencySlider = new Slider(1, 10) { value = biomesPerChunkProperty.intValue };
-            var frequencyField = new IntegerField { value = biomesPerChunkProperty.intValue };
-            VisualElement frequencyContainer = GroupSliderAndInt(frequencySlider, frequencyField, "Biomes Frequency");
+            VisualElement sizeContainer = GroupSliderAndInt(sizeSlider, sizeField, "Chunk Size");
 
             var resolutionSlider = new Slider(2, 250) { value = chunkResolutionProperty.intValue };
             var resolutionField = new IntegerField { value = chunkResolutionProperty.intValue };
             VisualElement resolutionContainer = GroupSliderAndInt(resolutionSlider, resolutionField, "Chunk Resolution");
+
+            var frequencySlider = new Slider(1, 10) { value = biomesPerChunkProperty.intValue };
+            var frequencyField = new IntegerField { value = biomesPerChunkProperty.intValue };
+            VisualElement frequencyContainer = GroupSliderAndInt(frequencySlider, frequencyField, "Biomes Frequency");
 
             // sync slider with int field
             void SyncSliderAndField(Slider slider, IntegerField field, SerializedProperty property, bool enforceEven = false)
