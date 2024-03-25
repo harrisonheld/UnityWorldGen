@@ -364,29 +364,6 @@ namespace WorldGenerator
         }
         public void GenerateChunkFeatures(int chunkX, int chunkZ, Vector3[] vertices, Vector2[] uv2s)
         {
-            // for each biome in biome map:
-            //     get the x and z bounds of the biome
-            //     for each feature in the biome:
-            //         for loop (based on frequency):
-            //             feature_x = random number based on bounds of x
-            //             feature_z = random number based on bounds of z
-            //             feature_y = use heightmap at (feature_x, feature_y)
-            //             create the object at that coordinate
-            //             set object's parent as chunk
-            //
-            // OR
-            //
-            // for each vertex:
-            //     get the biome at that vertex
-            //     for feature in biome: go in order from lowest frequency to highest so that less frequent things get a chance to show up first (tree vs grass)
-            //         probability of showing up = frequency / 100 or something
-            //         if it shows up:
-            //             place object at that vertex's coords
-            //             set object's parent as chunk
-            //             move on to next vertex
-            //
-            // attempting the second solution below
-
             // seed
             if (_featureSeedString == "")
             {
@@ -409,8 +386,7 @@ namespace WorldGenerator
                 {
                     BiomeFeature feature = biome.GetFeatures()[j];
                     double randomProbability = rand.NextDouble();
-                    // double featureProbability = feature.Frequency / 10000.0f;
-                    // double featureProbability = feature.Frequency * Math.Log(feature.Frequency + 1.0f) / 10000.0f;
+
                     double featureProbability = 0.1f * Convert.ToInt32(feature.Frequency != 0) * (1f / (1f + Mathf.Exp(-((feature.Frequency * 0.75f - 50f)) / 5f)));
                     if (randomProbability < featureProbability)
                     {
@@ -449,6 +425,7 @@ namespace WorldGenerator
 
         private void OnDrawGizmos()
         {
+            // draw chunk border gizmos
             if(_drawChunkGizmos && _chunks != null)
             {
                 Gizmos.color = Color.red;

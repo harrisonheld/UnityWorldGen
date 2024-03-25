@@ -17,49 +17,49 @@ namespace WorldGenerator
         // presets for biomes dropdown
         private Dictionary<string, (string heightmap, string texture, string skybox)> biomePresets = new Dictionary<string, (string, string, string)>
         {
-            { "Desert", ("Heightmaps/Desert", "Textures/Sand", "Skyboxes/Dusk") },
-            { "Hills", ("Heightmaps/Hills", "Textures/Grass", "Skyboxes/Default") },
-            { "Plains", ("Heightmaps/Plains", "Textures/Grass", "Skyboxes/Default") },
-            { "Mountain", ("Heightmaps/Mountain", "Textures/Stone", "Skyboxes/Thin") },
-            { "Valley", ("Heightmaps/Valley", "Textures/Grass", "Skyboxes/Default") },
-            { "Custom", ("Heightmaps/Flat", "Textures/Grass", "Skyboxes/Default") }
+            { "Desert",   ("Heightmaps/Desert",   "Textures/Sand",  "Skyboxes/Dusk"   ) },
+            { "Hills",    ("Heightmaps/Hills",    "Textures/Grass", "Skyboxes/Default") },
+            { "Plains",   ("Heightmaps/Plains",   "Textures/Grass", "Skyboxes/Default") },
+            { "Mountain", ("Heightmaps/Mountain", "Textures/Stone", "Skyboxes/Thin"   ) },
+            { "Valley",   ("Heightmaps/Valley",   "Textures/Grass", "Skyboxes/Default") },
+            { "Custom",   ("Heightmaps/Flat",     "Textures/Grass", "Skyboxes/Default") }
         };
 
         // presets for heightmaps dropdown
         private Dictionary<string, string> heightmapPresets = new Dictionary<string, string>
         {
-            { "Desert", "Heightmaps/Desert" },
-            { "Hills", "Heightmaps/Hills" },
-            { "Plains", "Heightmaps/Plains" },
-            { "Mountain", "Heightmaps/Mountain" },
-            { "Valley", "Heightmaps/Valley" },
-            { "Import Custom", "Custom" }
+            { "Desert",        "Heightmaps/Desert"   },
+            { "Hills",         "Heightmaps/Hills"    },
+            { "Plains",        "Heightmaps/Plains"   },
+            { "Mountain",      "Heightmaps/Mountain" },
+            { "Valley",        "Heightmaps/Valley"   },
+            { "Import Custom", "Custom"              }
         };
 
         // presets for texture dropdown
         private Dictionary<string, string> texturePresets = new Dictionary<string, string>
         {
-            { "Sand", "Textures/Sand" },
-            { "Grass", "Textures/Grass" },
-            { "Stone", "Textures/Stone" },
-            { "Import Custom", "Custom" }
+            { "Sand",          "Textures/Sand"  },
+            { "Grass",         "Textures/Grass" },
+            { "Stone",         "Textures/Stone" },
+            { "Import Custom", "Custom"         }
         };
 
         // presets for skybox dropdown
         private Dictionary<string, string> skyboxPresets = new Dictionary<string, string>
         {
-            { "Default", "Skyboxes/Default" },
-            { "Thin", "Skyboxes/Thing" },
-            { "Dusk", "Skyboxes/Dusk" },
-            { "Import Custom", "Custom" }
+            { "Default",       "Skyboxes/Default" },
+            { "Thin",          "Skyboxes/Thing"   },
+            { "Dusk",          "Skyboxes/Dusk"    },
+            { "Import Custom", "Custom"           }
         };
 
         // presets for features dropdown
         private Dictionary<string, string> biomeFeaturePresets = new Dictionary<string, string>
         {
-            { "Trees", "Features/tree" },
-            { "Horses", "Features/horse" },
-            { "Import Custom", "Custom" }
+            { "Trees",         "Features/tree"  },
+            { "Horses",        "Features/horse" },
+            { "Import Custom", "Custom"         }
         };
 
         // refresh GUI after changes
