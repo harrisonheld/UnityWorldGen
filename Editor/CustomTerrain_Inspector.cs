@@ -21,7 +21,7 @@ namespace WorldGenerator
             { "Hills", ("HillsHeightmap", "Grass", "SkyboxMountain") },
             { "Plains", ("plains_simplex_heightmap", "Grass", "SkyboxMountain") },
             { "Mountain", ("MountainHeightmap", "Stone", "SkyboxMountain") },
-            { "Valley", ("valley_simplex_heightmap", "Grass", "SkyboxMountain") },
+            { "Valley", ("Valley_Heightmap", "Grass", "SkyboxMountain") },
             { "Custom", ("Flat0", "Grass", "SkyboxMountain") }
         };
 
@@ -32,7 +32,7 @@ namespace WorldGenerator
             { "Hills", "HillsHeightmap" },
             { "Plains", "plains_simplex_heightmap" },
             { "Mountain", "MountainHeightmap" },
-            { "Valley", "valley_simplex_heightmap" },
+            { "Valley", "valley_Heightmap" },
             { "Import Custom", "Custom" }
         };
 
