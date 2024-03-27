@@ -387,7 +387,7 @@ namespace WorldGenerator
                     BiomeFeature feature = biome.GetFeatures()[j];
                     double randomProbability = rand.NextDouble();
 
-                    double featureProbability = 0.1f * Convert.ToInt32(feature.Frequency != 0) * (1f / (1f + Mathf.Exp(-((feature.Frequency * 0.75f - 50f)) / 5f)));
+                    double featureProbability = Math.Pow(250.0f / _chunkResolution, 2) * 0.1f * Convert.ToInt32(feature.Frequency != 0) * (1f / (1f + Mathf.Exp(-((feature.Frequency * 0.75f - 50f)) / 5f)));
                     if (randomProbability < featureProbability)
                     {
                         if (feature.Prefab != null)
