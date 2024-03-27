@@ -13,6 +13,9 @@ namespace WorldGenerator
 
         }
 
+        /// <summary>
+        /// Manually export to .obj. This is extremely slow.
+        /// </summary>
         public void ExportMesh(Mesh mesh, string path)
         {
             if (!path.ToLower().EndsWith(".obj"))
