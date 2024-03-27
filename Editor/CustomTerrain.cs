@@ -56,7 +56,8 @@ namespace WorldGenerator
         public void Awake()
         {
             // generate the terrain at runtime
-            GenerateTerrain();
+            if(Application.isPlaying)
+                GenerateTerrain();
         }
 
 
