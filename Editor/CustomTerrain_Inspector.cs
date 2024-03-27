@@ -207,9 +207,20 @@ namespace WorldGenerator
                 text = "Regenerate Features"
             };
 
+            // export button
+            Button exportButton = new Button(() =>
+            {
+                terrain.ExportChunks("Assets/ExportedTerrainChunks");
+            })
+            {
+                text = "Export All Chunks"
+            };
+
+
             VisualElement generateBtnsContainer = new VisualElement();
             generateBtnsContainer.Add(generateButton);
             generateBtnsContainer.Add(regenerateFeatures);
+            generateBtnsContainer.Add(exportButton);
             generateBtnsContainer.AddToClassList("generate-buttons");
 
             // change class of generate buttons container depending on inspector width

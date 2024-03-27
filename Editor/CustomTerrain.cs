@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using static UnityEngine.GraphicsBuffer;
+using System.IO;
+using System.Linq;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -419,6 +421,63 @@ namespace WorldGenerator
                     }
                 }
             }
+        }
+
+        public void ExportChunks(string path)
+        {
+            if (_chunks == null)
+            {
+                Debug.LogError("Cannot export chunks because the terrain has not been generated yet. Try regenerating.");
+                return;
+            }
+            if (_chunks.Length == 0)
+            {
+                Debug.LogError("Cannot export chunks because there are no chunks to export. Try regenerating.");
+                return;
+            }
+
+            GameObject sampleChunk = _chunks[0, 0];
+            int chunkverts = sampleChunk.GetComponent<MeshFilter>().sharedMesh.vertices.Length;
+            int limit = 50;
+            if(chunkverts > limit*limit) { 
+                Debug.LogWarning($"The chunk resolution is too high for exporting. Please reduce the chunk resolution to {limit} or lower and regenerating.");
+                return;
+            }
+
+            // Ensure path is a directory path
+            if (Path.HasExtension(path))
+            {
+                Debug.LogError("Path is not a directory.");
+                return;
+            }
+
+            // Clear the directory if it exists
+            if (Directory.Exists(path))
+                Directory.Delete(path, true);
+            Directory.CreateDirectory(path);
+
+            // Export each chunk as a separate OBJ file
+            try
+            {
+                MeshExporter exporter = new MeshExporter();
+                for (int x = 0; x < _chunkCount; x++)
+                {
+                    for (int z = 0; z < _chunkCount; z++)
+                    {
+                        GameObject chunk = _chunks[x, z];
+                        Mesh mesh = chunk.GetComponent<MeshFilter>().sharedMesh;
+                        string chunkPath = Path.Combine(path, $"chunk-{x}-{z}.obj");
+                        exporter.ExportMesh(mesh, chunkPath);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Error exporting chunks: {e.Message}");
+                return;
+            }
+
+            Debug.Log($"Exported all chunks to '{path}'.");
         }
 
 
