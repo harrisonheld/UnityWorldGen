@@ -63,7 +63,7 @@ namespace WorldGenerator
         {
             { "Trees", "tree" },
             { "Horses", "horse" },
-            { "Import Custom", "Custom" }
+            { "Import Custom", "default" }
         };
 
         // refresh GUI after changes
@@ -848,12 +848,21 @@ namespace WorldGenerator
 
                 BiomeFeature newFeature = new BiomeFeature();
                 string featureId = System.Guid.NewGuid().ToString();
-                
                 newFeature.SetFeatureId(featureId);
-                newFeature.Name = selectedFeatureName;
-                string featurePath = biomeFeaturePresets[selectedFeatureName];
-                GameObject featurePrefab = Resources.Load<GameObject>(featurePath);
-                newFeature.Prefab = featurePrefab;
+                if (selectedFeatureName == "Import Custom")
+                {
+                    string featurePath = biomeFeaturePresets[selectedFeatureName];
+                    GameObject featurePrefab = Resources.Load<GameObject>(featurePath);
+                    newFeature.Prefab = featurePrefab;
+                    newFeature.Name = "Custom";
+                }
+                else
+                {
+                    newFeature.Name = selectedFeatureName;
+                    string featurePath = biomeFeaturePresets[selectedFeatureName];
+                    GameObject featurePrefab = Resources.Load<GameObject>(featurePath);
+                    newFeature.Prefab = featurePrefab;
+                }
 
                 terrain.GetBiome(biomeId).AddFeature(newFeature);
                 UpdateUI(root, terrain);
