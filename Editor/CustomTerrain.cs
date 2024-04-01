@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using static UnityEngine.GraphicsBuffer;
+using System.IO;
+using System.Linq;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -17,78 +19,6 @@ namespace WorldGenerator
     [ExecuteInEditMode]
     public class CustomTerrain : MonoBehaviour
     {
-// #if UNITY_EDITOR
-//         [CustomEditor(typeof(CustomTerrain))]
-//         public class CustomTerrainEditor : Editor
-//         {
-//             int selected_biome_preset_index = 0;
-
-//             public override void OnInspectorGUI()
-//             {
-//                 base.OnInspectorGUI();
-
-//                 CustomTerrain terrain = (CustomTerrain)this.target;
-
-//                 GUILayout.Space(10);
-
-//                 string[] preset_biome_options = new string[] { "Desert", "Hills", "Plains", "Mountain", "Valley", "Custom" };
-//                 Dictionary<string, (string heightmap, string texture)> biomePresets = new Dictionary<string, (string, string)>
-//                 {
-//                     { "Desert", ("DesertHeightmap", "Sand") },
-//                     { "Hills", ("HillsHeightmap", "Grass") },
-//                     { "Plains", ("plains_simplex_heightmap", "Grass") },
-//                     { "Mountain", ("MountainHeightmap", "Stone") },
-//                     { "Valley", ("valley_simplex_heightmap", "Grass") },
-//                     { "Custom", ("Flat0", "Grass") }
-//                 };
-//                 selected_biome_preset_index = EditorGUILayout.Popup("New Biome", selected_biome_preset_index, preset_biome_options);
-                // string[] preset_biome_options = new string[] { "Desert", "Hills", "Plains", "Mountain", "Valley", "Custom" };
-                // Dictionary<string, (string heightmap, string texture)> biomePresets = new Dictionary<string, (string, string)>
-                // {
-                //     { "Desert", ("DesertHeightmap", "Sand") },
-                //     { "Hills", ("HillsHeightmap", "Grass") },
-                //     { "Plains", ("plains_simplex_heightmap", "Grass") },
-                //     { "Mountain", ("MountainHeightmap", "Stone") },
-                //     { "Valley", ("Valley_Heightmap", "Grass") },
-                //     { "Custom", ("Flat0", "Grass") }
-                // };
-                // selected_biome_preset_index = EditorGUILayout.Popup("New Biome", selected_biome_preset_index, preset_biome_options);
-
-//                 if (GUILayout.Button("Add Biome"))
-//                 {
-//                     Biome newBiome = new();
-
-//                     if (biomePresets.TryGetValue(preset_biome_options[selected_biome_preset_index], out var preset))
-//                     {
-//                         newBiome.SetHeightMap(Resources.Load(preset.heightmap, typeof(HeightmapBase)) as HeightmapBase);
-//                         newBiome.SetTexture(Resources.Load(preset.texture, typeof(Texture2D)) as Texture2D);
-//                         terrain.AddBiome(newBiome);
-//                     }
-//                     else
-//                     {
-//                         Debug.LogError("Unrecognized Option");
-//                     }
-//                 }
-
-//                 if (GUILayout.Button("Generate Terrain"))
-//                 {
-//                     terrain.GenerateTerrain();
-//                 }
-
-//             }
-//         }
-// #endif
-//                 if (GUILayout.Button("Generate Terrain"))
-//                 {
-//                     terrain.GenerateTerrain();
-//                 }
-//                 if (GUILayout.Button("Regenerate Features"))
-//                 {
-//                     terrain.GenerateAllFeatures();
-//                 }
-//             }
-//         }
-// #endif
         [Header("Debug Settings")]
         [Tooltip("If true, a box will be drawn around each chunk. Make sure Gizmos are enabled in the Unity Editor.")]
         [SerializeField] private bool _drawChunkGizmos = true;
@@ -126,7 +56,8 @@ namespace WorldGenerator
         public void Awake()
         {
             // generate the terrain at runtime
-            GenerateTerrain();
+            if(Application.isPlaying)
+                GenerateTerrain();
         }
 
 
@@ -436,29 +367,6 @@ namespace WorldGenerator
         }
         public void GenerateChunkFeatures(int chunkX, int chunkZ, Vector3[] vertices, Vector2[] uv2s)
         {
-            // for each biome in biome map:
-            //     get the x and z bounds of the biome
-            //     for each feature in the biome:
-            //         for loop (based on frequency):
-            //             feature_x = random number based on bounds of x
-            //             feature_z = random number based on bounds of z
-            //             feature_y = use heightmap at (feature_x, feature_y)
-            //             create the object at that coordinate
-            //             set object's parent as chunk
-            //
-            // OR
-            //
-            // for each vertex:
-            //     get the biome at that vertex
-            //     for feature in biome: go in order from lowest frequency to highest so that less frequent things get a chance to show up first (tree vs grass)
-            //         probability of showing up = frequency / 100 or something
-            //         if it shows up:
-            //             place object at that vertex's coords
-            //             set object's parent as chunk
-            //             move on to next vertex
-            //
-            // attempting the second solution below
-
             // seed
             if (_featureSeedString == "")
             {
@@ -481,9 +389,8 @@ namespace WorldGenerator
                 {
                     BiomeFeature feature = biome.GetFeatures()[j];
                     double randomProbability = rand.NextDouble();
-                    // double featureProbability = feature.Frequency / 10000.0f;
-                    // double featureProbability = feature.Frequency * Math.Log(feature.Frequency + 1.0f) / 10000.0f;
-                    double featureProbability = 0.1f * Convert.ToInt32(feature.Frequency != 0) * (1f / (1f + Mathf.Exp(-((feature.Frequency * 0.75f - 50f)) / 5f)));
+
+                    double featureProbability = Math.Pow(250.0f / _chunkResolution, 2) * 0.1f * Convert.ToInt32(feature.Frequency != 0) * (1f / (1f + Mathf.Exp(-((feature.Frequency * 0.75f - 50f)) / 5f)));
                     if (randomProbability < featureProbability)
                     {
                         if (feature.Prefab != null)
@@ -517,10 +424,68 @@ namespace WorldGenerator
             }
         }
 
+        public void ExportChunks(string path)
+        {
+            if (_chunks == null)
+            {
+                Debug.LogError("Cannot export chunks because the terrain has not been generated yet. Try regenerating.");
+                return;
+            }
+            if (_chunks.Length == 0)
+            {
+                Debug.LogError("Cannot export chunks because there are no chunks to export. Try regenerating.");
+                return;
+            }
+
+            GameObject sampleChunk = _chunks[0, 0];
+            int chunkverts = sampleChunk.GetComponent<MeshFilter>().sharedMesh.vertices.Length;
+            int limit = 50;
+            if(chunkverts > limit*limit) { 
+                Debug.LogWarning($"The chunk resolution is too high for exporting. Please reduce the chunk resolution to {limit} or lower and regenerating.");
+                return;
+            }
+
+            // Ensure path is a directory path
+            if (Path.HasExtension(path))
+            {
+                Debug.LogError("Path is not a directory.");
+                return;
+            }
+
+            // Clear the directory if it exists
+            if (Directory.Exists(path))
+                Directory.Delete(path, true);
+            Directory.CreateDirectory(path);
+
+            // Export each chunk as a separate OBJ file
+            try
+            {
+                MeshExporter exporter = new MeshExporter();
+                for (int x = 0; x < _chunkCount; x++)
+                {
+                    for (int z = 0; z < _chunkCount; z++)
+                    {
+                        GameObject chunk = _chunks[x, z];
+                        Mesh mesh = chunk.GetComponent<MeshFilter>().sharedMesh;
+                        string chunkPath = Path.Combine(path, $"chunk-{x}-{z}.obj");
+                        exporter.ExportMesh(mesh, chunkPath);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Error exporting chunks: {e.Message}");
+                return;
+            }
+
+            Debug.Log($"Exported all chunks to '{path}'.");
+        }
+
 
 
         private void OnDrawGizmos()
         {
+            // draw chunk border gizmos
             if(_drawChunkGizmos && _chunks != null)
             {
                 Gizmos.color = Color.red;

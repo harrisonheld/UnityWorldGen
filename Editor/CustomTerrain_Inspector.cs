@@ -20,50 +20,51 @@ namespace WorldGenerator
         
 
         // presets for biomes dropdown
-        private Dictionary<string, (string heightmap, string texture, string skybox)> biomePresets = new Dictionary<string, (string, string, string)>
+        private readonly Dictionary<string, (string heightmap, string texture, string skybox)> biomePresets = new Dictionary<string, (string, string, string)>
         {
-            { "Desert", ("DesertHeightmap", "Sand", "SkyboxMountain") },
-            { "Hills", ("HillsHeightmap", "Grass", "SkyboxMountain") },
-            { "Plains", ("plains_simplex_heightmap", "Grass", "SkyboxMountain") },
-            { "Mountain", ("MountainHeightmap", "Stone", "SkyboxMountain") },
-            { "Valley", ("Valley_Heightmap", "Grass", "SkyboxMountain") },
-            { "Custom", ("Flat0", "Grass", "SkyboxMountain") }
+            { "Desert",         ("Heightmaps/Desert",   "Textures/Sand",  "Skyboxes/Dusk"   ) },
+            { "Hills",          ("Heightmaps/Hills",    "Textures/Grass", "Skyboxes/Default") },
+            { "Plains",         ("Heightmaps/Plains",   "Textures/Grass", "Skyboxes/Sky"    ) },
+            { "Mountain",       ("Heightmaps/Mountain", "Textures/Stone", "Skyboxes/Thin"   ) },
+            { "Valley",         ("Heightmaps/Valley",   "Textures/Grass", "Skyboxes/Default") },
+            { "Custom Biome",   ("Heightmaps/Flat",     "Textures/Grass", "Skyboxes/Default") }
         };
 
         // presets for heightmaps dropdown
-        private Dictionary<string, string> heightmapPresets = new Dictionary<string, string>
+        private readonly Dictionary<string, string> heightmapPresets = new Dictionary<string, string>
         {
-            { "Desert", "DesertHeightmap" },
-            { "Hills", "HillsHeightmap" },
-            { "Plains", "plains_simplex_heightmap" },
-            { "Mountain", "MountainHeightmap" },
-            { "Valley", "valley_Heightmap" },
-            { "Import Custom", "Custom" }
+            { "Desert",        "Heightmaps/Desert"   },
+            { "Hills",         "Heightmaps/Hills"    },
+            { "Plains",        "Heightmaps/Plains"   },
+            { "Mountain",      "Heightmaps/Mountain" },
+            { "Valley",        "Heightmaps/Valley"   },
+            { "Import Custom", "Custom"              }
         };
 
         // presets for texture dropdown
-        private Dictionary<string, string> texturePresets = new Dictionary<string, string>
+        private readonly Dictionary<string, string> texturePresets = new Dictionary<string, string>
         {
-            { "Sand", "Sand" },
-            { "Grass", "grass" },
-            { "Stone", "Stone" },
-            { "Import Custom", "Custom" }
+            { "Sand",          "Textures/Sand"  },
+            { "Grass",         "Textures/Grass" },
+            { "Stone",         "Textures/Stone" },
+            { "Import Custom", "Custom"         }
         };
 
         // presets for skybox dropdown
-        private Dictionary<string, string> skyboxPresets = new Dictionary<string, string>
+        private readonly Dictionary<string, string> skyboxPresets = new Dictionary<string, string>
         {
-            { "Sunny", "SkyboxMountain" },
-            { "Cloudy", "SkyboxHell" },
-            { "Import Custom", "Custom" }
+            { "Default",       "Skyboxes/Default" },
+            { "Thin",          "Skyboxes/Thing"   },
+            { "Dusk",          "Skyboxes/Dusk"    },
+            { "Import Custom", "Custom"           }
         };
 
         // presets for features dropdown
-        private Dictionary<string, string> biomeFeaturePresets = new Dictionary<string, string>
+        private readonly Dictionary<string, string> biomeFeaturePresets = new Dictionary<string, string>
         {
-            { "Trees", "tree" },
-            { "Horses", "horse" },
-            { "Import Custom", "Custom" }
+            { "Trees",         "Features/tree"  },
+            { "Horses",        "Features/horse" },
+            { "Import Custom", "Custom"         }
         };
 
         // refresh GUI after changes
@@ -147,15 +148,15 @@ namespace WorldGenerator
             // create sliders and int fields for TerrainSize, BiomesFrequency and BiomesResolution
             var sizeSlider = new Slider(10, 1000) { value = chunkSizeProperty.intValue };
             var sizeField = new IntegerField { value = chunkSizeProperty.intValue };
-            VisualElement sizeContainer = GroupSliderAndInt(sizeSlider, sizeField, "Terrain Size");
-
-            var frequencySlider = new Slider(1, 10) { value = biomesPerChunkProperty.intValue };
-            var frequencyField = new IntegerField { value = biomesPerChunkProperty.intValue };
-            VisualElement frequencyContainer = GroupSliderAndInt(frequencySlider, frequencyField, "Biomes Frequency");
+            VisualElement sizeContainer = GroupSliderAndInt(sizeSlider, sizeField, "Chunk Size");
 
             var resolutionSlider = new Slider(2, 250) { value = chunkResolutionProperty.intValue };
             var resolutionField = new IntegerField { value = chunkResolutionProperty.intValue };
             VisualElement resolutionContainer = GroupSliderAndInt(resolutionSlider, resolutionField, "Chunk Resolution");
+
+            var frequencySlider = new Slider(1, 10) { value = biomesPerChunkProperty.intValue };
+            var frequencyField = new IntegerField { value = biomesPerChunkProperty.intValue };
+            VisualElement frequencyContainer = GroupSliderAndInt(frequencySlider, frequencyField, "Biomes Frequency");
 
             // sync slider with int field
             void SyncSliderAndField(Slider slider, IntegerField field, SerializedProperty property, bool enforceEven = false)
@@ -211,9 +212,20 @@ namespace WorldGenerator
                 text = "Regenerate Features"
             };
 
+            // export button
+            Button exportButton = new Button(() =>
+            {
+                terrain.ExportChunks("Assets/ExportedTerrainChunks");
+            })
+            {
+                text = "Export All Chunks"
+            };
+
+
             VisualElement generateBtnsContainer = new VisualElement();
             generateBtnsContainer.Add(generateButton);
             generateBtnsContainer.Add(regenerateFeatures);
+            generateBtnsContainer.Add(exportButton);
             generateBtnsContainer.AddToClassList("generate-buttons");
 
             // change class of generate buttons container depending on inspector width
@@ -251,8 +263,6 @@ namespace WorldGenerator
             var biomeDropdown = new PopupField<string>("New Biome", new List<string>(biomePresets.Keys), 0);
             biomeDropdown.RegisterValueChangedCallback(evt =>
             {
-                // evt.newValue contains the newly selected option as a string
-                Debug.Log("Selected biome: " + evt.newValue);
                 // Here you can handle the selection change. For example, updating a property or variable.
             });
             biomeDropdown.AddToClassList("add-biome-field");
@@ -324,9 +334,9 @@ namespace WorldGenerator
                 biomeContainer.AddToClassList("biome-container");
 
                 // create main foldout for biome
-                Foldout biomeFoldout = new Foldout() 
-                { 
-                    text = string.IsNullOrEmpty(nameProperty.stringValue) ? "Biome " + i : nameProperty.stringValue,
+                Foldout biomeFoldout = new Foldout()
+                {
+                    text = string.IsNullOrEmpty(nameProperty.stringValue) ? "Unnamed Biome" : nameProperty.stringValue,
                     value = false
                 };
 
@@ -372,8 +382,7 @@ namespace WorldGenerator
                 {
                     nameProperty.stringValue = evt.newValue;
                     biomeElement.serializedObject.ApplyModifiedProperties();
-                    Debug.Log($"Biome name changed to: {nameProperty.stringValue}");
-                    biomeFoldout.text = string.IsNullOrEmpty(evt.newValue) ? "Biome " + i : evt.newValue;
+                    biomeFoldout.text = string.IsNullOrEmpty(evt.newValue) ? "Unnamed Biome" : evt.newValue;
                 });
                 nameField.AddToClassList("biome-field");
                 biomeProperties.Add(nameField);
@@ -398,7 +407,6 @@ namespace WorldGenerator
 
                 textureDropdown.RegisterValueChangedCallback(evt =>
                 {
-                    Debug.Log($"Selected texture for Biome {biomeId}: {evt.newValue}");
                     string selectedTextureName = evt.newValue;
                     if (selectedTextureName == "Import Custom")
                     {
@@ -442,7 +450,6 @@ namespace WorldGenerator
                 skyboxDropdown.RegisterValueChangedCallback(evt =>
                 {
                     // Placeholder for future functionality
-                    Debug.Log($"Selected skybox for Biome {biomeId}: {evt.newValue}");
                     string selectedSkyboxName = evt.newValue;
                     if (selectedSkyboxName == "Import Custom")
                     {
@@ -547,7 +554,6 @@ namespace WorldGenerator
 
                 heightmapDropdown.RegisterValueChangedCallback(evt =>
                 {
-                    Debug.Log($"Selected heightmap for Biome {biomeId}: {evt.newValue}");
                     string selectedHeightmapName = evt.newValue;
                     if (selectedHeightmapName == "Import Custom")
                     {
@@ -666,7 +672,7 @@ namespace WorldGenerator
 
                 Foldout featureFoldout = new Foldout()
                 {
-                    text = string.IsNullOrEmpty(featureNameProperty.stringValue) ? "Feature " + j : featureNameProperty.stringValue,
+                    text = string.IsNullOrEmpty(featureNameProperty.stringValue) ? "Unnamed Feature" : featureNameProperty.stringValue,
                     value = false
                 };
 
@@ -697,8 +703,7 @@ namespace WorldGenerator
                 {
                     featureNameProperty.stringValue = evt.newValue;
                     featureElement.serializedObject.ApplyModifiedProperties();
-                    Debug.Log($"Feature name changed to: {featureNameProperty.stringValue}");
-                    featureFoldout.text = string.IsNullOrEmpty(evt.newValue) ? "Feature " + j : evt.newValue;
+                    featureFoldout.text = string.IsNullOrEmpty(evt.newValue) ? "Unnamed Feature" : evt.newValue;
                 });
 
                 /*
