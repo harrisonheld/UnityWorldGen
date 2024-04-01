@@ -156,7 +156,7 @@ namespace WorldGenerator
 
             var frequencySlider = new Slider(1, 10) { value = biomesPerChunkProperty.intValue };
             var frequencyField = new IntegerField { value = biomesPerChunkProperty.intValue };
-            VisualElement frequencyContainer = GroupSliderAndInt(frequencySlider, frequencyField, "Biomes Frequency");
+            VisualElement frequencyContainer = GroupSliderAndInt(frequencySlider, frequencyField, "Biomes Per Chunk");
 
             // sync slider with int field
             void SyncSliderAndField(Slider slider, IntegerField field, SerializedProperty property, bool enforceEven = false)
@@ -190,51 +190,6 @@ namespace WorldGenerator
             SyncSliderAndField(frequencySlider, frequencyField, biomesPerChunkProperty);
             SyncSliderAndField(resolutionSlider, resolutionField, chunkResolutionProperty);
 
-            /*
-                GENERATE BUTTONS
-            */
-            // generate terrain button
-            Button generateButton = new Button(() =>
-            {
-                terrain.GenerateTerrain();
-            })
-            {
-                text = "Generate Terrain"
-            };
-            generateButton.AddToClassList("generate-button");
-
-            // regenerate features button
-            Button regenerateFeatures = new Button(() =>
-            {
-                terrain.GenerateAllFeatures();
-            })
-            {
-                text = "Regenerate Features"
-            };
-
-            // export button
-            Button exportButton = new Button(() =>
-            {
-                terrain.ExportChunks("Assets/ExportedTerrainChunks");
-            })
-            {
-                text = "Export All Chunks"
-            };
-
-
-            VisualElement generateBtnsContainer = new VisualElement();
-            generateBtnsContainer.Add(generateButton);
-            generateBtnsContainer.Add(regenerateFeatures);
-            generateBtnsContainer.Add(exportButton);
-            generateBtnsContainer.AddToClassList("generate-buttons");
-
-            // change class of generate buttons container depending on inspector width
-            root.RegisterCallback<GeometryChangedEvent>(evt =>
-            {
-                if (evt.newRect.width < 350) { generateBtnsContainer.AddToClassList("column"); }
-                else { generateBtnsContainer.RemoveFromClassList("column"); }
-            });
-
             // add elements to the root on the top
             worldSeed.AddToClassList("options-field");
             featureSeed.AddToClassList("options-field");
@@ -247,7 +202,6 @@ namespace WorldGenerator
             worldOptSection.Add(sizeContainer);
             worldOptSection.Add(frequencyContainer);
             worldOptSection.Add(resolutionContainer);
-            worldOptSection.Add(generateBtnsContainer);
 
             root.Add(worldOptSection);
 
@@ -663,6 +617,55 @@ namespace WorldGenerator
                 root.Add(biomeContainer);
                 deleteButton.BringToFront();
             }
+
+            /*
+                GENERATE BUTTONS
+            */
+            // generate terrain button
+            Button generateButton = new Button(() =>
+            {
+                terrain.GenerateTerrain();
+            })
+            {
+                text = "Generate Terrain"
+            };
+            generateButton.AddToClassList("generate-button");
+
+            // regenerate features button
+            Button regenerateFeatures = new Button(() =>
+            {
+                terrain.GenerateAllFeatures();
+            })
+            {
+                text = "Regenerate Features"
+            };
+
+            // export button
+            Button exportButton = new Button(() =>
+            {
+                terrain.ExportChunks("Assets/ExportedTerrainChunks");
+            })
+            {
+                text = "Export All Chunks"
+            };
+
+            VisualElement buttonsContainer = new VisualElement();
+            VisualElement generateBtnsContainer = new VisualElement();
+            generateBtnsContainer.Add(generateButton);
+            generateBtnsContainer.Add(regenerateFeatures);
+            buttonsContainer.Add(generateBtnsContainer);
+            buttonsContainer.Add(exportButton);
+            buttonsContainer.AddToClassList("buttons-container");
+            generateBtnsContainer.AddToClassList("generate-buttons");
+
+            // change class of generate buttons container depending on inspector width
+            root.RegisterCallback<GeometryChangedEvent>(evt =>
+            {
+                if (evt.newRect.width < 350) { generateBtnsContainer.AddToClassList("column"); }
+                else { generateBtnsContainer.RemoveFromClassList("column"); }
+            });
+
+            root.Add(buttonsContainer);
         }
 
         private void BuildBiomeFeaturesField(VisualElement root, CustomTerrain terrain, int i, string biomeId, SerializedProperty featuresProperty, Box biomeProperties)

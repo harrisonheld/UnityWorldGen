@@ -76,7 +76,7 @@
     margin-bottom: 4px;
 }
 
-/* button */
+/* buttons */
 Button {
     padding: 4px;
     width: 200px;
@@ -84,6 +84,16 @@ Button {
     border-radius: 12px;
     cursor: link;
     transition: 0.1s;
+}
+
+.buttons-container {
+    display: flex;
+    flex-direction: column;
+    margin-top: 8px;
+}
+
+.buttons-container > Button {
+    margin-top: 8px;
 }
 
 .generate-buttons {
@@ -96,7 +106,7 @@ Button {
     flex-direction: column;
 }
 
-.generate-buttons Button {
+.buttons-container Button {
     width: 150px;
 }
 
