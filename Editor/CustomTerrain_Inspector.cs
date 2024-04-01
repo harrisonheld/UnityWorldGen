@@ -664,6 +664,10 @@ namespace WorldGenerator
                 SerializedProperty featureNormalProperty = featureElement.FindPropertyRelative("SetNormal");
                 SerializedProperty featurePrefabProperty = featureElement.FindPropertyRelative("Prefab");
 
+                VisualElement featureContainer = new VisualElement();
+                featureContainer.AddToClassList("feature-container");
+
+                // create main foldout for feature
                 Foldout featureFoldout = new Foldout()
                 {
                     text = string.IsNullOrEmpty(featureNameProperty.stringValue) ? "Feature " + j : featureNameProperty.stringValue,
@@ -681,9 +685,21 @@ namespace WorldGenerator
                 {
                     foldoutStates[featureId] = featureFoldout;
                 }
-
                 featureFoldout.AddToClassList("feature-foldout");
                 featureFoldout.AddToClassList("feature-field");
+
+                /*
+                    DELETE FEATURE BUTTON
+                */
+                Button deleteFeatureButton = new Button(() =>
+                {
+                    terrain.GetBiome(biomeId).DeleteFeature(featureId);
+                    UpdateUI(root, terrain);
+                });
+                deleteFeatureButton.AddToClassList("delete-feature");
+
+                featureContainer.Add(featureFoldout);
+                featureContainer.Add(deleteFeatureButton);
 
                 Box featuresProperties = new Box();
 
@@ -800,18 +816,6 @@ namespace WorldGenerator
                 prefabContainer.Add(prefabField);
                 prefabContainer.AddToClassList("feature-field");
 
-                /*
-                    DELETE FEATURE BUTTON
-                */
-                Button deleteFeatureButton = new Button(() =>
-                {
-                    terrain.GetBiome(biomeId).DeleteFeature(featureId);
-                    UpdateUI(root, terrain);
-                })
-                {
-                    text = "Delete Feature",
-                };
-
                 featuresProperties.Add(featureNameField);
                 featuresProperties.Add(featureFrequencyField);
                 featuresProperties.Add(featureScaleField);
@@ -819,7 +823,10 @@ namespace WorldGenerator
                 featuresProperties.Add(prefabContainer);
                 featuresProperties.Add(deleteFeatureButton);
                 featureFoldout.Add(featuresProperties);
-                biomeProperties.Add(featureFoldout);
+                featureContainer.Add(featureFoldout);
+                featureContainer.Add(deleteFeatureButton);
+                biomeProperties.Add(featureContainer);
+                deleteFeatureButton.BringToFront();
             }
 
             /*
