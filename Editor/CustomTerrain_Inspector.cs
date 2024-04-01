@@ -320,6 +320,9 @@ namespace WorldGenerator
                 SerializedProperty frequencyWeightProperty = biomeElement.FindPropertyRelative("_frequencyWeight");
                 SerializedProperty featuresProperty = biomeElement.FindPropertyRelative("_features");
 
+                VisualElement biomeContainer = new VisualElement();
+                biomeContainer.AddToClassList("biome-container");
+
                 // create main foldout for biome
                 Foldout biomeFoldout = new Foldout() 
                 { 
@@ -340,6 +343,23 @@ namespace WorldGenerator
                     foldoutStates[biomeId] = biomeFoldout;
                 }
                 biomeFoldout.AddToClassList("biome-foldout");
+
+                /*
+                    DELETE BIOME BUTTON
+                */
+                Texture2D test = Resources.Load<Texture2D>("Sand");
+                GUIContent buttonTest = new GUIContent("Delete Biome", test);
+
+                Button deleteButton = new Button(() =>
+                {
+                    terrain.DeleteBiome(biomeId);
+                    UpdateUI(root, terrain);
+                });
+                deleteButton.AddToClassList("delete-biome");
+
+                biomeContainer.Add(biomeFoldout);
+                biomeContainer.Add(deleteButton);
+
 
                 Box biomeProperties = new Box();
 
@@ -607,28 +627,17 @@ namespace WorldGenerator
                     }
                 }
                 heightmapFoldout.Add(heightmapProperties);
-                biomeProperties.Add(heightmapFoldout);//
+                biomeProperties.Add(heightmapFoldout);
 
                 /* 
                     FEATURES
                 */
                 BuildBiomeFeaturesField(root, terrain, i, biomeId, featuresProperty, biomeProperties);
 
-                /*
-                    DELETE BIOME BUTTON
-                */
-                Button deleteButton = new Button(() =>
-                {
-                    terrain.DeleteBiome(biomeId);
-                    UpdateUI(root, terrain);
-                })
-                {
-                    text = "Delete Biome",
-                };
-
                 biomeFoldout.Add(biomeProperties);
-                biomeFoldout.Add(deleteButton);
-                root.Add(biomeFoldout);
+                biomeContainer.Add(biomeFoldout);
+                root.Add(biomeContainer);
+                deleteButton.BringToFront();
             }
         }
 

@@ -67,6 +67,10 @@
     margin-right: 4px;
 }
 
+.biome-container {
+    position: relative;
+}
+
 .biome-foldout,
 .feature-foldout {
     margin-bottom: 4px;
@@ -103,6 +107,24 @@ Button {
 .generate-buttons.column .generate-button {
     margin-right: 0;
     margin-bottom: 8px;
+}
+
+.delete-biome {
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    padding: 4px;
+    border-radius: 4px;
+    top: -2px;
+    right: 4px;
+    background-image: url("trash_can.png");
+    background-size: 17px 15px;
+    background-color: transparent;
+    border-width: 0;
+}
+
+.delete-biome:hover {
+    background-color: #585858;
 }
 
 /* 
