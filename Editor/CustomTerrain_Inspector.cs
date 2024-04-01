@@ -390,36 +390,54 @@ namespace WorldGenerator
                 /*
                     TEXTURE
                 */
+                Debug.Log("PAINTING TEXTURE");
                 Texture2D currentTexture = terrain.GetBiome(biomeId).GetTexture();
                 string currentTexturePath = Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(currentTexture));
-                string currentTextureName = texturePresets.FirstOrDefault(x => x.Value == currentTexturePath).Key;
+                Debug.Log(currentTexturePath);
+                string currentTextureName = "Import Custom";
+                Debug.Log(texturePresets.ContainsKey(currentTexturePath));
+                if (texturePresets.ContainsKey(currentTexturePath))
+                {
+                    currentTextureName = texturePresets.FirstOrDefault(x => x.Value == currentTexturePath).Key;
+                }//
+                //string currentTextureName = texturePresets.FirstOrDefault(x => x.Value == currentTexturePath).Key;
+                Debug.Log(currentTextureName);
+
                 int defaultTextureIndex = currentTextureName != null ? new List<string>(texturePresets.Keys).IndexOf(currentTextureName) : 0;
+                Debug.Log(defaultTextureIndex);
                 var textureDropdown = new PopupField<string>("Texture", new List<string>(texturePresets.Keys), defaultTextureIndex);
                 PropertyField textureField = new PropertyField(textureProperty, "Custom Texture");
+                // Debug.Log(textureDropdown.value);
                 if (textureDropdown.value == "Import Custom")
                 {
+                    Debug.Log("HERE");
                     textureField.style.display = DisplayStyle.Flex;
                 }
                 else
                 {
+                    Debug.Log("INSIDE ELSE" + textureDropdown.value);
                     textureField.style.display = DisplayStyle.None;
                 }
 
                 textureDropdown.RegisterValueChangedCallback(evt =>
                 {
                     string selectedTextureName = evt.newValue;
+                    string texturePath = "";
                     if (selectedTextureName == "Import Custom")
                     {
                         textureField.style.display = DisplayStyle.Flex;
+                        texturePath = "Textures/" + selectedTextureName;
                     }
                     else
                     {
                         textureField.style.display = DisplayStyle.None;
-                        var biome = terrain.GetBiome(biomeId);
-                        string texturePath = texturePresets[selectedTextureName];
-                        Texture2D texture = Resources.Load<Texture2D>(texturePath);
-                        biome.SetTexture(texture);
+                        texturePath = texturePresets[selectedTextureName];
                     }
+
+                    var biome = terrain.GetBiome(biomeId);
+                    // string texturePath = texturePresets[selectedTextureName];
+                    Texture2D texture = Resources.Load<Texture2D>(texturePath);
+                    biome.SetTexture(texture);
                 });
 
                 VisualElement textureContainer = new VisualElement();
