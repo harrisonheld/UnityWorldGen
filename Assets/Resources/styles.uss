@@ -109,7 +109,8 @@ Button {
     margin-bottom: 8px;
 }
 
-.delete-biome {
+.delete-biome,
+.delete-feature {
     position: absolute;
     width: 22px;
     height: 22px;
@@ -123,7 +124,8 @@ Button {
     border-width: 0;
 }
 
-.delete-biome:hover {
+.delete-biome:hover,
+.delete-feature:hover {
     background-color: #585858;
 }
 
