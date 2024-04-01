@@ -64,7 +64,7 @@ namespace WorldGenerator
         {
             { "Trees",         "Features/tree"  },
             { "Horses",        "Features/horse" },
-            { "Import Custom", "Features/default"         }
+            { "Import Custom", "Features/default" }
         };
 
         // refresh GUI after changes
@@ -787,6 +787,7 @@ namespace WorldGenerator
                 GameObject currentPrefab = terrain.GetBiome(biomeId).GetFeature(featureId).Prefab;
                 string currentPrefabPath = Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(currentPrefab));
                 string currentPrefabName = biomeFeaturePresets.FirstOrDefault(x => x.Value == currentPrefabPath).Key;
+                if (currentPrefabPath == "default") { currentPrefabName = "Import Custom"; }
                 int defaultPrefabIndex = currentPrefabName != null ? new List<string>(biomeFeaturePresets.Keys).IndexOf(currentPrefabName) : 0;
                 var prefabDropdown = new PopupField<string>("Feature", new List<string>(biomeFeaturePresets.Keys), defaultPrefabIndex);
                 PropertyField prefabField = new PropertyField(featurePrefabProperty, "Custom Feature");
