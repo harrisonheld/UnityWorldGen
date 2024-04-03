@@ -31,6 +31,16 @@
     margin-top: 8px;
 }
 
+.tooltip {
+    font-size: 32px;
+}
+
+.tooltip {
+    width: 20px;
+    height: 20px;
+    background-color: white;
+}
+
 /*
     CONTAINERS
 */
@@ -128,7 +138,7 @@ Button {
     border-radius: 4px;
     top: -2px;
     right: 4px;
-    background-image: url("trash_can.png");
+    background-image: url("icons/trash_can.png");
     background-size: 17px 15px;
     background-color: transparent;
     border-width: 0;
@@ -157,7 +167,7 @@ Button {
 .unity-text-field {
     display: flex;
     flex-direction: column;
-    height: 50px;
+    height: 40px;
 }
 
 .unity-text-field Label {
@@ -299,22 +309,10 @@ Button {
     margin-right: 4px;
 }
 
-
-
-.unity-vector3-field__input {
-    /* width: 40px; */
-    /* max-width: 40px;  */
-}
-
-.unity-vector3-field__input * {
-    /* min-width: 40px; */
-}
-
 .unity-float-field {
     padding: 0;
     
 }
-
 
 /*
     PROPERTY FIELDS
@@ -323,12 +321,36 @@ Button {
 .add-biome-field,
 .biome-field,
 .heightmap-field,
-.feature-field {
+.feature-field,
+.property-field {
     margin-bottom: 8px;
     padding: 4px;
     border-radius: 4px;
+    position: relative;
 }
 
 .feature-foldout.feature-field {
     margin-bottom: 0;
+}
+
+.tooltip {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 4px;
+    right: 3px;
+    width: 17px;
+    height: 17px;
+    background-color: transparent;
+    border-radius: 50%;
+}
+
+.tooltip:hover {
+    background-color: #585858;
+}
+
+.tooltip-i {
+    font-size: 10px;
+    -unity-text-align: middle-center;
 }
