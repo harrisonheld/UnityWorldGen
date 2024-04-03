@@ -798,11 +798,6 @@ namespace WorldGenerator
                 GameObject currentPrefab = terrain.GetBiome(biomeId).GetFeature(featureId).Prefab;
                 string currentPrefabPath = AssetDatabase.GetAssetPath(currentPrefab).Split(new[] { "/Resources/" }, StringSplitOptions.None).LastOrDefault()?.Split('.').FirstOrDefault();
                 string currentPrefabName = biomeFeaturePresets.FirstOrDefault(x => x.Value == currentPrefabPath).Key;
-                
-                //
-                // Debug.Log("currentPrefabPath: " + currentPrefabPath);
-                // Debug.Log("check currentPrefabName is null: " + (currentPrefabName == null));
-                // Debug.Log("check currentPrefabName : " + (currentPrefabName ));
                 if (currentPrefabName == null) { currentPrefabName = "Import Custom"; }
                 int defaultPrefabIndex = currentPrefabName != null ? new List<string>(biomeFeaturePresets.Keys).IndexOf(currentPrefabName) : 0;
                 var prefabDropdown = new PopupField<string>("Feature", new List<string>(biomeFeaturePresets.Keys), defaultPrefabIndex);  // Set Name to the value in the dictionary or null.
@@ -820,7 +815,6 @@ namespace WorldGenerator
                 prefabDropdown.RegisterValueChangedCallback(evt =>
                 {
                     string selectedPrefabName = evt.newValue;
-                    // Debug.Log("check call back: "+ (selectedPrefabName == "Import Custom"));
                     if (selectedPrefabName == "Import Custom")
                     {
                         prefabField.style.display = DisplayStyle.Flex;
@@ -839,15 +833,6 @@ namespace WorldGenerator
                 VisualElement prefabContainer = new VisualElement();
                 prefabContainer.Add(prefabDropdown);
                 prefabContainer.Add(prefabField);
-                // var parentElement = prefabField.parent;
-                // if (parentElement != null)
-                // {
-                //     Debug.Log($"Parent display style: {parentElement.style.display.value}");
-                // }
-                // else
-                // {
-                //     Debug.Log("prefabField does not have a parent.");
-                // }
                 prefabContainer.AddToClassList("feature-field");
 
                 featuresProperties.Add(featureNameField);
