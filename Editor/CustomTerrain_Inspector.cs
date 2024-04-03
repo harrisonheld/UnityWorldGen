@@ -394,21 +394,16 @@ namespace WorldGenerator
                 string currentTexturePath = AssetDatabase.GetAssetPath(currentTexture).Split(new[] { "/Resources/" }, StringSplitOptions.None).LastOrDefault()?.Split('.').FirstOrDefault();
                 string currentTextureName = texturePresets.FirstOrDefault(x => x.Value == currentTexturePath).Key;  // Set Name to the value in the dictionary or null.
                 if (currentTextureName == null) { currentTextureName = "Import Custom"; }
-                //string currentTextureName = texturePresets.FirstOrDefault(x => x.Value == currentTexturePath).Key;
-                //Debug.Log(currentTextureName);
-
                 int defaultTextureIndex = currentTextureName != null ? new List<string>(texturePresets.Keys).IndexOf(currentTextureName) : 0;
                 var textureDropdown = new PopupField<string>("Texture", new List<string>(texturePresets.Keys), defaultTextureIndex);
-                PropertyField textureField = new PropertyField(textureProperty, "Custom Texture");
-                // Debug.Log(textureDropdown.value);
+                ObjectField textureField = new ObjectField("Custom Texture");
+                textureField.BindProperty(textureProperty);
                 if (textureDropdown.value == "Import Custom")
                 {
-                    //Debug.Log("HERE");
                     textureField.style.display = DisplayStyle.Flex;
                 }
                 else
                 {
-                    //Debug.Log("INSIDE ELSE" + textureDropdown.value);
                     textureField.style.display = DisplayStyle.None;
                 }
 
@@ -450,7 +445,8 @@ namespace WorldGenerator
                 if (currentSkyboxName == null) { currentSkyboxName = "Import Custom"; }
                 int defaultSkyboxIndex = currentSkyboxName != null ? new List<string>(skyboxPresets.Keys).IndexOf(currentSkyboxName) : 0;
                 var skyboxDropdown = new PopupField<string>("Skybox", new List<string>(skyboxPresets.Keys), defaultSkyboxIndex);
-                PropertyField skyboxField = new PropertyField(skyboxProperty, "Custom Skybox");
+                ObjectField skyboxField = new ObjectField("Custom Skybox");
+                skyboxField.BindProperty(skyboxProperty);
                 if (skyboxDropdown.value == "Import Custom")
                 {
                     skyboxField.style.display = DisplayStyle.Flex;
@@ -553,13 +549,11 @@ namespace WorldGenerator
                 HeightmapBase currentHeightmap = terrain.GetBiome(biomeId).GetHeightmap();
                 string currentHeightmapPath = AssetDatabase.GetAssetPath(currentHeightmap).Split(new[] { "/Resources/" }, StringSplitOptions.None).LastOrDefault()?.Split('.').FirstOrDefault();
                 string currentHeightmapName = heightmapPresets.FirstOrDefault(x => x.Value == currentHeightmapPath).Key;
-                Debug.Log("currentPath: " + currentHeightmapPath);
-                Debug.Log("check currentName is null: " + (currentHeightmapName == null));
-                Debug.Log("check currentName : " + (currentHeightmapName));
                 if (currentHeightmapName == null) { currentHeightmapName = "Import Custom"; }
                 int defaultHeightmapIndex = currentHeightmapName != null ? new List<string>(heightmapPresets.Keys).IndexOf(currentHeightmapName) : 0;
                 var heightmapDropdown = new PopupField<string>("Type", new List<string>(heightmapPresets.Keys), defaultHeightmapIndex);
-                PropertyField heightmapField = new PropertyField(heightmapProperty, "Custom Heightmap");
+                ObjectField heightmapField = new ObjectField("Custom Heightmap");
+                heightmapField.BindProperty(heightmapProperty);
                 if (heightmapDropdown.value == "Import Custom")
                 {
                     heightmapField.style.display = DisplayStyle.Flex;
@@ -812,15 +806,11 @@ namespace WorldGenerator
                 if (currentPrefabName == null) { currentPrefabName = "Import Custom"; }
                 int defaultPrefabIndex = currentPrefabName != null ? new List<string>(biomeFeaturePresets.Keys).IndexOf(currentPrefabName) : 0;
                 var prefabDropdown = new PopupField<string>("Feature", new List<string>(biomeFeaturePresets.Keys), defaultPrefabIndex);  // Set Name to the value in the dictionary or null.
-                PropertyField prefabField = new PropertyField(featurePrefabProperty, "Custom Feature");
-                prefabField.style.display = DisplayStyle.Flex;
+                ObjectField prefabField = new ObjectField("Custom Feature");
+                prefabField.BindProperty(featurePrefabProperty);
                 if (prefabDropdown.value == "Import Custom")
                 {
-                    // Debug.Log("If the field exist: " + (prefabField != null));
-                    // Debug.Log("If the field is empty: " + (prefabField.childCount == 0));
-                    // Debug.Log("field display status: " + (prefabField.style.display == DisplayStyle.Flex));
-                    prefabField.style.display = DisplayStyle.Flex;
-                    // Debug.Log("field display status 2nd: " + (prefabField.style.display == DisplayStyle.Flex));
+                    prefabField.style.display = DisplayStyle.Flex;                
                 }
                 else
                 {
