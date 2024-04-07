@@ -309,8 +309,15 @@ namespace WorldGenerator
             biomesSectionLabel.AddToClassList("h1");
             root.Add(biomesSectionLabel);
 
-            // for each biome, add its properties to the GUI
             SerializedProperty biomesProperty = serializedObject.FindProperty("_biomes");
+
+            // if no biomes, render a emssage
+            if (biomesProperty.arraySize == 0)
+            {
+                Label noBiomesLabel = new Label("No biomes so far! Click 'Add Biome' above to add one.");
+                root.Add(noBiomesLabel);
+            }
+            // for each biome, add its properties to the GUI
             for (int i = 0; i < biomesProperty.arraySize; i++)
             {
                 // get current biome
