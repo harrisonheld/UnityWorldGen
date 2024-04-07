@@ -31,6 +31,16 @@
     margin-top: 8px;
 }
 
+.tooltip {
+    font-size: 32px;
+}
+
+.tooltip {
+    width: 20px;
+    height: 20px;
+    background-color: white;
+}
+
 /*
     CONTAINERS
 */
@@ -67,12 +77,16 @@
     margin-right: 4px;
 }
 
+.biome-container {
+    position: relative;
+}
+
 .biome-foldout,
 .feature-foldout {
     margin-bottom: 4px;
 }
 
-/* button */
+/* buttons */
 Button {
     padding: 4px;
     width: 200px;
@@ -80,6 +94,16 @@ Button {
     border-radius: 12px;
     cursor: link;
     transition: 0.1s;
+}
+
+.buttons-container {
+    display: flex;
+    flex-direction: column;
+    margin-top: 8px;
+}
+
+.buttons-container > Button {
+    margin-top: 8px;
 }
 
 .generate-buttons {
@@ -92,7 +116,7 @@ Button {
     flex-direction: column;
 }
 
-.generate-buttons Button {
+.buttons-container Button {
     width: 150px;
 }
 
@@ -103,6 +127,26 @@ Button {
 .generate-buttons.column .generate-button {
     margin-right: 0;
     margin-bottom: 8px;
+}
+
+.delete-biome,
+.delete-feature {
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    padding: 4px;
+    border-radius: 4px;
+    top: -2px;
+    right: 4px;
+    background-image: url("icons/trash_can.png");
+    background-size: 17px 15px;
+    background-color: transparent;
+    border-width: 0;
+}
+
+.delete-biome:hover,
+.delete-feature:hover {
+    background-color: #585858;
 }
 
 /* 
@@ -123,7 +167,7 @@ Button {
 .unity-text-field {
     display: flex;
     flex-direction: column;
-    height: 50px;
+    height: 40px;
 }
 
 .unity-text-field Label {
@@ -145,6 +189,11 @@ Button {
 .slider-float-container {
     display: flex;
     flex-direction: column;
+}
+
+.slider-int-container Label,
+.slider-float-container Label {
+    margin-bottom: 4px;
 }
 
 .slider-int-field,
@@ -174,7 +223,7 @@ Button {
 
 .unity-integer-field,
 .unity-float-field {
-    padding-left: 12px;
+    margin-left: 12px;
     -unity-text-align: middle-center;
 }
 
@@ -265,22 +314,9 @@ Button {
     margin-right: 4px;
 }
 
-
-
-.unity-vector3-field__input {
-    /* width: 40px; */
-    /* max-width: 40px;  */
-}
-
-.unity-vector3-field__input * {
-    /* min-width: 40px; */
-}
-
 .unity-float-field {
-    padding: 0;
-    
+    margin: 0;
 }
-
 
 /*
     PROPERTY FIELDS
@@ -293,8 +329,39 @@ Button {
     margin-bottom: 8px;
     padding: 4px;
     border-radius: 4px;
+    position: relative;
 }
 
 .feature-foldout.feature-field {
     margin-bottom: 0;
+}
+
+.property-field {
+    position: relative;
+}
+
+.tooltip {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 4px;
+    right: 3px;
+    width: 17px;
+    height: 17px;
+    background-color: transparent;
+    border-radius: 50%;
+}
+
+.tooltip:hover {
+    background-color: #585858;
+}
+
+.tooltip-i {
+    font-size: 10px;
+    -unity-text-align: middle-center;
+}
+
+.checkbox-field .tooltip {
+    top: -1px;
 }

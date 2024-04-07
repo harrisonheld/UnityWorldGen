@@ -14,6 +14,8 @@ namespace WorldGenerator
     {
         public VisualTreeAsset m_InspectorXML;
 
+        private Dictionary<string, Foldout> foldoutStates = new Dictionary<string, Foldout>();
+
         // presets for biomes dropdown
         private readonly Dictionary<string, (string heightmap, string texture, string skybox)> biomePresets = new Dictionary<string, (string, string, string)>
         {
@@ -33,33 +35,34 @@ namespace WorldGenerator
             { "Plains",        "Heightmaps/Plains"   },
             { "Mountain",      "Heightmaps/Mountain" },
             { "Valley",        "Heightmaps/Valley"   },
-            { "Import Custom", "Custom"              }
+            { "Import Custom", "Heightmaps/Flat"     }
         };
 
         // presets for texture dropdown
         private readonly Dictionary<string, string> texturePresets = new Dictionary<string, string>
         {
             { "Sand",          "Textures/Sand"  },
-            { "Grass",         "Textures/Grass" },
+            { "Grass",         "Textures/grass" },
             { "Stone",         "Textures/Stone" },
-            { "Import Custom", "Custom"         }
+            { "Import Custom", "Textures/grass" }
         };
 
         // presets for skybox dropdown
         private readonly Dictionary<string, string> skyboxPresets = new Dictionary<string, string>
         {
             { "Default",       "Skyboxes/Default" },
-            { "Thin",          "Skyboxes/Thing"   },
+            { "Thin",          "Skyboxes/Thin"    },
             { "Dusk",          "Skyboxes/Dusk"    },
-            { "Import Custom", "Custom"           }
+            { "Import Custom", "Skyboxes/Default" }
         };
 
         // presets for features dropdown
         private readonly Dictionary<string, string> biomeFeaturePresets = new Dictionary<string, string>
         {
-            { "Trees",         "Features/tree"  },
-            { "Horses",        "Features/horse" },
-            { "Import Custom", "Custom"         }
+            { "Trees",         "Features/tree"    },
+            { "Rocks",         "Features/rock"    },
+            { "Horses",        "Features/horse"   },
+            { "Import Custom", "Features/default" }
         };
 
         // refresh GUI after changes
@@ -107,8 +110,10 @@ namespace WorldGenerator
                 drawGizmosProperty.boolValue = evt.newValue;
                 serializedObject.ApplyModifiedProperties();
             });
+            VisualElement gizmosContainer = CreateField(drawGizmosField, "If true, a box will be drawn around each chunk. Make sure Gizmos are enabled in the Unity Editor.");
+            gizmosContainer.AddToClassList("checkbox-field");
 
-            debugSection.Add(drawGizmosField);
+            debugSection.Add(gizmosContainer);
             root.Add(debugSection);
 
             /* 
@@ -120,38 +125,34 @@ namespace WorldGenerator
 
             Box worldOptSection = new Box();
 
-            TextField worldSeed = new TextField("World Seed")
-            {
-                value = worldSeedStringProperty.stringValue
-            };
+            TextField worldSeed = new TextField("World Seed") { value = worldSeedStringProperty.stringValue };
             worldSeed.RegisterValueChangedCallback(evt =>
             {
                 worldSeedStringProperty.stringValue = evt.newValue;
                 serializedObject.ApplyModifiedProperties();
             });
+            VisualElement worldSeedContainer = CreateField(worldSeed, "The seed string used to generate the terrain. If left empty, a random seed will be used.");
 
-            TextField featureSeed = new TextField("Feature Seed")
-            {
-                value = featureSeedStringProperty.stringValue
-            };
+            TextField featureSeed = new TextField("Feature Seed") { value = featureSeedStringProperty.stringValue };
             featureSeed.RegisterValueChangedCallback(evt =>
             {
                 featureSeedStringProperty.stringValue = evt.newValue;
                 serializedObject.ApplyModifiedProperties();
             });
+            VisualElement featureSeedContainer = CreateField(featureSeed, "The seed string used to generate the features. If left empty, a random seed will be used.");
 
             // create sliders and int fields for TerrainSize, BiomesFrequency and BiomesResolution
             var sizeSlider = new Slider(10, 1000) { value = chunkSizeProperty.intValue };
             var sizeField = new IntegerField { value = chunkSizeProperty.intValue };
-            VisualElement sizeContainer = GroupSliderAndInt(sizeSlider, sizeField, "Chunk Size");
+            VisualElement sizeContainer = GroupSliderAndInt(sizeSlider, sizeField, "Chunk Size", "The size of each chunk in world units. This is the number of units along each side of the chunk.");
 
             var resolutionSlider = new Slider(2, 250) { value = chunkResolutionProperty.intValue };
             var resolutionField = new IntegerField { value = chunkResolutionProperty.intValue };
-            VisualElement resolutionContainer = GroupSliderAndInt(resolutionSlider, resolutionField, "Chunk Resolution");
+            VisualElement resolutionContainer = GroupSliderAndInt(resolutionSlider, resolutionField, "Chunk Resolution", "The resolution of each chunk. This is the number of vertices along each side of the chunk.");
 
             var frequencySlider = new Slider(1, 10) { value = biomesPerChunkProperty.intValue };
             var frequencyField = new IntegerField { value = biomesPerChunkProperty.intValue };
-            VisualElement frequencyContainer = GroupSliderAndInt(frequencySlider, frequencyField, "Biomes Frequency");
+            VisualElement frequencyContainer = GroupSliderAndInt(frequencySlider, frequencyField, "Biomes Per Chunk", "The number of biomes that will be placed per chunk. Increasing this will generally make your biomes smaller.");
 
             // sync slider with int field
             void SyncSliderAndField(Slider slider, IntegerField field, SerializedProperty property, bool enforceEven = false)
@@ -185,65 +186,17 @@ namespace WorldGenerator
             SyncSliderAndField(frequencySlider, frequencyField, biomesPerChunkProperty);
             SyncSliderAndField(resolutionSlider, resolutionField, chunkResolutionProperty);
 
-            /*
-                GENERATE BUTTONS
-            */
-            // generate terrain button
-            Button generateButton = new Button(() =>
-            {
-                terrain.GenerateTerrain();
-            })
-            {
-                text = "Generate Terrain"
-            };
-            generateButton.AddToClassList("generate-button");
-
-            // regenerate features button
-            Button regenerateFeatures = new Button(() =>
-            {
-                terrain.GenerateAllFeatures();
-            })
-            {
-                text = "Regenerate Features"
-            };
-
-            // export button
-            Button exportButton = new Button(() =>
-            {
-                terrain.ExportChunks("Assets/ExportedTerrainChunks");
-            })
-            {
-                text = "Export All Chunks"
-            };
-
-
-            VisualElement generateBtnsContainer = new VisualElement();
-            generateBtnsContainer.Add(generateButton);
-            generateBtnsContainer.Add(regenerateFeatures);
-            generateBtnsContainer.Add(exportButton);
-            generateBtnsContainer.AddToClassList("generate-buttons");
-
-            // change class of generate buttons container depending on inspector width
-            root.RegisterCallback<GeometryChangedEvent>(evt =>
-            {
-                if (evt.newRect.width < 350) { generateBtnsContainer.AddToClassList("column"); }
-                else { generateBtnsContainer.RemoveFromClassList("column"); }
-            });
-
-            // add elements to the root on the top
-            worldSeed.AddToClassList("options-field");
-            featureSeed.AddToClassList("options-field");
+            worldSeedContainer.AddToClassList("options-field");
+            featureSeedContainer.AddToClassList("options-field");
             sizeContainer.AddToClassList("options-field");
             frequencyContainer.AddToClassList("options-field");
             resolutionContainer.AddToClassList("options-field");
 
-            worldOptSection.Add(worldSeed);
-            worldOptSection.Add(featureSeed);
+            worldOptSection.Add(worldSeedContainer);
+            worldOptSection.Add(featureSeedContainer);
             worldOptSection.Add(sizeContainer);
             worldOptSection.Add(frequencyContainer);
             worldOptSection.Add(resolutionContainer);
-            worldOptSection.Add(generateBtnsContainer);
-
             root.Add(worldOptSection);
 
             /*
@@ -325,13 +278,43 @@ namespace WorldGenerator
                 SerializedProperty frequencyWeightProperty = biomeElement.FindPropertyRelative("_frequencyWeight");
                 SerializedProperty featuresProperty = biomeElement.FindPropertyRelative("_features");
 
+                VisualElement biomeContainer = new VisualElement();
+                biomeContainer.AddToClassList("biome-container");
+
                 // create main foldout for biome
                 Foldout biomeFoldout = new Foldout()
                 {
                     text = string.IsNullOrEmpty(nameProperty.stringValue) ? "Unnamed Biome" : nameProperty.stringValue,
                     value = false
                 };
+
+                // if foldout already exists, load from dictionary
+                if (foldoutStates.ContainsKey(biomeId)) 
+                {
+                    Debug.Log(biomeId);
+                    biomeFoldout = foldoutStates[biomeId];
+                    biomeFoldout.Clear();
+                } 
+                // if doesn't exist, add to dictionary
+                else
+                {
+                    foldoutStates[biomeId] = biomeFoldout;
+                }
                 biomeFoldout.AddToClassList("biome-foldout");
+
+                /*
+                    DELETE BIOME BUTTON
+                */
+                Button deleteButton = new Button(() =>
+                {
+                    terrain.DeleteBiome(biomeId);
+                    UpdateUI(root, terrain);
+                });
+                deleteButton.AddToClassList("delete-biome");
+
+                biomeContainer.Add(biomeFoldout);
+                biomeContainer.Add(deleteButton);
+
 
                 Box biomeProperties = new Box();
 
@@ -339,25 +322,30 @@ namespace WorldGenerator
                     BIOME NAME
                 */
                 TextField nameField = new TextField("Biome Name") { value = nameProperty.stringValue };
-
                 nameField.RegisterValueChangedCallback(evt =>
                 {
                     nameProperty.stringValue = evt.newValue;
                     biomeElement.serializedObject.ApplyModifiedProperties();
                     biomeFoldout.text = string.IsNullOrEmpty(evt.newValue) ? "Unnamed Biome" : evt.newValue;
                 });
-                nameField.AddToClassList("biome-field");
-                biomeProperties.Add(nameField);
+                VisualElement nameContainer = CreateField(nameField, "Name of the current biome.");
+                nameContainer.AddToClassList("biome-field");
+                biomeProperties.Add(nameContainer);
 
                 /*
                     TEXTURE
                 */
                 Texture2D currentTexture = terrain.GetBiome(biomeId).GetTexture();
-                string currentTexturePath = Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(currentTexture));
-                string currentTextureName = texturePresets.FirstOrDefault(x => x.Value == currentTexturePath).Key;
+                string currentTexturePath = AssetDatabase.GetAssetPath(currentTexture).Split(new[] { "/Resources/" }, StringSplitOptions.None).LastOrDefault()?.Split('.').FirstOrDefault();
+                string currentTextureName = texturePresets.FirstOrDefault(x => x.Value == currentTexturePath).Key;  // Set Name to the value in the dictionary or null.
+                if (currentTextureName == null) { currentTextureName = "Import Custom"; }
                 int defaultTextureIndex = currentTextureName != null ? new List<string>(texturePresets.Keys).IndexOf(currentTextureName) : 0;
                 var textureDropdown = new PopupField<string>("Texture", new List<string>(texturePresets.Keys), defaultTextureIndex);
-                PropertyField textureField = new PropertyField(textureProperty, "Custom Texture");
+                VisualElement textureContainer = CreateField(textureDropdown, "The texture that will be used to paint this biome.");
+
+                ObjectField textureField = new ObjectField("Custom Texture");
+                textureField.BindProperty(textureProperty);
+                textureField.objectType= typeof (Texture2D);
                 if (textureDropdown.value == "Import Custom")
                 {
                     textureField.style.display = DisplayStyle.Flex;
@@ -370,6 +358,7 @@ namespace WorldGenerator
                 textureDropdown.RegisterValueChangedCallback(evt =>
                 {
                     string selectedTextureName = evt.newValue;
+                    string texturePath = "";
                     if (selectedTextureName == "Import Custom")
                     {
                         textureField.style.display = DisplayStyle.Flex;
@@ -377,15 +366,13 @@ namespace WorldGenerator
                     else
                     {
                         textureField.style.display = DisplayStyle.None;
-                        var biome = terrain.GetBiome(biomeId);
-                        string texturePath = texturePresets[selectedTextureName];
-                        Texture2D texture = Resources.Load<Texture2D>(texturePath);
-                        biome.SetTexture(texture);
                     }
-                });
 
-                VisualElement textureContainer = new VisualElement();
-                textureContainer.Add(textureDropdown);
+                    var biome = terrain.GetBiome(biomeId);
+                    texturePath = texturePresets[selectedTextureName];
+                    Texture2D texture = Resources.Load<Texture2D>(texturePath);
+                    biome.SetTexture(texture);
+                });
                 textureContainer.Add(textureField);
                 textureContainer.AddToClassList("biome-field");
 
@@ -395,11 +382,16 @@ namespace WorldGenerator
                     SKYBOX
                 */
                 Material currentSkybox = terrain.GetBiome(biomeId).GetSkybox();
-                string currentSkyboxPath = Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(currentSkybox));
-                string currentSkyboxName = skyboxPresets.FirstOrDefault(x => x.Value == currentSkyboxPath).Key;
+                string currentSkyboxPath = AssetDatabase.GetAssetPath(currentSkybox).Split(new[] { "/Resources/" }, StringSplitOptions.None).LastOrDefault()?.Split('.').FirstOrDefault();
+                string currentSkyboxName = skyboxPresets.FirstOrDefault(x => x.Value == currentSkyboxPath).Key; // Set Name to the value in the dictionary or null.
+                if (currentSkyboxName == null) { currentSkyboxName = "Import Custom"; }
                 int defaultSkyboxIndex = currentSkyboxName != null ? new List<string>(skyboxPresets.Keys).IndexOf(currentSkyboxName) : 0;
                 var skyboxDropdown = new PopupField<string>("Skybox", new List<string>(skyboxPresets.Keys), defaultSkyboxIndex);
-                PropertyField skyboxField = new PropertyField(skyboxProperty, "Custom Skybox");
+                VisualElement skyboxContainer = CreateField(skyboxDropdown, "The type of sky that will be seen in this biome.");
+                
+                ObjectField skyboxField = new ObjectField("Custom Skybox");
+                skyboxField.BindProperty(skyboxProperty);
+                skyboxField.objectType = typeof(Material);
                 if (skyboxDropdown.value == "Import Custom")
                 {
                     skyboxField.style.display = DisplayStyle.Flex;
@@ -411,7 +403,7 @@ namespace WorldGenerator
 
                 skyboxDropdown.RegisterValueChangedCallback(evt =>
                 {
-                    // Placeholder for future functionality
+                    // placeholder for future functionality
                     string selectedSkyboxName = evt.newValue;
                     if (selectedSkyboxName == "Import Custom")
                     {
@@ -420,15 +412,12 @@ namespace WorldGenerator
                     else
                     {
                         skyboxField.style.display = DisplayStyle.None;
-                        var biome = terrain.GetBiome(biomeId);
-                        string skyboxPath = skyboxPresets[selectedSkyboxName];
-                        Material skybox = Resources.Load<Material>(skyboxPath);
-                        biome.SetSkybox(skybox);
                     }
+                    var biome = terrain.GetBiome(biomeId);
+                    string skyboxPath = skyboxPresets[selectedSkyboxName];
+                    Material skybox = Resources.Load<Material>(skyboxPath);
+                    biome.SetSkybox(skybox);
                 });
-
-                VisualElement skyboxContainer = new VisualElement();
-                skyboxContainer.Add(skyboxDropdown);
                 skyboxContainer.Add(skyboxField);
                 skyboxContainer.AddToClassList("biome-field");
 
@@ -446,7 +435,7 @@ namespace WorldGenerator
                     value = frequencyWeightProperty.intValue
                 };
 
-                VisualElement frequencyWeightContainer = GroupSliderAndInt(frequencyWeightSlider, frequencyWeightIntField, "Frequency");
+                VisualElement frequencyWeightContainer = GroupSliderAndInt(frequencyWeightSlider, frequencyWeightIntField, "Frequency", "How often this biome will appear in the world.");
                 frequencyWeightContainer.AddToClassList("biome-field");
 
                 frequencyWeightSlider.RegisterValueChangedCallback(evt =>
@@ -479,6 +468,20 @@ namespace WorldGenerator
                     text = "Heightmap",
                     value = false
                 };
+
+                // if foldout already exists, load from dictionary
+                string heightmapId = "heightmap" + biomeId;
+                if (foldoutStates.ContainsKey(heightmapId))
+                {
+                    heightmapFoldout = foldoutStates[heightmapId];
+                    heightmapFoldout.Clear();
+                }
+                // if doesn't exist, add to dictionary
+                else
+                {
+                    foldoutStates[heightmapId] = heightmapFoldout;
+                }
+
                 heightmapFoldout.AddToClassList("heightmap-foldout");
                 heightmapFoldout.AddToClassList("biome-field");
 
@@ -486,11 +489,16 @@ namespace WorldGenerator
 
                 // add heightmaps dropdown
                 HeightmapBase currentHeightmap = terrain.GetBiome(biomeId).GetHeightmap();
-                string currentHeightmapPath = Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(currentHeightmap));
+                string currentHeightmapPath = AssetDatabase.GetAssetPath(currentHeightmap).Split(new[] { "/Resources/" }, StringSplitOptions.None).LastOrDefault()?.Split('.').FirstOrDefault();
                 string currentHeightmapName = heightmapPresets.FirstOrDefault(x => x.Value == currentHeightmapPath).Key;
+                if (currentHeightmapName == null) { currentHeightmapName = "Import Custom"; }
                 int defaultHeightmapIndex = currentHeightmapName != null ? new List<string>(heightmapPresets.Keys).IndexOf(currentHeightmapName) : 0;
                 var heightmapDropdown = new PopupField<string>("Type", new List<string>(heightmapPresets.Keys), defaultHeightmapIndex);
-                PropertyField heightmapField = new PropertyField(heightmapProperty, "Custom Heightmap");
+                VisualElement heightmapType = CreateField(heightmapDropdown, "The type of heightmap to be used for the biome. This controls the topography of the terrain.");
+                
+                ObjectField heightmapField = new ObjectField("Custom Heightmap");
+                heightmapField.BindProperty(heightmapProperty);
+                heightmapField.objectType = typeof(HeightmapBase);
                 if (heightmapDropdown.value == "Import Custom")
                 {
                     heightmapField.style.display = DisplayStyle.Flex;
@@ -510,18 +518,24 @@ namespace WorldGenerator
                     else
                     {
                         heightmapField.style.display = DisplayStyle.None;
-                        var biome = terrain.GetBiome(biomeId);
-                        string heightmapPath = heightmapPresets[selectedHeightmapName];
-                        HeightmapBase heightmap = Resources.Load<HeightmapBase>(heightmapPath);
-                        biome.SetHeightMap(heightmap);
+                    }
+                    var biome = terrain.GetBiome(biomeId);
+                    string heightmapPath = heightmapPresets[selectedHeightmapName];
+                    HeightmapBase heightmap = Resources.Load<HeightmapBase>(heightmapPath);
+                    biome.SetHeightMap(heightmap);
+                    UpdateUI(root, terrain);
+                });
+
+                heightmapField.RegisterValueChangedCallback(evt =>
+                {
+                    if (currentHeightmap != evt.newValue) 
+                    {
+                        UpdateUI(root, terrain);
                     }
                 });
 
-                VisualElement heightmapType = new VisualElement();
-                heightmapType.Add(heightmapDropdown);
                 heightmapType.Add(heightmapField);
                 heightmapType.AddToClassList("heightmap-field");
-
                 heightmapProperties.Clear();
                 heightmapProperties.Add(heightmapType);
             
@@ -547,7 +561,7 @@ namespace WorldGenerator
                             var slider = new Slider(minValue, maxValue) { value = currentProperty.floatValue };
                             var floatField = new FloatField { value = currentProperty.floatValue };
 
-                            VisualElement sliderContainer = GroupSliderAndFloat(slider, floatField, currentProperty.displayName);
+                            VisualElement sliderContainer = GroupSliderAndFloat(slider, floatField, currentProperty.displayName, currentProperty.displayName);
                             sliderContainer.AddToClassList("heightmap-field");
 
                             slider.RegisterValueChangedCallback(evt =>
@@ -574,6 +588,33 @@ namespace WorldGenerator
                             heightmapProperties.Add(sliderContainer);
                             break;
 
+                        case SerializedPropertyType.ArraySize:
+                            // ArraySize handling
+                            var arraySizeField = new IntegerField(currentProperty.displayName) { value = currentProperty.intValue };
+                            arraySizeField.RegisterValueChangedCallback(evt =>
+                            {
+                                currentProperty.arraySize = evt.newValue;
+                                currentProperty.serializedObject.ApplyModifiedProperties();
+                                UpdateUI(root,terrain);
+                            });
+                            heightmapProperties.Add(arraySizeField);
+                            break;
+
+                        case SerializedPropertyType.Generic:
+                            break;
+
+                        case SerializedPropertyType.ObjectReference:
+                            var objectField = new ObjectField(currentProperty.displayName) { value = currentProperty.objectReferenceValue };
+                            objectField.BindProperty(currentProperty);
+                            objectField.RegisterValueChangedCallback(evt =>
+                            {
+                                currentProperty.objectReferenceValue = evt.newValue;
+                                currentProperty.serializedObject.ApplyModifiedProperties();
+                            });
+                            heightmapProperties.Add(objectField);
+                    
+                            break;
+
                         default:
                             var label = new Label($"{currentProperty.displayName}: {currentProperty.propertyType} not supported");
                             heightmapProperties.Add(label);
@@ -581,29 +622,67 @@ namespace WorldGenerator
                     }
                 }
                 heightmapFoldout.Add(heightmapProperties);
-                biomeProperties.Add(heightmapFoldout);//
+                biomeProperties.Add(heightmapFoldout);
 
                 /* 
                     FEATURES
                 */
                 BuildBiomeFeaturesField(root, terrain, i, biomeId, featuresProperty, biomeProperties);
 
-                /*
-                    DELETE BIOME BUTTON
-                */
-                Button deleteButton = new Button(() =>
-                {
-                    terrain.DeleteBiome(biomeId);
-                    UpdateUI(root, terrain);
-                })
-                {
-                    text = "Delete Biome",
-                };
-
                 biomeFoldout.Add(biomeProperties);
-                biomeFoldout.Add(deleteButton);
-                root.Add(biomeFoldout);
+                biomeContainer.Add(biomeFoldout);
+                root.Add(biomeContainer);
+                deleteButton.BringToFront();
             }
+
+            /*
+                GENERATE BUTTONS
+            */
+            // generate terrain button
+            Button generateButton = new Button(() =>
+            {
+                terrain.GenerateTerrain();
+            })
+            {
+                text = "Generate Terrain"
+            };
+            generateButton.AddToClassList("generate-button");
+
+            // regenerate features button
+            Button regenerateFeatures = new Button(() =>
+            {
+                terrain.GenerateAllFeatures();
+            })
+            {
+                text = "Regenerate Features"
+            };
+
+            // export button
+            Button exportButton = new Button(() =>
+            {
+                terrain.ExportChunks("Assets/ExportedTerrainChunks");
+            })
+            {
+                text = "Export All Chunks"
+            };
+
+            VisualElement buttonsContainer = new VisualElement();
+            VisualElement generateBtnsContainer = new VisualElement();
+            generateBtnsContainer.Add(generateButton);
+            generateBtnsContainer.Add(regenerateFeatures);
+            buttonsContainer.Add(generateBtnsContainer);
+            buttonsContainer.Add(exportButton);
+            buttonsContainer.AddToClassList("buttons-container");
+            generateBtnsContainer.AddToClassList("generate-buttons");
+
+            // change class of generate buttons container depending on inspector width
+            root.RegisterCallback<GeometryChangedEvent>(evt =>
+            {
+                if (evt.newRect.width < 350) { generateBtnsContainer.AddToClassList("column"); }
+                else { generateBtnsContainer.RemoveFromClassList("column"); }
+            });
+
+            root.Add(buttonsContainer);
         }
 
         private void BuildBiomeFeaturesField(VisualElement root, CustomTerrain terrain, int i, string biomeId, SerializedProperty featuresProperty, Box biomeProperties)
@@ -629,13 +708,42 @@ namespace WorldGenerator
                 SerializedProperty featureNormalProperty = featureElement.FindPropertyRelative("SetNormal");
                 SerializedProperty featurePrefabProperty = featureElement.FindPropertyRelative("Prefab");
 
+                VisualElement featureContainer = new VisualElement();
+                featureContainer.AddToClassList("feature-container");
+
+                // create main foldout for feature
                 Foldout featureFoldout = new Foldout()
                 {
                     text = string.IsNullOrEmpty(featureNameProperty.stringValue) ? "Unnamed Feature" : featureNameProperty.stringValue,
                     value = false
                 };
+
+                // if foldout already exists, load from dictionary
+                if (foldoutStates.ContainsKey(featureId))
+                {
+                    featureFoldout = foldoutStates[featureId];
+                    featureFoldout.Clear();
+                }
+                // if doesn't exist, add to dictionary
+                else
+                {
+                    foldoutStates[featureId] = featureFoldout;
+                }
                 featureFoldout.AddToClassList("feature-foldout");
                 featureFoldout.AddToClassList("feature-field");
+
+                /*
+                    DELETE FEATURE BUTTON
+                */
+                Button deleteFeatureButton = new Button(() =>
+                {
+                    terrain.GetBiome(biomeId).DeleteFeature(featureId);
+                    UpdateUI(root, terrain);
+                });
+                deleteFeatureButton.AddToClassList("delete-feature");
+
+                featureContainer.Add(featureFoldout);
+                featureContainer.Add(deleteFeatureButton);
 
                 Box featuresProperties = new Box();
 
@@ -643,8 +751,6 @@ namespace WorldGenerator
                     FEATURE NAME
                 */
                 TextField featureNameField = new TextField("Feature Name") { value = featureNameProperty.stringValue };
-                featureNameField.AddToClassList("feature-field");
-
                 featureNameField.RegisterValueChangedCallback(evt =>
                 {
                     featureNameProperty.stringValue = evt.newValue;
@@ -652,19 +758,16 @@ namespace WorldGenerator
                     featureFoldout.text = string.IsNullOrEmpty(evt.newValue) ? "Unnamed Feature" : evt.newValue;
                 });
 
+                VisualElement featureNameContainer = CreateField(featureNameField, "The name of the biome feature.");
+                featureNameContainer.AddToClassList("feature-field");
+
                 /*
                     FREQUENCY
                 */
-                var featureFrequencySlider = new Slider(0, 100)
-                {
-                    value = featureFrequencyProperty.intValue
-                };
-                var featureFrequencyIntField = new IntegerField
-                {
-                    value = featureFrequencyProperty.intValue
-                };
+                var featureFrequencySlider = new Slider(0, 100) { value = featureFrequencyProperty.intValue };
+                var featureFrequencyIntField = new IntegerField { value = featureFrequencyProperty.intValue };
 
-                VisualElement featureFrequencyField = GroupSliderAndInt(featureFrequencySlider, featureFrequencyIntField, "Frequency");
+                VisualElement featureFrequencyField = GroupSliderAndInt(featureFrequencySlider, featureFrequencyIntField, "Frequency", "How often this feature will appear in the biome.");
                 featureFrequencyField.AddToClassList("feature-field");
 
                 featureFrequencySlider.RegisterValueChangedCallback(evt =>
@@ -691,38 +794,42 @@ namespace WorldGenerator
                     SCALE
                 */
                 var featureScaleField = new Vector3Field("Scale") { value = featureScaleProperty.vector3Value };
-                featureScaleField.AddToClassList("feature-field");
-
                 featureScaleField.RegisterValueChangedCallback(evt =>
                 {
                     featureScaleProperty.vector3Value = evt.newValue;
                     featureElement.serializedObject.ApplyModifiedProperties();
                 });
-
+                VisualElement scaleContainer = CreateField(featureScaleField, "The scale of this feature. Controls how big the feature appears in the biome.");
+                scaleContainer.AddToClassList("feature-field");
                 /*
                     NORMALITY
                 */
                 var featureNormalField = new Toggle("Set Normal") { value = featureNormalProperty.boolValue };
-                featureNormalField.AddToClassList("feature-field");
-
                 featureNormalField.RegisterValueChangedCallback(evt =>
                 {
                     featureNormalProperty.boolValue = evt.newValue;
                     featureElement.serializedObject.ApplyModifiedProperties();
                 });
 
+                VisualElement normalContainer = CreateField(featureNormalField, "If true, the object will be placed normal (perpendicular) to the terrain.");
+                normalContainer.AddToClassList("feature-field");
                 /*
                     PREFAB
                 */
                 GameObject currentPrefab = terrain.GetBiome(biomeId).GetFeature(featureId).Prefab;
-                string currentPrefabPath = Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(currentPrefab));
+                string currentPrefabPath = AssetDatabase.GetAssetPath(currentPrefab).Split(new[] { "/Resources/" }, StringSplitOptions.None).LastOrDefault()?.Split('.').FirstOrDefault();
                 string currentPrefabName = biomeFeaturePresets.FirstOrDefault(x => x.Value == currentPrefabPath).Key;
+                if (currentPrefabName == null) { currentPrefabName = "Import Custom"; }
                 int defaultPrefabIndex = currentPrefabName != null ? new List<string>(biomeFeaturePresets.Keys).IndexOf(currentPrefabName) : 0;
-                var prefabDropdown = new PopupField<string>("Feature", new List<string>(biomeFeaturePresets.Keys), defaultPrefabIndex);
-                PropertyField prefabField = new PropertyField(featurePrefabProperty, "Custom Feature");
+                var prefabDropdown = new PopupField<string>("Feature", new List<string>(biomeFeaturePresets.Keys), defaultPrefabIndex);  // Set Name to the value in the dictionary or null.
+                VisualElement prefabContainer = CreateField(prefabDropdown, "The feature/object model that spawns in the terrain.");
+                
+                ObjectField prefabField = new ObjectField("Custom Feature");
+                prefabField.BindProperty(featurePrefabProperty);
+                prefabField.objectType = typeof(GameObject);
                 if (prefabDropdown.value == "Import Custom")
                 {
-                    prefabField.style.display = DisplayStyle.Flex;
+                    prefabField.style.display = DisplayStyle.Flex;                
                 }
                 else
                 {
@@ -735,42 +842,31 @@ namespace WorldGenerator
                     if (selectedPrefabName == "Import Custom")
                     {
                         prefabField.style.display = DisplayStyle.Flex;
+
                     }
                     else
                     {
                         prefabField.style.display = DisplayStyle.None;
-                        var feature = terrain.GetBiome(biomeId).GetFeature(featureId);
-                        string prefabPath = biomeFeaturePresets[selectedPrefabName];
-                        GameObject prefab = Resources.Load<GameObject>(prefabPath);
-                        feature.Prefab = prefab;
                     }
+                    var feature = terrain.GetBiome(biomeId).GetFeature(featureId);
+                    string prefabPath = biomeFeaturePresets[selectedPrefabName];
+                    GameObject prefab = Resources.Load<GameObject>(prefabPath);
+                    feature.Prefab = prefab;
                 });
-
-                VisualElement prefabContainer = new VisualElement();
-                prefabContainer.Add(prefabDropdown);
                 prefabContainer.Add(prefabField);
                 prefabContainer.AddToClassList("feature-field");
 
-                /*
-                    DELETE FEATURE BUTTON
-                */
-                Button deleteFeatureButton = new Button(() =>
-                {
-                    terrain.GetBiome(biomeId).DeleteFeature(featureId);
-                    UpdateUI(root, terrain);
-                })
-                {
-                    text = "Delete Feature",
-                };
-
-                featuresProperties.Add(featureNameField);
+                featuresProperties.Add(featureNameContainer);
                 featuresProperties.Add(featureFrequencyField);
-                featuresProperties.Add(featureScaleField);
-                featuresProperties.Add(featureNormalField);
+                featuresProperties.Add(scaleContainer);
+                featuresProperties.Add(normalContainer);
                 featuresProperties.Add(prefabContainer);
                 featuresProperties.Add(deleteFeatureButton);
                 featureFoldout.Add(featuresProperties);
-                biomeProperties.Add(featureFoldout);
+                featureContainer.Add(featureFoldout);
+                featureContainer.Add(deleteFeatureButton);
+                biomeProperties.Add(featureContainer);
+                deleteFeatureButton.BringToFront();
             }
 
             /*
@@ -792,12 +888,21 @@ namespace WorldGenerator
 
                 BiomeFeature newFeature = new BiomeFeature();
                 string featureId = System.Guid.NewGuid().ToString();
-                
                 newFeature.SetFeatureId(featureId);
-                newFeature.Name = selectedFeatureName;
-                string featurePath = biomeFeaturePresets[selectedFeatureName];
-                GameObject featurePrefab = Resources.Load<GameObject>(featurePath);
-                newFeature.Prefab = featurePrefab;
+                if (selectedFeatureName == "Import Custom")
+                {
+                    string featurePath = biomeFeaturePresets[selectedFeatureName];
+                    GameObject featurePrefab = Resources.Load<GameObject>(featurePath);
+                    newFeature.Prefab = featurePrefab;
+                    newFeature.Name = "Custom";
+                }
+                else
+                {
+                    newFeature.Name = selectedFeatureName;
+                    string featurePath = biomeFeaturePresets[selectedFeatureName];
+                    GameObject featurePrefab = Resources.Load<GameObject>(featurePath);
+                    newFeature.Prefab = featurePrefab;
+                }
 
                 terrain.GetBiome(biomeId).AddFeature(newFeature);
                 UpdateUI(root, terrain);
@@ -810,11 +915,18 @@ namespace WorldGenerator
             biomeProperties.Add(addFeatureButton);
         }
 
-        private VisualElement GroupSliderAndInt(Slider slider, IntegerField field, string label)
+        private VisualElement GroupSliderAndInt(Slider slider, IntegerField field, string label, string tooltipText)
         {
             // create parent container
             VisualElement container = new VisualElement();
             Label containerLabel = new Label(label);
+
+            // create tooltip element
+            VisualElement tooltip = new VisualElement() { tooltip = tooltipText };
+            TextElement i = new TextElement() { text = "?" };
+            i.AddToClassList("tooltip-i");
+            tooltip.Add(i);
+            tooltip.AddToClassList("tooltip");
 
             // group fields
             VisualElement fields = new VisualElement();
@@ -825,17 +937,26 @@ namespace WorldGenerator
             // add to parent container
             container.Add(containerLabel);
             container.Add(fields);
+            container.Add(tooltip);
 
             container.AddToClassList("slider-int-container");
+            container.AddToClassList("property-field");
 
             return container;
         }
 
-        private VisualElement GroupSliderAndFloat(Slider slider, FloatField field, string label)
+        private VisualElement GroupSliderAndFloat(Slider slider, FloatField field, string label, string tooltipText)
         {
             // create parent container
             VisualElement container = new VisualElement();
             Label containerLabel = new Label(label);
+            
+            // create tooltip element
+            VisualElement tooltip = new VisualElement() { tooltip = tooltipText };
+            TextElement i = new TextElement() { text = "?" };
+            i.AddToClassList("tooltip-i");
+            tooltip.Add(i);
+            tooltip.AddToClassList("tooltip");
 
             // group fields
             VisualElement fields = new VisualElement();
@@ -846,10 +967,27 @@ namespace WorldGenerator
             // add to parent container
             container.Add(containerLabel);
             container.Add(fields);
+            container.Add(tooltip);
 
             container.AddToClassList("slider-float-container");
+            container.AddToClassList("property-field");
 
             return container;
+        }
+//
+        private VisualElement CreateField<T>(BaseField<T> field, string tooltipText)
+        {
+            VisualElement fieldContainer = new VisualElement();
+            VisualElement tooltip = new VisualElement() { tooltip = tooltipText };
+            TextElement i = new TextElement() { text = "?" };
+            i.AddToClassList("tooltip-i");
+            tooltip.Add(i);
+            tooltip.AddToClassList("tooltip");
+
+            fieldContainer.Add(field);
+            fieldContainer.Add(tooltip);
+            fieldContainer.AddToClassList("property-field");
+            return fieldContainer;
         }
 
         public override VisualElement CreateInspectorGUI()
