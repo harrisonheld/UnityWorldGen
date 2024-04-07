@@ -388,7 +388,7 @@ namespace WorldGenerator
                 if (currentSkyboxName == null) { currentSkyboxName = "Import Custom"; }
                 int defaultSkyboxIndex = currentSkyboxName != null ? new List<string>(skyboxPresets.Keys).IndexOf(currentSkyboxName) : 0;
                 var skyboxDropdown = new PopupField<string>("Skybox", new List<string>(skyboxPresets.Keys), defaultSkyboxIndex);
-                VisualElement skyboxContainer = CreateField(skyboxDropdown, "The skybox that will be used for this biome.");
+                VisualElement skyboxContainer = CreateField(skyboxDropdown, "The type of sky that will be seen in this biome.");
                 
                 ObjectField skyboxField = new ObjectField("Custom Skybox");
                 skyboxField.BindProperty(skyboxProperty);
@@ -403,7 +403,7 @@ namespace WorldGenerator
 
                 skyboxDropdown.RegisterValueChangedCallback(evt =>
                 {
-                    // Placeholder for future functionality
+                    // placeholder for future functionality
                     string selectedSkyboxName = evt.newValue;
                     if (selectedSkyboxName == "Import Custom")
                     {
