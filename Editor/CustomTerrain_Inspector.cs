@@ -51,7 +51,7 @@ namespace WorldGenerator
         private readonly Dictionary<string, string> skyboxPresets = new Dictionary<string, string>
         {
             { "Default",       "Skyboxes/Default" },
-            { "Thin",          "Skyboxes/Thin"   },
+            { "Thin",          "Skyboxes/Thin"    },
             { "Dusk",          "Skyboxes/Dusk"    },
             { "Import Custom", "Skyboxes/Default" }
         };
@@ -59,8 +59,9 @@ namespace WorldGenerator
         // presets for features dropdown
         private readonly Dictionary<string, string> biomeFeaturePresets = new Dictionary<string, string>
         {
-            { "Trees",         "Features/tree"  },
-            { "Horses",        "Features/horse" },
+            { "Trees",         "Features/tree"    },
+            { "Rocks",         "Features/rock"    },
+            { "Horses",        "Features/horse"   },
             { "Import Custom", "Features/default" }
         };
 
