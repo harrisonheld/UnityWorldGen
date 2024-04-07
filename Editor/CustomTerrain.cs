@@ -85,9 +85,7 @@ namespace WorldGenerator
             {
                 if (_biomes[i].GetBiomeId() == biomeId)
                 {
-                    Debug.Log(_biomes[i].GetBiomeId());
                     _biomes.RemoveAt(i);
-                    Debug.Log($"Biome with ID {biomeId} deleted.");
                     return; // Exit the method after deleting the biome
                 }
             }
