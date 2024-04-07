@@ -112,8 +112,10 @@ namespace WorldGenerator
                 drawGizmosProperty.boolValue = evt.newValue;
                 serializedObject.ApplyModifiedProperties();
             });
+            VisualElement gizmosContainer = CreateField(drawGizmosField, "If true, a box will be drawn around each chunk. Make sure Gizmos are enabled in the Unity Editor.");
+            gizmosContainer.AddToClassList("checkbox-field");
 
-            debugSection.Add(drawGizmosField);
+            debugSection.Add(gizmosContainer);
             root.Add(debugSection);
 
             /* 
@@ -131,7 +133,7 @@ namespace WorldGenerator
                 worldSeedStringProperty.stringValue = evt.newValue;
                 serializedObject.ApplyModifiedProperties();
             });
-            CreateField(worldSeed, worldOptSection, "The seed string used to generate the terrain. If left empty, a random seed will be used.");
+            VisualElement worldSeedContainer = CreateField(worldSeed, "The seed string used to generate the terrain. If left empty, a random seed will be used.");
 
             TextField featureSeed = new TextField("Feature Seed") { value = featureSeedStringProperty.stringValue };
             featureSeed.RegisterValueChangedCallback(evt =>
@@ -139,21 +141,20 @@ namespace WorldGenerator
                 featureSeedStringProperty.stringValue = evt.newValue;
                 serializedObject.ApplyModifiedProperties();
             });
-            CreateField(featureSeed, worldOptSection, "The seed string used to generate the features. If left empty, a random seed will be used.");
+            VisualElement featureSeedContainer = CreateField(featureSeed, "The seed string used to generate the features. If left empty, a random seed will be used.");
 
             // create sliders and int fields for TerrainSize, BiomesFrequency and BiomesResolution
             var sizeSlider = new Slider(10, 1000) { value = chunkSizeProperty.intValue };
             var sizeField = new IntegerField { value = chunkSizeProperty.intValue };
-            VisualElement sizeContainer = GroupSliderAndInt(sizeSlider, sizeField, "Chunk Size");
-            // CreateField(sizeContainer, worldOptSection, "TEST");
+            VisualElement sizeContainer = GroupSliderAndInt(sizeSlider, sizeField, "Chunk Size", "The size of each chunk in world units. This is the number of units along each side of the chunk.");
 
             var resolutionSlider = new Slider(2, 250) { value = chunkResolutionProperty.intValue };
             var resolutionField = new IntegerField { value = chunkResolutionProperty.intValue };
-            VisualElement resolutionContainer = GroupSliderAndInt(resolutionSlider, resolutionField, "Chunk Resolution");
+            VisualElement resolutionContainer = GroupSliderAndInt(resolutionSlider, resolutionField, "Chunk Resolution", "The resolution of each chunk. This is the number of vertices along each side of the chunk.");
 
             var frequencySlider = new Slider(1, 10) { value = biomesPerChunkProperty.intValue };
             var frequencyField = new IntegerField { value = biomesPerChunkProperty.intValue };
-            VisualElement frequencyContainer = GroupSliderAndInt(frequencySlider, frequencyField, "Biomes Per Chunk");
+            VisualElement frequencyContainer = GroupSliderAndInt(frequencySlider, frequencyField, "Biomes Per Chunk", "The number of biomes that will be placed per chunk. Increasing this will generally make your biomes smaller.");
 
             // sync slider with int field
             void SyncSliderAndField(Slider slider, IntegerField field, SerializedProperty property, bool enforceEven = false)
@@ -186,6 +187,15 @@ namespace WorldGenerator
             SyncSliderAndField(sizeSlider, sizeField, chunkSizeProperty, true);
             SyncSliderAndField(frequencySlider, frequencyField, biomesPerChunkProperty);
             SyncSliderAndField(resolutionSlider, resolutionField, chunkResolutionProperty);
+
+            worldSeedContainer.AddToClassList("options-field");
+            featureSeedContainer.AddToClassList("options-field");
+            sizeContainer.AddToClassList("options-field");
+            frequencyContainer.AddToClassList("options-field");
+            resolutionContainer.AddToClassList("options-field");
+
+            worldOptSection.Add(worldSeedContainer);
+            worldOptSection.Add(featureSeedContainer);
             worldOptSection.Add(sizeContainer);
             worldOptSection.Add(frequencyContainer);
             worldOptSection.Add(resolutionContainer);
@@ -314,16 +324,15 @@ namespace WorldGenerator
                     BIOME NAME
                 */
                 TextField nameField = new TextField("Biome Name") { value = nameProperty.stringValue };
-                CreateField(nameField, biomeProperties, "Name of the current biome.");
-
                 nameField.RegisterValueChangedCallback(evt =>
                 {
                     nameProperty.stringValue = evt.newValue;
                     biomeElement.serializedObject.ApplyModifiedProperties();
                     biomeFoldout.text = string.IsNullOrEmpty(evt.newValue) ? "Unnamed Biome" : evt.newValue;
                 });
-                // nameField.AddToClassList("biome-field");
-                // biomeProperties.Add(nameField);
+                VisualElement nameContainer = CreateField(nameField, "Name of the current biome.");
+                nameContainer.AddToClassList("biome-field");
+                biomeProperties.Add(nameContainer);
 
                 /*
                     TEXTURE
@@ -334,6 +343,8 @@ namespace WorldGenerator
                 if (currentTextureName == null) { currentTextureName = "Import Custom"; }
                 int defaultTextureIndex = currentTextureName != null ? new List<string>(texturePresets.Keys).IndexOf(currentTextureName) : 0;
                 var textureDropdown = new PopupField<string>("Texture", new List<string>(texturePresets.Keys), defaultTextureIndex);
+                VisualElement textureContainer = CreateField(textureDropdown, "The texture that will be used to paint this biome.");
+
                 ObjectField textureField = new ObjectField("Custom Texture");
                 textureField.BindProperty(textureProperty);
                 if (textureDropdown.value == "Import Custom")
@@ -363,9 +374,6 @@ namespace WorldGenerator
                     Texture2D texture = Resources.Load<Texture2D>(texturePath);
                     biome.SetTexture(texture);
                 });
-                
-                VisualElement textureContainer = new VisualElement();
-                textureContainer.Add(textureDropdown);
                 textureContainer.Add(textureField);
                 textureContainer.AddToClassList("biome-field");
 
@@ -380,6 +388,8 @@ namespace WorldGenerator
                 if (currentSkyboxName == null) { currentSkyboxName = "Import Custom"; }
                 int defaultSkyboxIndex = currentSkyboxName != null ? new List<string>(skyboxPresets.Keys).IndexOf(currentSkyboxName) : 0;
                 var skyboxDropdown = new PopupField<string>("Skybox", new List<string>(skyboxPresets.Keys), defaultSkyboxIndex);
+                VisualElement skyboxContainer = CreateField(skyboxDropdown, "The skybox that will be used for this biome.");
+                
                 ObjectField skyboxField = new ObjectField("Custom Skybox");
                 skyboxField.BindProperty(skyboxProperty);
                 if (skyboxDropdown.value == "Import Custom")
@@ -408,9 +418,6 @@ namespace WorldGenerator
                     Material skybox = Resources.Load<Material>(skyboxPath);
                     biome.SetSkybox(skybox);
                 });
-
-                VisualElement skyboxContainer = new VisualElement();
-                skyboxContainer.Add(skyboxDropdown);
                 skyboxContainer.Add(skyboxField);
                 skyboxContainer.AddToClassList("biome-field");
 
@@ -428,7 +435,7 @@ namespace WorldGenerator
                     value = frequencyWeightProperty.intValue
                 };
 
-                VisualElement frequencyWeightContainer = GroupSliderAndInt(frequencyWeightSlider, frequencyWeightIntField, "Frequency");
+                VisualElement frequencyWeightContainer = GroupSliderAndInt(frequencyWeightSlider, frequencyWeightIntField, "Frequency", "How often this biome will appear in the world.");
                 frequencyWeightContainer.AddToClassList("biome-field");
 
                 frequencyWeightSlider.RegisterValueChangedCallback(evt =>
@@ -487,6 +494,8 @@ namespace WorldGenerator
                 if (currentHeightmapName == null) { currentHeightmapName = "Import Custom"; }
                 int defaultHeightmapIndex = currentHeightmapName != null ? new List<string>(heightmapPresets.Keys).IndexOf(currentHeightmapName) : 0;
                 var heightmapDropdown = new PopupField<string>("Type", new List<string>(heightmapPresets.Keys), defaultHeightmapIndex);
+                VisualElement heightmapType = CreateField(heightmapDropdown, "The type of heightmap to be used for the biome. This controls the topography of the terrain.");
+                
                 ObjectField heightmapField = new ObjectField("Custom Heightmap");
                 heightmapField.BindProperty(heightmapProperty);
                 if (heightmapDropdown.value == "Import Custom")
@@ -514,9 +523,6 @@ namespace WorldGenerator
                     HeightmapBase heightmap = Resources.Load<HeightmapBase>(heightmapPath);
                     biome.SetHeightMap(heightmap);
                 });
-
-                VisualElement heightmapType = new VisualElement();
-                heightmapType.Add(heightmapDropdown);
                 heightmapType.Add(heightmapField);
                 heightmapType.AddToClassList("heightmap-field");
 
@@ -545,7 +551,7 @@ namespace WorldGenerator
                             var slider = new Slider(minValue, maxValue) { value = currentProperty.floatValue };
                             var floatField = new FloatField { value = currentProperty.floatValue };
 
-                            VisualElement sliderContainer = GroupSliderAndFloat(slider, floatField, currentProperty.displayName);
+                            VisualElement sliderContainer = GroupSliderAndFloat(slider, floatField, currentProperty.displayName, currentProperty.displayName);
                             sliderContainer.AddToClassList("heightmap-field");
 
                             slider.RegisterValueChangedCallback(evt =>
@@ -708,8 +714,6 @@ namespace WorldGenerator
                     FEATURE NAME
                 */
                 TextField featureNameField = new TextField("Feature Name") { value = featureNameProperty.stringValue };
-                featureNameField.AddToClassList("feature-field");
-
                 featureNameField.RegisterValueChangedCallback(evt =>
                 {
                     featureNameProperty.stringValue = evt.newValue;
@@ -717,19 +721,16 @@ namespace WorldGenerator
                     featureFoldout.text = string.IsNullOrEmpty(evt.newValue) ? "Unnamed Feature" : evt.newValue;
                 });
 
+                VisualElement featureNameContainer = CreateField(featureNameField, "The name of the biome feature.");
+                featureNameContainer.AddToClassList("feature-field");
+
                 /*
                     FREQUENCY
                 */
-                var featureFrequencySlider = new Slider(0, 100)
-                {
-                    value = featureFrequencyProperty.intValue
-                };
-                var featureFrequencyIntField = new IntegerField
-                {
-                    value = featureFrequencyProperty.intValue
-                };
+                var featureFrequencySlider = new Slider(0, 100) { value = featureFrequencyProperty.intValue };
+                var featureFrequencyIntField = new IntegerField { value = featureFrequencyProperty.intValue };
 
-                VisualElement featureFrequencyField = GroupSliderAndInt(featureFrequencySlider, featureFrequencyIntField, "Frequency");
+                VisualElement featureFrequencyField = GroupSliderAndInt(featureFrequencySlider, featureFrequencyIntField, "Frequency", "How often this feature will appear in the biome.");
                 featureFrequencyField.AddToClassList("feature-field");
 
                 featureFrequencySlider.RegisterValueChangedCallback(evt =>
@@ -756,26 +757,25 @@ namespace WorldGenerator
                     SCALE
                 */
                 var featureScaleField = new Vector3Field("Scale") { value = featureScaleProperty.vector3Value };
-                featureScaleField.AddToClassList("feature-field");
-
                 featureScaleField.RegisterValueChangedCallback(evt =>
                 {
                     featureScaleProperty.vector3Value = evt.newValue;
                     featureElement.serializedObject.ApplyModifiedProperties();
                 });
-
+                VisualElement scaleContainer = CreateField(featureScaleField, "The scale of this feature. Controls how big the feature appears in the biome.");
+                scaleContainer.AddToClassList("feature-field");
                 /*
                     NORMALITY
                 */
                 var featureNormalField = new Toggle("Set Normal") { value = featureNormalProperty.boolValue };
-                featureNormalField.AddToClassList("feature-field");
-
                 featureNormalField.RegisterValueChangedCallback(evt =>
                 {
                     featureNormalProperty.boolValue = evt.newValue;
                     featureElement.serializedObject.ApplyModifiedProperties();
                 });
 
+                VisualElement normalContainer = CreateField(featureNormalField, "If true, the object will be placed normal (perpendicular) to the terrain.");
+                normalContainer.AddToClassList("feature-field");
                 /*
                     PREFAB
                 */
@@ -785,6 +785,8 @@ namespace WorldGenerator
                 if (currentPrefabName == null) { currentPrefabName = "Import Custom"; }
                 int defaultPrefabIndex = currentPrefabName != null ? new List<string>(biomeFeaturePresets.Keys).IndexOf(currentPrefabName) : 0;
                 var prefabDropdown = new PopupField<string>("Feature", new List<string>(biomeFeaturePresets.Keys), defaultPrefabIndex);  // Set Name to the value in the dictionary or null.
+                VisualElement prefabContainer = CreateField(prefabDropdown, "The feature/object model that spawns in the terrain.");
+                
                 ObjectField prefabField = new ObjectField("Custom Feature");
                 prefabField.BindProperty(featurePrefabProperty);
                 if (prefabDropdown.value == "Import Custom")
@@ -813,16 +815,13 @@ namespace WorldGenerator
                     GameObject prefab = Resources.Load<GameObject>(prefabPath);
                     feature.Prefab = prefab;
                 });
-
-                VisualElement prefabContainer = new VisualElement();
-                prefabContainer.Add(prefabDropdown);
                 prefabContainer.Add(prefabField);
                 prefabContainer.AddToClassList("feature-field");
 
-                featuresProperties.Add(featureNameField);
+                featuresProperties.Add(featureNameContainer);
                 featuresProperties.Add(featureFrequencyField);
-                featuresProperties.Add(featureScaleField);
-                featuresProperties.Add(featureNormalField);
+                featuresProperties.Add(scaleContainer);
+                featuresProperties.Add(normalContainer);
                 featuresProperties.Add(prefabContainer);
                 featuresProperties.Add(deleteFeatureButton);
                 featureFoldout.Add(featuresProperties);
@@ -878,11 +877,18 @@ namespace WorldGenerator
             biomeProperties.Add(addFeatureButton);
         }
 
-        private VisualElement GroupSliderAndInt(Slider slider, IntegerField field, string label)
+        private VisualElement GroupSliderAndInt(Slider slider, IntegerField field, string label, string tooltipText)
         {
             // create parent container
             VisualElement container = new VisualElement();
             Label containerLabel = new Label(label);
+
+            // create tooltip element
+            VisualElement tooltip = new VisualElement() { tooltip = tooltipText };
+            TextElement i = new TextElement() { text = "?" };
+            i.AddToClassList("tooltip-i");
+            tooltip.Add(i);
+            tooltip.AddToClassList("tooltip");
 
             // group fields
             VisualElement fields = new VisualElement();
@@ -893,17 +899,26 @@ namespace WorldGenerator
             // add to parent container
             container.Add(containerLabel);
             container.Add(fields);
+            container.Add(tooltip);
 
             container.AddToClassList("slider-int-container");
+            container.AddToClassList("property-field");
 
             return container;
         }
 
-        private VisualElement GroupSliderAndFloat(Slider slider, FloatField field, string label)
+        private VisualElement GroupSliderAndFloat(Slider slider, FloatField field, string label, string tooltipText)
         {
             // create parent container
             VisualElement container = new VisualElement();
             Label containerLabel = new Label(label);
+            
+            // create tooltip element
+            VisualElement tooltip = new VisualElement() { tooltip = tooltipText };
+            TextElement i = new TextElement() { text = "?" };
+            i.AddToClassList("tooltip-i");
+            tooltip.Add(i);
+            tooltip.AddToClassList("tooltip");
 
             // group fields
             VisualElement fields = new VisualElement();
@@ -914,13 +929,15 @@ namespace WorldGenerator
             // add to parent container
             container.Add(containerLabel);
             container.Add(fields);
+            container.Add(tooltip);
 
             container.AddToClassList("slider-float-container");
+            container.AddToClassList("property-field");
 
             return container;
         }
 //
-        private void CreateField<T>(BaseField<T> field, Box propertiesBox, string tooltipText)
+        private VisualElement CreateField<T>(BaseField<T> field, string tooltipText)
         {
             VisualElement fieldContainer = new VisualElement();
             VisualElement tooltip = new VisualElement() { tooltip = tooltipText };
@@ -932,7 +949,7 @@ namespace WorldGenerator
             fieldContainer.Add(field);
             fieldContainer.Add(tooltip);
             fieldContainer.AddToClassList("property-field");
-            propertiesBox.Add(fieldContainer);
+            return fieldContainer;
         }
 
         public override VisualElement CreateInspectorGUI()

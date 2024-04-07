@@ -191,6 +191,11 @@ Button {
     flex-direction: column;
 }
 
+.slider-int-container Label,
+.slider-float-container Label {
+    margin-bottom: 4px;
+}
+
 .slider-int-field,
 .slider-float-field {
     display: flex;
@@ -218,7 +223,7 @@ Button {
 
 .unity-integer-field,
 .unity-float-field {
-    padding-left: 12px;
+    margin-left: 12px;
     -unity-text-align: middle-center;
 }
 
@@ -310,8 +315,7 @@ Button {
 }
 
 .unity-float-field {
-    padding: 0;
-    
+    margin: 0;
 }
 
 /*
@@ -321,8 +325,7 @@ Button {
 .add-biome-field,
 .biome-field,
 .heightmap-field,
-.feature-field,
-.property-field {
+.feature-field {
     margin-bottom: 8px;
     padding: 4px;
     border-radius: 4px;
@@ -331,6 +334,10 @@ Button {
 
 .feature-foldout.feature-field {
     margin-bottom: 0;
+}
+
+.property-field {
+    position: relative;
 }
 
 .tooltip {
@@ -353,4 +360,8 @@ Button {
 .tooltip-i {
     font-size: 10px;
     -unity-text-align: middle-center;
+}
+
+.checkbox-field .tooltip {
+    top: -1px;
 }
