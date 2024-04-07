@@ -98,11 +98,12 @@ namespace WorldGenerator
             for (int i = 0; i < _voronoiSeeds.Count; i++)
             {
                 int biome = _voronoiSeeds[i].Biome;
-                float distance = (chunkOffsetX - _voronoiSeeds[i].X) * (chunkOffsetX - _voronoiSeeds[i].X) +
-                             (chunkOffsetZ - _voronoiSeeds[i].Y) * (chunkOffsetZ - _voronoiSeeds[i].Y);
+                float dx = chunkOffsetX - _voronoiSeeds[i].X;
+                float dz = chunkOffsetZ - _voronoiSeeds[i].Y;
+                float distanceSquared = dx * dx + dz * dz;
 
                 // apply a falloff function to the distance
-                float weight = 1.0f / (1.0f + distance * distance * distance);
+                float weight = 1.0f / (1.0f + distanceSquared * distanceSquared * distanceSquared);
                 weights[biome].Weight += weight;
                 totalWeight += weight;
             }
