@@ -16,9 +16,6 @@ namespace WorldGenerator
 
         private Dictionary<string, Foldout> foldoutStates = new Dictionary<string, Foldout>();
 
-        // Foldout test = new Foldout();
-        
-
         // presets for biomes dropdown
         private readonly Dictionary<string, (string heightmap, string texture, string skybox)> biomePresets = new Dictionary<string, (string, string, string)>
         {
@@ -347,6 +344,7 @@ namespace WorldGenerator
 
                 ObjectField textureField = new ObjectField("Custom Texture");
                 textureField.BindProperty(textureProperty);
+                textureField.objectType= typeof (Texture2D);
                 if (textureDropdown.value == "Import Custom")
                 {
                     textureField.style.display = DisplayStyle.Flex;
@@ -392,6 +390,7 @@ namespace WorldGenerator
                 
                 ObjectField skyboxField = new ObjectField("Custom Skybox");
                 skyboxField.BindProperty(skyboxProperty);
+                skyboxField.objectType = typeof(Material);
                 if (skyboxDropdown.value == "Import Custom")
                 {
                     skyboxField.style.display = DisplayStyle.Flex;
@@ -498,6 +497,7 @@ namespace WorldGenerator
                 
                 ObjectField heightmapField = new ObjectField("Custom Heightmap");
                 heightmapField.BindProperty(heightmapProperty);
+                heightmapField.objectType = typeof(HeightmapBase);
                 if (heightmapDropdown.value == "Import Custom")
                 {
                     heightmapField.style.display = DisplayStyle.Flex;
@@ -522,10 +522,19 @@ namespace WorldGenerator
                     string heightmapPath = heightmapPresets[selectedHeightmapName];
                     HeightmapBase heightmap = Resources.Load<HeightmapBase>(heightmapPath);
                     biome.SetHeightMap(heightmap);
+                    UpdateUI(root, terrain);
                 });
+
+                heightmapField.RegisterValueChangedCallback(evt =>
+                {
+                    if (currentHeightmap != evt.newValue) 
+                    {
+                        UpdateUI(root, terrain);
+                    }
+                });
+
                 heightmapType.Add(heightmapField);
                 heightmapType.AddToClassList("heightmap-field");
-
                 heightmapProperties.Clear();
                 heightmapProperties.Add(heightmapType);
             
@@ -576,6 +585,33 @@ namespace WorldGenerator
                             });
 
                             heightmapProperties.Add(sliderContainer);
+                            break;
+
+                        case SerializedPropertyType.ArraySize:
+                            // ArraySize handling
+                            var arraySizeField = new IntegerField(currentProperty.displayName) { value = currentProperty.intValue };
+                            arraySizeField.RegisterValueChangedCallback(evt =>
+                            {
+                                currentProperty.arraySize = evt.newValue;
+                                currentProperty.serializedObject.ApplyModifiedProperties();
+                                UpdateUI(root,terrain);
+                            });
+                            heightmapProperties.Add(arraySizeField);
+                            break;
+
+                        case SerializedPropertyType.Generic:
+                            break;
+
+                        case SerializedPropertyType.ObjectReference:
+                            var objectField = new ObjectField(currentProperty.displayName) { value = currentProperty.objectReferenceValue };
+                            objectField.BindProperty(currentProperty);
+                            objectField.RegisterValueChangedCallback(evt =>
+                            {
+                                currentProperty.objectReferenceValue = evt.newValue;
+                                currentProperty.serializedObject.ApplyModifiedProperties();
+                            });
+                            heightmapProperties.Add(objectField);
+                    
                             break;
 
                         default:
@@ -789,6 +825,7 @@ namespace WorldGenerator
                 
                 ObjectField prefabField = new ObjectField("Custom Feature");
                 prefabField.BindProperty(featurePrefabProperty);
+                prefabField.objectType = typeof(GameObject);
                 if (prefabDropdown.value == "Import Custom")
                 {
                     prefabField.style.display = DisplayStyle.Flex;                
