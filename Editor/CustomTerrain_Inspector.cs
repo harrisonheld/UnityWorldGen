@@ -267,7 +267,7 @@ namespace WorldGenerator
             // if no biomes, render a emssage
             if (biomesProperty.arraySize == 0)
             {
-                Label noBiomesLabel = new Label("No biomes so far! Click 'Add Biome' above to add one.");
+                Label noBiomesLabel = new Label("No biomes so far! Use 'Add Biome' above to add one.");
                 root.Add(noBiomesLabel);
             }
             // for each biome, add its properties to the GUI
@@ -701,6 +701,11 @@ namespace WorldGenerator
             /*
                 INDIVIDUAL FEATURES
             */
+            if (featuresProperty.arraySize == 0)
+            {
+                Label noFeaturesLabel = new Label("No features so far! Use 'Add Feature' below to add one.");
+                biomeProperties.Add(noFeaturesLabel);
+            }
             // for each feature, add its properties to the GUI
             for (int j = 0; j < featuresProperty.arraySize; j++)
             {
