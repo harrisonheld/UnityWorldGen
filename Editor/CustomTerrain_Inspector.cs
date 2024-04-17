@@ -298,7 +298,6 @@ namespace WorldGenerator
                 // if foldout already exists, load from dictionary
                 if (foldoutStates.ContainsKey(biomeId)) 
                 {
-                    Debug.Log(biomeId);
                     biomeFoldout = foldoutStates[biomeId];
                     biomeFoldout.Clear();
                 } 

@@ -160,7 +160,8 @@ namespace WorldGenerator
             // seed
             if (_worldSeedString == "")
             {
-                _worldSeed = ((int)DateTime.Now.Ticks);
+                _worldSeed = Helpers.MultiHash(DateTime.Now.Ticks);
+                Debug.Log($"Using random world seed: {_worldSeed}");
             }
             else
             {
