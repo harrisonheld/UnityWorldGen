@@ -91,6 +91,9 @@ namespace WorldGenerator
             }
             Debug.LogWarning($"Biome with ID {biomeId} not found.");
         }
+        /// <summary>
+        /// Generate the terrain. Will first clear the existing terrain, if there is any.
+        /// </summary>
         public void GenerateTerrain()
         {
             // errors
@@ -337,6 +340,9 @@ namespace WorldGenerator
             return chunk;
         }
 
+        /// <summary>
+        /// Will generate the features for the terrain. Will first clear the existing features, if there are any.
+        /// </summary>
         public void GenerateAllFeatures()
         {
 
@@ -363,7 +369,7 @@ namespace WorldGenerator
                 }
             }
         }
-        public void GenerateChunkFeatures(int chunkX, int chunkZ, Vector3[] vertices, Vector2[] uv2s)
+        private void GenerateChunkFeatures(int chunkX, int chunkZ, Vector3[] vertices, Vector2[] uv2s)
         {
             // seed
             if (_featureSeedString == "")
@@ -422,7 +428,11 @@ namespace WorldGenerator
             }
         }
 
-        public void ExportChunks(string path)
+        /// <summary>
+        /// Will export each chunk of the terrain as a separate OBJ file. The files will be saved to the specified directory, which will be first cleared if it contains any files.
+        /// </summary>
+        /// <param name="dir">The directory to save the files to.</param>
+        public void ExportChunks(string dir)
         {
             if (_chunks == null)
             {
@@ -444,16 +454,16 @@ namespace WorldGenerator
             }
 
             // Ensure path is a directory path
-            if (Path.HasExtension(path))
+            if (Path.HasExtension(dir))
             {
                 Debug.LogError("Path is not a directory.");
                 return;
             }
 
             // Clear the directory if it exists
-            if (Directory.Exists(path))
-                Directory.Delete(path, true);
-            Directory.CreateDirectory(path);
+            if (Directory.Exists(dir))
+                Directory.Delete(dir, true);
+            Directory.CreateDirectory(dir);
 
             // Export each chunk as a separate OBJ file
             try
@@ -465,7 +475,7 @@ namespace WorldGenerator
                     {
                         GameObject chunk = _chunks[x, z];
                         Mesh mesh = chunk.GetComponent<MeshFilter>().sharedMesh;
-                        string chunkPath = Path.Combine(path, $"chunk-{x}-{z}.obj");
+                        string chunkPath = Path.Combine(dir, $"chunk-{x}-{z}.obj");
                         exporter.ExportMesh(mesh, chunkPath);
                     }
                 }
@@ -476,7 +486,7 @@ namespace WorldGenerator
                 return;
             }
 
-            Debug.Log($"Exported all chunks to '{path}'.");
+            Debug.Log($"Exported all chunks to '{dir}'.");
         }
 
 
@@ -500,7 +510,10 @@ namespace WorldGenerator
             }
         }
 
-
+        /// <summary>
+        /// Set the player position, in world coordinates. This will change the skybox based on the biome the player is in.
+        /// </summary>
+        /// <param name="pos"></param>
         public void SetPlayerPos(Vector3 pos)
         {
             // check error
