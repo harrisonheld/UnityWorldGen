@@ -148,13 +148,13 @@ namespace UnitTests
             // multi heightmap to be tested
             HeightmapMulti heightmap = ScriptableObject.CreateInstance<HeightmapMulti>();
             heightmap.Heightmaps = new List<HeightmapBase> { heightmap1, heightmap2 };
+            heightmap.SetSeed(0);
 
             // test
             Assert.AreEqual(26, heightmap.GetHeight(0f, 0f));
             Assert.AreEqual(26, heightmap.GetHeight(1f, 1f));
             Assert.AreEqual(26, heightmap.GetHeight(100f, 100f));
             Assert.AreEqual(26, heightmap.GetHeight(-100f, -100f));
-
 
             Object.DestroyImmediate(heightmap1);
             Object.DestroyImmediate(heightmap2);

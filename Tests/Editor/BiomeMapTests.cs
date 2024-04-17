@@ -142,5 +142,18 @@ namespace UnitTests
             // but due to randomness, it may be a little more or less, so ill check more than 90
             Assert.Greater(hugeWeightBiomeCount, tinyWeightBiomeCount*90);
         }
+
+        [Test]
+        public void BiomeMapErrorHandling()
+        {
+            List<Biome> biomes = new()
+            {
+                new Biome(),
+            };
+            BiomeMap biomeMap = new BiomeMap(0, biomes, 10f, 0, 0, 10);
+
+            // out of bounds
+            Assert.Throws<System.ArgumentException>(() => biomeMap.Sample(-1000, -1000));
+        }
     }
 }
