@@ -5,6 +5,7 @@ using NUnit.Framework;
 using WorldGenerator;
 using UnityEditor;
 using System.Threading;
+using System.IO;
 
 namespace UnitTests
 {
@@ -83,6 +84,19 @@ namespace UnitTests
 
             // delete the file
             System.IO.File.Delete("Assets/mesh.obj");
+        }
+
+        [Test]
+        public void ObjExportErrors()
+        {
+            Mesh mesh = new Mesh();
+            MeshExporter exporter = new MeshExporter();
+
+            exporter.ExportMesh(mesh, "Assets/mesh.png");
+            UnityEngine.TestTools.LogAssert.Expect(LogType.Error, "Invalid file format. File path must end with .obj extension.");
+
+            exporter.ExportMesh(mesh, "C:/Windows/System32/mesh.obj");
+            UnityEngine.TestTools.LogAssert.Expect(LogType.Error, "Failed to export mesh: Access to the path \"C:\\Windows\\System32\\mesh.obj\" is denied.");
         }
     }
 }
